@@ -58,7 +58,18 @@ u32 prandom32(struct rnd_state *state)
 
 	return (state->s1 ^ state->s2 ^ state->s3);
 }
+<<<<<<< HEAD
 EXPORT_SYMBOL(prandom32);
+=======
+
+/*
+ * Handle minimum values for seeds
+ */
+static inline u32 __seed(u32 x, u32 m)
+{
+	return (x < m) ? x + m : x;
+}
+>>>>>>> 697f8d0... random32: seeding improvement
 
 /**
  *	random32 - pseudo random number generator
@@ -114,12 +125,21 @@ static int __init random32_init(void)
 		state->s3 = __seed(LCG(state->s2), 15);
 
 		/* "warm it up" */
+<<<<<<< HEAD
 		prandom32(state);
 		prandom32(state);
 		prandom32(state);
 		prandom32(state);
 		prandom32(state);
 		prandom32(state);
+=======
+		__random32(state);
+		__random32(state);
+		__random32(state);
+		__random32(state);
+		__random32(state);
+		__random32(state);
+>>>>>>> 697f8d0... random32: seeding improvement
 	}
 	return 0;
 }
@@ -143,7 +163,11 @@ static int __init random32_reseed(void)
 		state->s3 = __seed(seeds[2], 15);
 
 		/* mix it in */
+<<<<<<< HEAD
 		prandom32(state);
+=======
+		__random32(state);
+>>>>>>> 697f8d0... random32: seeding improvement
 	}
 	return 0;
 }
