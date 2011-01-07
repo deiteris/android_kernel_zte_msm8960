@@ -264,8 +264,14 @@ extern void nilfs_update_inode(struct inode *, struct buffer_head *);
 extern void nilfs_truncate(struct inode *);
 extern void nilfs_evict_inode(struct inode *);
 extern int nilfs_setattr(struct dentry *, struct iattr *);
+<<<<<<< HEAD
 int nilfs_permission(struct inode *inode, int mask);
 int nilfs_load_inode_block(struct inode *inode, struct buffer_head **pbh);
+=======
+int nilfs_permission(struct inode *inode, int mask, unsigned int flags);
+extern int nilfs_load_inode_block(struct nilfs_sb_info *, struct inode *,
+				  struct buffer_head **);
+>>>>>>> b74c79e... fs: provide rcu-walk aware permission i_ops
 extern int nilfs_inode_dirty(struct inode *);
 int nilfs_set_file_dirty(struct inode *inode, unsigned nr_dirty);
 extern int nilfs_mark_inode_dirty(struct inode *);

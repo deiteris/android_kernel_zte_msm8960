@@ -943,9 +943,13 @@ int ecryptfs_truncate(struct dentry *dentry, loff_t new_length)
 }
 
 static int
-ecryptfs_permission(struct inode *inode, int mask)
+ecryptfs_permission(struct inode *inode, int mask, unsigned int flags)
 {
+<<<<<<< HEAD
 	if (mask & MAY_NOT_BLOCK)
+=======
+	if (flags & IPERM_FLAG_RCU)
+>>>>>>> b74c79e... fs: provide rcu-walk aware permission i_ops
 		return -ECHILD;
 	return inode_permission(ecryptfs_inode_to_lower(inode), mask);
 }

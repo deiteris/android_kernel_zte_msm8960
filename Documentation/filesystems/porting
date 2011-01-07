@@ -386,6 +386,7 @@ Documentation/filesystems/vfs.txt for more details.
 
 	permission and check_acl are inode permission checks that are called
 on many or all directory inodes on the way down a path walk (to check for
+<<<<<<< HEAD
 exec permission). These must now be rcu-walk aware (flags & IPERM_FLAG_RCU).
 See Documentation/filesystems/vfs.txt for more details.
  
@@ -407,3 +408,7 @@ a file off.
 a matter of switching from calling get_sb_... to mount_... and changing the
 function type.  If you were doing it manually, just switch from setting ->mnt_root
 to some pointer to returning that pointer.  On errors return ERR_PTR(...).
+=======
+exec permission). These must now be rcu-walk aware (flags & IPERM_RCU). See
+Documentation/filesystems/vfs.txt for more details.
+>>>>>>> b74c79e... fs: provide rcu-walk aware permission i_ops

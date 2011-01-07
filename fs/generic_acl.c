@@ -181,9 +181,15 @@ generic_acl_chmod(struct inode *inode)
 }
 
 int
-generic_check_acl(struct inode *inode, int mask)
+generic_check_acl(struct inode *inode, int mask, unsigned int flags)
 {
 	struct posix_acl *acl;
+<<<<<<< HEAD
+=======
+
+	if (flags & IPERM_FLAG_RCU)
+		return -ECHILD;
+>>>>>>> b74c79e... fs: provide rcu-walk aware permission i_ops
 
 	acl = get_cached_acl(inode, ACL_TYPE_ACCESS);
 	if (acl) {

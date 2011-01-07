@@ -232,9 +232,15 @@ ext2_set_acl(struct inode *inode, int type, struct posix_acl *acl)
 }
 
 int
-ext2_check_acl(struct inode *inode, int mask)
+ext2_check_acl(struct inode *inode, int mask, unsigned int flags)
 {
 	struct posix_acl *acl;
+<<<<<<< HEAD
+=======
+
+	if (flags & IPERM_FLAG_RCU)
+		return -ECHILD;
+>>>>>>> b74c79e... fs: provide rcu-walk aware permission i_ops
 
 	acl = ext2_get_acl(inode, ACL_TYPE_ACCESS);
 	if (IS_ERR(acl))

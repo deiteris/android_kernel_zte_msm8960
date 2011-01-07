@@ -555,6 +555,16 @@ static int logfs_symlink(struct inode *dir, struct dentry *dentry,
 	return __logfs_create(dir, dentry, inode, target, destlen);
 }
 
+<<<<<<< HEAD
+=======
+static int logfs_permission(struct inode *inode, int mask, unsigned int flags)
+{
+	if (flags & IPERM_FLAG_RCU)
+		return -ECHILD;
+	return generic_permission(inode, mask, flags, NULL);
+}
+
+>>>>>>> b74c79e... fs: provide rcu-walk aware permission i_ops
 static int logfs_link(struct dentry *old_dentry, struct inode *dir,
 		struct dentry *dentry)
 {
