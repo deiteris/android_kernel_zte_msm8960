@@ -1661,6 +1661,10 @@ int __get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
 		vma = find_extend_vma(mm, start);
 		if (!vma && in_gate_area(mm, start)) {
 			unsigned long pg = start & PAGE_MASK;
+<<<<<<< HEAD
+=======
+			struct vm_area_struct *gate_vma = get_gate_vma(mm);
+>>>>>>> b81a618... Merge branch 'for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/viro/vfs-2.6
 			pgd_t *pgd;
 			pud_t *pud;
 			pmd_t *pmd;
@@ -3815,7 +3819,11 @@ static int __access_remote_vm(struct task_struct *tsk, struct mm_struct *mm,
 }
 
 /**
+<<<<<<< HEAD
  * access_remote_vm - access another process' address space
+=======
+ * @access_remote_vm - access another process' address space
+>>>>>>> b81a618... Merge branch 'for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/viro/vfs-2.6
  * @mm:		the mm_struct of the target address space
  * @addr:	start address to access
  * @buf:	source or destination buffer
