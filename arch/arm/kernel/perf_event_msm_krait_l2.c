@@ -474,7 +474,7 @@ static irqreturn_t krait_l2_handle_irq(int irq_num, void *dev)
 		if (!pmu_event_set_period(event, hwc, idx))
 			goto next;
 
-		if (perf_event_overflow(event, 0, &data, regs))
+		if (perf_event_overflow(event, &data, regs))
 			disable_counter(hwc->idx);
 next:
 		pmovsr &= (pmovsr - 1);
