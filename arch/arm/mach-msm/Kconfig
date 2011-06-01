@@ -889,6 +889,7 @@ choice
 		  Say Y here if you want the debug print routines to direct
 		  their output to the first serial port on MSM devices.
 
+<<<<<<< HEAD
 	config DEBUG_MSM_UART2
 		bool "Kernel low-level debugging messages via MSM UART2"
 		depends on ARCH_MSM7X00A || ARCH_MSM7X30 || ARCH_QSD8X50
@@ -1898,9 +1899,6 @@ config IOMMU_PGTABLES_L2
 config MSM_DIRECT_SCLK_ACCESS
 	bool "Direct access to the SCLK timer"
 	default n
-
-config IOMMU_API
-       bool
 
 config MSM_GPIOMUX
 	bool
