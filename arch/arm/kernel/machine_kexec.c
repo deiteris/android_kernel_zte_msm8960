@@ -13,11 +13,10 @@
 #include <asm/cacheflush.h>
 #include <asm/mach-types.h>
 #include <asm/mmu_writeable.h>
+#include <asm/system.h>
 
 extern const unsigned char relocate_new_kernel[];
 extern const unsigned int relocate_new_kernel_size;
-
-extern void setup_mm_for_reboot(void);
 
 extern unsigned long kexec_start_address;
 extern unsigned long kexec_indirection_page;
@@ -121,8 +120,6 @@ void machine_kexec(struct kimage *image)
 
 	if (kexec_reinit)
 		kexec_reinit();
-	local_irq_disable();
-	local_fiq_disable();
 
 #ifdef CONFIG_KEXEC_HARDBOOT
 	if (image->hardboot && kexec_hardboot_hook)
@@ -130,12 +127,5 @@ void machine_kexec(struct kimage *image)
 		kexec_hardboot_hook();
 #endif
 
-	setup_mm_for_reboot();
-	flush_cache_all();
-	outer_flush_all();
-	outer_disable();
-	cpu_proc_fin();
-	outer_inv_all();
-	flush_cache_all();
-	__virt_to_phys(cpu_reset)(reboot_code_buffer_phys);
+	soft_restart(reboot_code_buffer_phys);
 }
