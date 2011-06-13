@@ -642,6 +642,8 @@ _pnfs_return_layout(struct inode *ino)
 		return status;
 	}
 	stateid = nfsi->layout->plh_stateid;
+	mark_matching_lsegs_invalid(lo, &tmp_list, NULL);
+	lo->plh_block_lgets++;
 	/* Reference matched in nfs4_layoutreturn_release */
 	get_layout_hdr(lo);
 	mark_matching_lsegs_invalid(lo, &tmp_list, NULL);
