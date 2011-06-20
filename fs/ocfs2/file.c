@@ -1307,7 +1307,11 @@ int ocfs2_permission(struct inode *inode, int mask)
 		goto out;
 	}
 
+<<<<<<< HEAD
 	ret = generic_permission(inode, mask);
+=======
+	ret = generic_permission(inode, mask, flags);
+>>>>>>> 178ea735... kill check_acl callback of generic_permission()
 
 	ocfs2_inode_unlock(inode, 0);
 out:

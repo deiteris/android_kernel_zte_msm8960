@@ -867,7 +867,11 @@ out:
 	return err;
 }
 
+<<<<<<< HEAD
 int reiserfs_check_acl(struct inode *inode, int mask)
+=======
+int reiserfs_check_acl(struct inode *inode, int mask, unsigned int flags)
+>>>>>>> 178ea735... kill check_acl callback of generic_permission()
 {
 	struct posix_acl *acl;
 	int error = -EAGAIN; /* do regular unix permission checks by default */
@@ -878,7 +882,11 @@ int reiserfs_check_acl(struct inode *inode, int mask)
 	if (get_inode_sd_version(inode) == STAT_DATA_V1)
 		return -EAGAIN;
 
+<<<<<<< HEAD
 	if (mask & MAY_NOT_BLOCK)
+=======
+	if (flags & IPERM_FLAG_RCU)
+>>>>>>> 178ea735... kill check_acl callback of generic_permission()
 		return -ECHILD;
 
 	acl = reiserfs_get_acl(inode, ACL_TYPE_ACCESS);
@@ -966,7 +974,11 @@ int reiserfs_permission(struct inode *inode, int mask)
 	if (IS_PRIVATE(inode))
 		return 0;
 
+<<<<<<< HEAD
 	return generic_permission(inode, mask);
+=======
+	return generic_permission(inode, mask, flags);
+>>>>>>> 178ea735... kill check_acl callback of generic_permission()
 }
 
 static int xattr_hide_revalidate(struct dentry *dentry, struct nameidata *nd)

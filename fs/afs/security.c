@@ -350,7 +350,11 @@ int afs_permission(struct inode *inode, int mask)
 	}
 
 	key_put(key);
+<<<<<<< HEAD
 	ret = generic_permission(inode, mask);
+=======
+	ret = generic_permission(inode, mask, flags);
+>>>>>>> 178ea735... kill check_acl callback of generic_permission()
 	_leave(" = %d", ret);
 	return ret;
 

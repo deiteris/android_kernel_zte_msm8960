@@ -176,9 +176,15 @@ EXPORT_SYMBOL(putname);
 /*
  * This does basic POSIX ACL permission checking
  */
+<<<<<<< HEAD
 static int acl_permission_check(struct inode *inode, int mask)
 {
 	int (*check_acl)(struct inode *inode, int mask);
+=======
+static int acl_permission_check(struct inode *inode, int mask, unsigned int flags)
+{
+	int (*check_acl)(struct inode *inode, int mask, unsigned int flags);
+>>>>>>> 178ea735... kill check_acl callback of generic_permission()
 	unsigned int mode = inode->i_mode;
 
 	mask &= MAY_READ | MAY_WRITE | MAY_EXEC | MAY_NOT_BLOCK;
@@ -213,6 +219,10 @@ other_perms:
  * generic_permission -  check for access rights on a Posix-like filesystem
  * @inode:	inode to check access rights for
  * @mask:	right to check for (%MAY_READ, %MAY_WRITE, %MAY_EXEC)
+<<<<<<< HEAD
+=======
+ * @flags:	IPERM_FLAG_ flags.
+>>>>>>> 178ea735... kill check_acl callback of generic_permission()
  *
  * Used to check for read/write/execute permissions on a file.
  * We use "fsuid" for this, letting us set arbitrary permissions
@@ -223,14 +233,22 @@ other_perms:
  * request cannot be satisfied (eg. requires blocking or too much complexity).
  * It would then be called again in ref-walk mode.
  */
+<<<<<<< HEAD
 int generic_permission(struct inode *inode, int mask)
+=======
+int generic_permission(struct inode *inode, int mask, unsigned int flags)
+>>>>>>> 178ea735... kill check_acl callback of generic_permission()
 {
 	int ret;
 
 	/*
 	 * Do the basic POSIX ACL permission checks.
 	 */
+<<<<<<< HEAD
 	ret = acl_permission_check(inode, mask);
+=======
+	ret = acl_permission_check(inode, mask, flags);
+>>>>>>> 178ea735... kill check_acl callback of generic_permission()
 	if (ret != -EACCES)
 		return ret;
 
@@ -297,7 +315,11 @@ int inode_permission(struct inode *inode, int mask)
 	if (inode->i_op->permission)
 		retval = inode->i_op->permission(inode, mask);
 	else
+<<<<<<< HEAD
 		retval = generic_permission(inode, mask);
+=======
+		retval = generic_permission(inode, mask, 0);
+>>>>>>> 178ea735... kill check_acl callback of generic_permission()
 
 	if (retval)
 		return retval;
@@ -310,6 +332,46 @@ int inode_permission(struct inode *inode, int mask)
 }
 
 /**
+<<<<<<< HEAD
+=======
+ * exec_permission  -  check for right to do lookups in a given directory
+ * @inode:	inode to check permission on
+ * @flags:	IPERM_FLAG_ flags.
+ *
+ * Short-cut version of inode_permission(), for calling on directories
+ * during pathname resolution.  Combines parts of inode_permission()
+ * and generic_permission(), and tests ONLY for MAY_EXEC permission.
+ *
+ * If appropriate, check DAC only.  If not appropriate, or
+ * short-cut DAC fails, then call ->permission() to do more
+ * complete permission check.
+ */
+static inline int exec_permission(struct inode *inode, unsigned int flags)
+{
+	int ret;
+	struct user_namespace *ns = inode_userns(inode);
+
+	if (inode->i_op->permission) {
+		ret = inode->i_op->permission(inode, MAY_EXEC, flags);
+		if (likely(!ret))
+			goto ok;
+	} else {
+		ret = acl_permission_check(inode, MAY_EXEC, flags);
+		if (likely(!ret))
+			goto ok;
+		if (ret != -EACCES)
+			return ret;
+		if (ns_capable(ns, CAP_DAC_OVERRIDE) ||
+				ns_capable(ns, CAP_DAC_READ_SEARCH))
+			goto ok;
+	}
+	return ret;
+ok:
+	return security_inode_exec_permission(inode, flags);
+}
+
+/**
+>>>>>>> 178ea735... kill check_acl callback of generic_permission()
  * path_get - get a reference to a path
  * @path: path to get the reference to
  *

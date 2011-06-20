@@ -1805,7 +1805,11 @@ int ceph_permission(struct inode *inode, int mask)
 	err = ceph_do_getattr(inode, CEPH_CAP_AUTH_SHARED);
 
 	if (!err)
+<<<<<<< HEAD
 		err = generic_permission(inode, mask);
+=======
+		err = generic_permission(inode, mask, flags);
+>>>>>>> 178ea735... kill check_acl callback of generic_permission()
 	return err;
 }
 

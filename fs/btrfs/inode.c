@@ -7332,7 +7332,11 @@ static int btrfs_permission(struct inode *inode, int mask)
 		return -EROFS;
 	if ((BTRFS_I(inode)->flags & BTRFS_INODE_READONLY) && (mask & MAY_WRITE))
 		return -EACCES;
+<<<<<<< HEAD
 	return generic_permission(inode, mask);
+=======
+	return generic_permission(inode, mask, flags);
+>>>>>>> 178ea735... kill check_acl callback of generic_permission()
 }
 
 static const struct inode_operations btrfs_dir_inode_operations = {

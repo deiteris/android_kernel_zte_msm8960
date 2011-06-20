@@ -2347,7 +2347,11 @@ out:
 out_notsup:
 	res = nfs_revalidate_inode(NFS_SERVER(inode), inode);
 	if (res == 0)
+<<<<<<< HEAD
 		res = generic_permission(inode, mask);
+=======
+		res = generic_permission(inode, mask, flags);
+>>>>>>> 178ea735... kill check_acl callback of generic_permission()
 	goto out;
 }
 

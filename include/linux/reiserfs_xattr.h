@@ -45,7 +45,11 @@ int reiserfs_permission(struct inode *inode, int mask);
 
 #ifdef CONFIG_REISERFS_FS_XATTR
 #define has_xattr_dir(inode) (REISERFS_I(inode)->i_flags & i_has_xattr_dir)
+<<<<<<< HEAD
 int reiserfs_check_acl(struct inode *inode, int mask);
+=======
+int reiserfs_check_acl(struct inode *inode, int mask, unsigned int flags);
+>>>>>>> 178ea735... kill check_acl callback of generic_permission()
 ssize_t reiserfs_getxattr(struct dentry *dentry, const char *name,
 			  void *buffer, size_t size);
 int reiserfs_setxattr(struct dentry *dentry, const char *name,
