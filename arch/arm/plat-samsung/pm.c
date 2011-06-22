@@ -20,6 +20,7 @@
 #include <linux/io.h>
 
 #include <asm/cacheflush.h>
+#include <asm/suspend.h>
 #include <mach/hardware.h>
 #include <mach/map.h>
 
@@ -298,7 +299,11 @@ static int s3c_pm_enter(suspend_state_t state)
 	 * we resume as it saves its own register state and restores it
 	 * during the resume.  */
 
+<<<<<<< HEAD
 	s3c_cpu_save(0, PLAT_PHYS_OFFSET - PAGE_OFFSET);
+=======
+	cpu_suspend(0, pm_cpu_sleep);
+>>>>>>> 2c74a0c... ARM: pm: hide 1st and 2nd arguments to cpu_suspend from platform code
 
 	/* restore the system state */
 

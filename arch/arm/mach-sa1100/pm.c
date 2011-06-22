@@ -29,6 +29,7 @@
 
 #include <mach/hardware.h>
 #include <asm/memory.h>
+#include <asm/suspend.h>
 #include <asm/system.h>
 #include <asm/mach/time.h>
 
@@ -75,7 +76,11 @@ static int sa11x0_pm_enter(suspend_state_t state)
 	PSPR = virt_to_phys(cpu_resume);
 
 	/* go zzz */
+<<<<<<< HEAD
 	sa1100_cpu_suspend(PLAT_PHYS_OFFSET - PAGE_OFFSET);
+=======
+	cpu_suspend(0, sa1100_finish_suspend);
+>>>>>>> 2c74a0c... ARM: pm: hide 1st and 2nd arguments to cpu_suspend from platform code
 
 	/*
 	 * Ensure not to come back here if it wasn't intended
