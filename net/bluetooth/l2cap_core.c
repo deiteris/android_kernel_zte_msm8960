@@ -1231,8 +1231,15 @@ static struct sock *l2cap_get_sock_by_psm(int state, __le16 psm, bdaddr_t *src)
 
 		if (l2cap_pi(sk)->psm == psm) {
 			/* Exact match. */
+<<<<<<< HEAD
 			if (!bacmp(&bt_sk(sk)->src, src))
 				break;
+=======
+			if (!bacmp(&bt_sk(sk)->src, src)) {
+				read_unlock(&chan_list_lock);
+				return c;
+			}
+>>>>>>> 04bf786... Merge branch 'for-linus' into for-3.1/core
 
 			/* Closest match */
 			if (!bacmp(&bt_sk(sk)->src, BDADDR_ANY))

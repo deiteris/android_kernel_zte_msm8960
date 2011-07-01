@@ -1743,7 +1743,11 @@ static void ironlake_irq_preinstall(struct drm_device *dev)
 		INIT_WORK(&dev_priv->rps_work, gen6_pm_rps_work);
 
 	I915_WRITE(HWSTAM, 0xeffe);
+<<<<<<< HEAD
 	if (IS_GEN6(dev) || IS_GEN7(dev)) {
+=======
+	if (IS_GEN6(dev)) {
+>>>>>>> 04bf786... Merge branch 'for-linus' into for-3.1/core
 		/* Workaround stalls observed on Sandy Bridge GPUs by
 		 * making the blitter command streamer generate a
 		 * write to the Hardware Status Page for

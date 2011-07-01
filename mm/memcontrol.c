@@ -1730,7 +1730,11 @@ static int mem_cgroup_hierarchical_reclaim(struct mem_cgroup *root_mem,
 	excess = res_counter_soft_limit_excess(&root_mem->res) >> PAGE_SHIFT;
 
 	/* If memsw_is_minimum==1, swap-out is of-no-use. */
+<<<<<<< HEAD
 	if (!check_soft && !shrink && root_mem->memsw_is_minimum)
+=======
+	if (!check_soft && root_mem->memsw_is_minimum)
+>>>>>>> 04bf786... Merge branch 'for-linus' into for-3.1/core
 		noswap = true;
 
 	while (1) {

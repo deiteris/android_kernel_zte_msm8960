@@ -29,7 +29,12 @@ static int uvc_mc_register_entity(struct uvc_video_chain *chain,
 	const u32 flags = MEDIA_LNK_FL_ENABLED | MEDIA_LNK_FL_IMMUTABLE;
 	struct media_entity *sink;
 	unsigned int i;
+<<<<<<< HEAD
 	int ret;
+=======
+	u8 remote_pad;
+	int ret = 0;
+>>>>>>> 04bf786... Merge branch 'for-linus' into for-3.1/core
 
 	sink = (UVC_ENTITY_TYPE(entity) == UVC_TT_STREAMING)
 	     ? (entity->vdev ? &entity->vdev->entity : NULL)

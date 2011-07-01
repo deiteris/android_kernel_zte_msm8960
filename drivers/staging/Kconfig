@@ -162,6 +162,7 @@ source "drivers/staging/mei/Kconfig"
 
 source "drivers/staging/nvec/Kconfig"
 
+<<<<<<< HEAD
 source "drivers/staging/prima/Kconfig"
 
 #
@@ -169,4 +170,6 @@ source "drivers/staging/prima/Kconfig"
 #
 source "drivers/staging/zte_ftm/Kconfig"
 
+=======
+>>>>>>> 04bf786... Merge branch 'for-linus' into for-3.1/core
 endif # STAGING

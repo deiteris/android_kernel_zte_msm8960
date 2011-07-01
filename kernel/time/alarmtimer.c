@@ -481,6 +481,7 @@ static int alarm_timer_set(struct k_itimer *timr, int flags,
 	if (!rtcdev)
 		return -ENOTSUPP;
 
+<<<<<<< HEAD
 	/*
 	 * XXX HACK! Currently we can DOS a system if the interval
 	 * period on alarmtimers is too small. Cap the interval here
@@ -492,6 +493,13 @@ static int alarm_timer_set(struct k_itimer *timr, int flags,
 
 	if (old_setting)
 		alarm_timer_get(timr, old_setting);
+=======
+	/* Save old values */
+	old_setting->it_interval =
+			ktime_to_timespec(timr->it.alarmtimer.period);
+	old_setting->it_value =
+			ktime_to_timespec(timr->it.alarmtimer.node.expires);
+>>>>>>> 04bf786... Merge branch 'for-linus' into for-3.1/core
 
 	/* If the timer was already set, cancel it */
 	alarm_cancel(&timr->it.alarmtimer);

@@ -101,7 +101,12 @@ void __init_new_context(struct task_struct *tsk, struct mm_struct *mm)
 static void flush_context(void)
 {
 	/* set the reserved ASID before flushing the TLB */
+<<<<<<< HEAD
 	set_asid(0);
+=======
+	asm("mcr	p15, 0, %0, c13, c0, 1\n" : : "r" (0));
+	isb();
+>>>>>>> 04bf786... Merge branch 'for-linus' into for-3.1/core
 	local_flush_tlb_all();
 	if (icache_is_vivt_asid_tagged()) {
 		__flush_icache_all();

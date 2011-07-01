@@ -121,6 +121,7 @@ int evergreen_get_temp(struct radeon_device *rdev)
 			TOFFSET_SHIFT;
 		temp = (RREG32(CG_TS0_STATUS) & TS0_ADC_DOUT_MASK) >>
 			TS0_ADC_DOUT_SHIFT;
+<<<<<<< HEAD
 
 		if (toffset & 0x100)
 			actual_temp = temp / 2 - (0x200 - toffset);
@@ -143,6 +144,30 @@ int evergreen_get_temp(struct radeon_device *rdev)
 		} else
 			actual_temp = temp & 0xff;
 
+=======
+
+		if (toffset & 0x100)
+			actual_temp = temp / 2 - (0x200 - toffset);
+		else
+			actual_temp = temp / 2 + toffset;
+
+		actual_temp = actual_temp * 1000;
+
+	} else {
+		temp = (RREG32(CG_MULT_THERMAL_STATUS) & ASIC_T_MASK) >>
+			ASIC_T_SHIFT;
+
+		if (temp & 0x400)
+			actual_temp = -256;
+		else if (temp & 0x200)
+			actual_temp = 255;
+		else if (temp & 0x100) {
+			actual_temp = temp & 0x1ff;
+			actual_temp |= ~0x1ff;
+		} else
+			actual_temp = temp & 0xff;
+
+>>>>>>> 04bf786... Merge branch 'for-linus' into for-3.1/core
 		actual_temp = (actual_temp * 1000) / 2;
 	}
 
@@ -1593,6 +1618,51 @@ static u32 evergreen_get_tile_pipe_to_backend_map(struct radeon_device *rdev,
 	return backend_map;
 }
 
+<<<<<<< HEAD
+=======
+static void evergreen_program_channel_remap(struct radeon_device *rdev)
+{
+	u32 tcp_chan_steer_lo, tcp_chan_steer_hi, mc_shared_chremap, tmp;
+
+	tmp = RREG32(MC_SHARED_CHMAP);
+	switch ((tmp & NOOFCHAN_MASK) >> NOOFCHAN_SHIFT) {
+	case 0:
+	case 1:
+	case 2:
+	case 3:
+	default:
+		/* default mapping */
+		mc_shared_chremap = 0x00fac688;
+		break;
+	}
+
+	switch (rdev->family) {
+	case CHIP_HEMLOCK:
+	case CHIP_CYPRESS:
+	case CHIP_BARTS:
+		tcp_chan_steer_lo = 0x54763210;
+		tcp_chan_steer_hi = 0x0000ba98;
+		break;
+	case CHIP_JUNIPER:
+	case CHIP_REDWOOD:
+	case CHIP_CEDAR:
+	case CHIP_PALM:
+	case CHIP_SUMO:
+	case CHIP_SUMO2:
+	case CHIP_TURKS:
+	case CHIP_CAICOS:
+	default:
+		tcp_chan_steer_lo = 0x76543210;
+		tcp_chan_steer_hi = 0x0000ba98;
+		break;
+	}
+
+	WREG32(TCP_CHAN_STEER_LO, tcp_chan_steer_lo);
+	WREG32(TCP_CHAN_STEER_HI, tcp_chan_steer_hi);
+	WREG32(MC_SHARED_CHREMAP, mc_shared_chremap);
+}
+
+>>>>>>> 04bf786... Merge branch 'for-linus' into for-3.1/core
 static void evergreen_gpu_init(struct radeon_device *rdev)
 {
 	u32 cc_rb_backend_disable = 0;

@@ -1,7 +1,12 @@
 VERSION = 3
 PATCHLEVEL = 0
+<<<<<<< HEAD
 SUBLEVEL = 8
 #EXTRAVERSION =
+=======
+SUBLEVEL = 0
+EXTRAVERSION = -rc4
+>>>>>>> 04bf786... Merge branch 'for-linus' into for-3.1/core
 NAME = Sneaky Weasel
 
 # *DOCUMENTATION*

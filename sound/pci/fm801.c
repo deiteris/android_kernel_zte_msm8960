@@ -1238,6 +1238,10 @@ static int __devinit snd_fm801_create(struct snd_card *card,
 	    (tea575x_tuner & TUNER_TYPE_MASK) < 4) {
 		if (snd_tea575x_init(&chip->tea)) {
 			snd_printk(KERN_ERR "TEA575x radio not found\n");
+<<<<<<< HEAD
+=======
+			snd_fm801_free(chip);
+>>>>>>> 04bf786... Merge branch 'for-linus' into for-3.1/core
 			return -ENODEV;
 		}
 	} else if ((tea575x_tuner & TUNER_TYPE_MASK) == 0) {
@@ -1252,6 +1256,7 @@ static int __devinit snd_fm801_create(struct snd_card *card,
 		}
 		if (tea575x_tuner == 4) {
 			snd_printk(KERN_ERR "TEA575x radio not found\n");
+<<<<<<< HEAD
 			chip->tea575x_tuner = TUNER_DISABLED;
 		}
 	}
@@ -1261,6 +1266,13 @@ static int __devinit snd_fm801_create(struct snd_card *card,
 						 TUNER_TYPE_MASK) - 1].name,
 			sizeof(chip->tea.card));
 	}
+=======
+			snd_fm801_free(chip);
+			return -ENODEV;
+		}
+	}
+	strlcpy(chip->tea.card, snd_fm801_tea575x_gpios[(tea575x_tuner & TUNER_TYPE_MASK) - 1].name, sizeof(chip->tea.card));
+>>>>>>> 04bf786... Merge branch 'for-linus' into for-3.1/core
 #endif
 
 	*rchip = chip;

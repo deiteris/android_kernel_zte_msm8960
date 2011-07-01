@@ -264,7 +264,11 @@ int __init early_irq_init(void)
 		alloc_masks(&desc[i], GFP_KERNEL, node);
 		raw_spin_lock_init(&desc[i].lock);
 		lockdep_set_class(&desc[i].lock, &irq_desc_lock_class);
+<<<<<<< HEAD
 		desc_set_defaults(i, &desc[i], node, NULL);
+=======
+		desc_set_defaults(i, &desc[i], node);
+>>>>>>> 04bf786... Merge branch 'for-linus' into for-3.1/core
 	}
 	return arch_early_irq_init();
 }

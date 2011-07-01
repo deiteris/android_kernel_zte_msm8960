@@ -124,12 +124,15 @@ cpu_v7_switch_mm_private:
 #ifdef CONFIG_ARM_ERRATA_754322
 	dsb
 #endif
+<<<<<<< HEAD
 #ifdef CONFIG_PID_IN_CONTEXTIDR
 	mrc	p15, 0, r2, c13, c0, 1		@ read current context ID
 	bic	r2, r2, #0xff			@ extract the PID
 	and	r1, r1, #0xff
 	orr	r1, r1, r2			@ insert the PID into r1
 #endif
+=======
+>>>>>>> 04bf786... Merge branch 'for-linus' into for-3.1/core
 	mcr	p15, 0, r2, c13, c0, 1		@ set reserved context ID
 	isb
 1:	mcr	p15, 0, r0, c2, c0, 0		@ set TTB 0

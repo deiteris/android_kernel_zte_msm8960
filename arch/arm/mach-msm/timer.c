@@ -26,8 +26,12 @@
 
 #include <asm/mach/time.h>
 #include <asm/hardware/gic.h>
+<<<<<<< HEAD
 #include <asm/sched_clock.h>
 #include <asm/smp_plat.h>
+=======
+
+>>>>>>> 04bf786... Merge branch 'for-linus' into for-3.1/core
 #include <mach/msm_iomap.h>
 #include <mach/irqs.h>
 #include <mach/socinfo.h>
@@ -82,6 +86,7 @@ static int msm_global_timer;
 
 #define NR_TIMERS ARRAY_SIZE(msm_clocks)
 
+<<<<<<< HEAD
 unsigned int gpt_hz = 32768;
 unsigned int sclk_hz = 32768;
 
@@ -99,6 +104,22 @@ enum {
 	MSM_CLOCK_FLAGS_ODD_MATCH_WRITE = 1U << 1,
 	MSM_CLOCK_FLAGS_DELAYED_WRITE_POST = 1U << 2,
 };
+=======
+/* TODO: Remove these ifdefs */
+#if defined(CONFIG_ARCH_QSD8X50)
+#define DGT_HZ (19200000 / 4) /* 19.2 MHz / 4 by default */
+#define MSM_DGT_SHIFT (0)
+#elif defined(CONFIG_ARCH_MSM7X30)
+#define DGT_HZ (24576000 / 4) /* 24.576 MHz (LPXO) / 4 by default */
+#define MSM_DGT_SHIFT (0)
+#elif defined(CONFIG_ARCH_MSM8X60) || defined(CONFIG_ARCH_MSM8960)
+#define DGT_HZ (27000000 / 4) /* 27 MHz (PXO) / 4 by default */
+#define MSM_DGT_SHIFT (0)
+#else
+#define DGT_HZ 19200000 /* 19.2 MHz or 600 KHz after shift */
+#define MSM_DGT_SHIFT (5)
+#endif
+>>>>>>> 04bf786... Merge branch 'for-linus' into for-3.1/core
 
 struct msm_clock {
 	struct clock_event_device   clockevent;
@@ -246,6 +267,7 @@ static cycle_t msm_gpt_read(struct clocksource *cs)
 	struct msm_clock_percpu_data *clock_state =
 		&per_cpu(msm_clocks_percpu, 0)[MSM_CLOCK_GPT];
 
+<<<<<<< HEAD
 	if (clock_state->stopped)
 		return clock_state->stopped_tick;
 
@@ -264,6 +286,13 @@ static cycle_t msm_dgt_read(struct clocksource *cs)
 
 	return (msm_read_timer_count(clock, GLOBAL_TIMER) +
 		clock_state->sleep_offset) >> clock->shift;
+=======
+	/*
+	 * Shift timer count down by a constant due to unreliable lower bits
+	 * on some targets.
+	 */
+	return readl(clk->global_counter) >> clk->shift;
+>>>>>>> 04bf786... Merge branch 'for-linus' into for-3.1/core
 }
 
 static struct msm_clock *clockevent_to_clock(struct clock_event_device *evt)

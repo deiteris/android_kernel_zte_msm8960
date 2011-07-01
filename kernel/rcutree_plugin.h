@@ -1361,6 +1361,7 @@ static int __cpuinit rcu_spawn_one_boost_kthread(struct rcu_state *rsp,
  * Stop the RCU's per-CPU kthread when its CPU goes offline,.
  */
 static void rcu_stop_cpu_kthread(int cpu)
+<<<<<<< HEAD
 {
 	struct task_struct *t;
 
@@ -1376,6 +1377,23 @@ static void rcu_stop_cpu_kthread(int cpu)
 
 static void rcu_kthread_do_work(void)
 {
+=======
+{
+	struct task_struct *t;
+
+	/* Stop the CPU's kthread. */
+	t = per_cpu(rcu_cpu_kthread_task, cpu);
+	if (t != NULL) {
+		per_cpu(rcu_cpu_kthread_task, cpu) = NULL;
+		kthread_stop(t);
+	}
+}
+
+#endif /* #ifdef CONFIG_HOTPLUG_CPU */
+
+static void rcu_kthread_do_work(void)
+{
+>>>>>>> 04bf786... Merge branch 'for-linus' into for-3.1/core
 	rcu_do_batch(&rcu_sched_state, &__get_cpu_var(rcu_sched_data));
 	rcu_do_batch(&rcu_bh_state, &__get_cpu_var(rcu_bh_data));
 	rcu_preempt_do_callbacks();
@@ -1557,7 +1575,11 @@ static int __cpuinit rcu_spawn_one_cpu_kthread(int cpu)
 	struct sched_param sp;
 	struct task_struct *t;
 
+<<<<<<< HEAD
 	if (!rcu_scheduler_fully_active ||
+=======
+	if (!rcu_kthreads_spawnable ||
+>>>>>>> 04bf786... Merge branch 'for-linus' into for-3.1/core
 	    per_cpu(rcu_cpu_kthread_task, cpu) != NULL)
 		return 0;
 	t = kthread_create(rcu_cpu_kthread, (void *)(long)cpu, "rcuc%d", cpu);
@@ -1664,7 +1686,11 @@ static int __cpuinit rcu_spawn_one_node_kthread(struct rcu_state *rsp,
 	struct sched_param sp;
 	struct task_struct *t;
 
+<<<<<<< HEAD
 	if (!rcu_scheduler_fully_active ||
+=======
+	if (!rcu_kthreads_spawnable ||
+>>>>>>> 04bf786... Merge branch 'for-linus' into for-3.1/core
 	    rnp->qsmaskinit == 0)
 		return 0;
 	if (rnp->node_kthread_task == NULL) {
@@ -1690,7 +1716,11 @@ static int __init rcu_spawn_kthreads(void)
 	int cpu;
 	struct rcu_node *rnp;
 
+<<<<<<< HEAD
 	rcu_scheduler_fully_active = 1;
+=======
+	rcu_kthreads_spawnable = 1;
+>>>>>>> 04bf786... Merge branch 'for-linus' into for-3.1/core
 	for_each_possible_cpu(cpu) {
 		per_cpu(rcu_cpu_has_work, cpu) = 0;
 		if (cpu_online(cpu))
@@ -1712,7 +1742,11 @@ static void __cpuinit rcu_prepare_kthreads(int cpu)
 	struct rcu_node *rnp = rdp->mynode;
 
 	/* Fire up the incoming CPU's kthread and leaf rcu_node kthread. */
+<<<<<<< HEAD
 	if (rcu_scheduler_fully_active) {
+=======
+	if (rcu_kthreads_spawnable) {
+>>>>>>> 04bf786... Merge branch 'for-linus' into for-3.1/core
 		(void)rcu_spawn_one_cpu_kthread(cpu);
 		if (rnp->node_kthread_task == NULL)
 			(void)rcu_spawn_one_node_kthread(rcu_state, rnp);
@@ -1748,6 +1782,7 @@ static void rcu_node_kthread_setaffinity(struct rcu_node *rnp, int outgoingcpu)
 }
 
 static void rcu_cpu_kthread_setrt(int cpu, int to_rt)
+<<<<<<< HEAD
 {
 }
 
@@ -1755,6 +1790,9 @@ static int __init rcu_scheduler_really_started(void)
 {
 	rcu_scheduler_fully_active = 1;
 	return 0;
+=======
+{
+>>>>>>> 04bf786... Merge branch 'for-linus' into for-3.1/core
 }
 early_initcall(rcu_scheduler_really_started);
 

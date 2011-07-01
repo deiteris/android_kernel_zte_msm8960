@@ -96,6 +96,8 @@ static struct rcu_state *rcu_state;
 int rcu_scheduler_active __read_mostly;
 EXPORT_SYMBOL_GPL(rcu_scheduler_active);
 
+#ifdef CONFIG_RCU_BOOST
+
 /*
  * The rcu_scheduler_fully_active variable transitions from zero to one
  * during the early_initcall() processing, which is after the scheduler
@@ -121,6 +123,8 @@ DEFINE_PER_CPU(unsigned int, rcu_cpu_kthread_status);
 DEFINE_PER_CPU(int, rcu_cpu_kthread_cpu);
 DEFINE_PER_CPU(unsigned int, rcu_cpu_kthread_loops);
 DEFINE_PER_CPU(char, rcu_cpu_has_work);
+
+#endif /* #ifdef CONFIG_RCU_BOOST */
 
 #endif /* #ifdef CONFIG_RCU_BOOST */
 
@@ -1489,8 +1493,11 @@ static void rcu_process_callbacks(struct softirq_action *unused)
  */
 static void invoke_rcu_callbacks(struct rcu_state *rsp, struct rcu_data *rdp)
 {
+<<<<<<< HEAD
 	if (unlikely(!ACCESS_ONCE(rcu_scheduler_fully_active)))
 		return;
+=======
+>>>>>>> 04bf786... Merge branch 'for-linus' into for-3.1/core
 	if (likely(!rsp->boost)) {
 		rcu_do_batch(rsp, rdp);
 		return;

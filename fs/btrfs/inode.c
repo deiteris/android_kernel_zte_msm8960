@@ -2565,7 +2565,11 @@ static void btrfs_read_locked_inode(struct inode *inode)
 
 	BTRFS_I(inode)->index_cnt = (u64)-1;
 	BTRFS_I(inode)->flags = btrfs_inode_flags(leaf, inode_item);
+<<<<<<< HEAD
 cache_acl:
+=======
+
+>>>>>>> 04bf786... Merge branch 'for-linus' into for-3.1/core
 	/*
 	 * try to precache a NULL acl entry for files that don't have
 	 * any xattrs or acls

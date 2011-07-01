@@ -129,5 +129,9 @@ extern long cifs_ioctl(struct file *filep, unsigned int cmd, unsigned long arg);
 extern const struct export_operations cifs_export_ops;
 #endif /* CIFS_NFSD_EXPORT */
 
+<<<<<<< HEAD
 #define CIFS_VERSION   "1.74"
+=======
+#define CIFS_VERSION   "1.73"
+>>>>>>> 04bf786... Merge branch 'for-linus' into for-3.1/core
 #endif				/* _CIFSFS_H */

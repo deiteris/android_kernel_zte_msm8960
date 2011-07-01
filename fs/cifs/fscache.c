@@ -92,7 +92,10 @@ static void cifs_fscache_disable_inode_cookie(struct inode *inode)
 
 	if (cifsi->fscache) {
 		cFYI(1, "%s: (0x%p)", __func__, cifsi->fscache);
+<<<<<<< HEAD
 		fscache_uncache_all_inode_pages(cifsi->fscache, inode);
+=======
+>>>>>>> 04bf786... Merge branch 'for-linus' into for-3.1/core
 		fscache_relinquish_cookie(cifsi->fscache, 1);
 		cifsi->fscache = NULL;
 	}

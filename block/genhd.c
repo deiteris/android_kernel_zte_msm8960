@@ -1531,17 +1531,29 @@ void disk_unblock_events(struct gendisk *disk)
 void disk_flush_events(struct gendisk *disk, unsigned int mask)
 {
 	struct disk_events *ev = disk->ev;
+<<<<<<< HEAD
+=======
+	unsigned long flags;
+>>>>>>> 04bf786... Merge branch 'for-linus' into for-3.1/core
 
 	if (!ev)
 		return;
 
+<<<<<<< HEAD
 	spin_lock_irq(&ev->lock);
 	ev->clearing |= mask;
+=======
+	spin_lock_irqsave(&ev->lock, flags);
+>>>>>>> 04bf786... Merge branch 'for-linus' into for-3.1/core
 	if (!ev->block) {
 		cancel_delayed_work(&ev->dwork);
 		queue_delayed_work(system_nrt_wq, &ev->dwork, 0);
 	}
+<<<<<<< HEAD
 	spin_unlock_irq(&ev->lock);
+=======
+	spin_unlock_irqrestore(&ev->lock, flags);
+>>>>>>> 04bf786... Merge branch 'for-linus' into for-3.1/core
 }
 
 /**

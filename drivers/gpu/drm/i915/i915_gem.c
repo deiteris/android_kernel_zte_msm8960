@@ -463,7 +463,12 @@ i915_gem_shmem_pread_slow(struct drm_device *dev,
 		if ((data_page_offset + page_length) > PAGE_SIZE)
 			page_length = PAGE_SIZE - data_page_offset;
 
+<<<<<<< HEAD
 		page = shmem_read_mapping_page(mapping, offset >> PAGE_SHIFT);
+=======
+		page = read_cache_page_gfp(mapping, offset >> PAGE_SHIFT,
+					   GFP_HIGHUSER | __GFP_RECLAIMABLE);
+>>>>>>> 04bf786... Merge branch 'for-linus' into for-3.1/core
 		if (IS_ERR(page)) {
 			ret = PTR_ERR(page);
 			goto out;
@@ -1447,7 +1452,18 @@ i915_gem_get_unfenced_gtt_alignment(struct drm_device *dev,
 	 * tile height. The simplest method for determining this is to reuse
 	 * the power-of-tile object size.
 	 */
+<<<<<<< HEAD
 	return i915_gem_get_gtt_size(dev, size, tiling_mode);
+=======
+	if (IS_GEN2(dev))
+		tile_height = 16;
+	else if (obj->tiling_mode == I915_TILING_Y && HAS_128_BYTE_Y_TILING(dev))
+		tile_height = 32;
+	else
+		tile_height = 8;
+
+	return tile_height * obj->stride * 2;
+>>>>>>> 04bf786... Merge branch 'for-linus' into for-3.1/core
 }
 
 int

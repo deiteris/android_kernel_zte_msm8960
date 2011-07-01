@@ -473,8 +473,14 @@ static int l2cap_sock_getsockopt_old(struct socket *sock, int optname, char __us
 			break;
 		}
 
+<<<<<<< HEAD
 		cinfo.hci_handle = l2cap_pi(sk)->conn->hcon->handle;
 		memcpy(cinfo.dev_class, l2cap_pi(sk)->conn->hcon->dev_class, 3);
+=======
+		memset(&cinfo, 0, sizeof(cinfo));
+		cinfo.hci_handle = chan->conn->hcon->handle;
+		memcpy(cinfo.dev_class, chan->conn->hcon->dev_class, 3);
+>>>>>>> 04bf786... Merge branch 'for-linus' into for-3.1/core
 
 		len = min_t(unsigned int, len, sizeof(cinfo));
 		if (copy_to_user(optval, (char *) &cinfo, len))

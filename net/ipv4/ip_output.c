@@ -802,6 +802,11 @@ static int __ip_append_data(struct sock *sk,
 	skb = skb_peek_tail(queue);
 
 	exthdrlen = !skb ? rt->dst.header_len : 0;
+<<<<<<< HEAD
+=======
+	length += exthdrlen;
+	transhdrlen += exthdrlen;
+>>>>>>> 04bf786... Merge branch 'for-linus' into for-3.1/core
 	mtu = cork->fragsize;
 
 	hh_len = LL_RESERVED_SPACE(rt->dst.dev);

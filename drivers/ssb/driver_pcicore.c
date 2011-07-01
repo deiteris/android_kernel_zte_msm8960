@@ -545,6 +545,16 @@ void ssb_pcicore_init(struct ssb_pcicore *pc)
 #endif /* CONFIG_SSB_PCICORE_HOSTMODE */
 	if (!pc->hostmode)
 		ssb_pcicore_init_clientmode(pc);
+<<<<<<< HEAD
+=======
+
+	/* Additional PCIe always once-executed workarounds */
+	if (dev->id.coreid == SSB_DEV_PCIE) {
+		ssb_pcicore_serdes_workaround(pc);
+		/* TODO: ASPM */
+		/* TODO: Clock Request Update */
+	}
+>>>>>>> 04bf786... Merge branch 'for-linus' into for-3.1/core
 }
 
 static u32 ssb_pcie_read(struct ssb_pcicore *pc, u32 address)

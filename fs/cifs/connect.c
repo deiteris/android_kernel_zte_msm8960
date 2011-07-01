@@ -2954,8 +2954,15 @@ cifs_setup_volume_info(struct smb_vol *volume_info, char *mount_data,
 	if (volume_info->nullauth) {
 		cFYI(1, "null user");
 		volume_info->username = kzalloc(1, GFP_KERNEL);
+<<<<<<< HEAD
 		if (volume_info->username == NULL)
 			return -ENOMEM;
+=======
+		if (volume_info->username == NULL) {
+			rc = -ENOMEM;
+			goto out;
+		}
+>>>>>>> 04bf786... Merge branch 'for-linus' into for-3.1/core
 	} else if (volume_info->username) {
 		/* BB fixme parse for domain name here */
 		cFYI(1, "Username: %s", volume_info->username);
@@ -3013,7 +3020,10 @@ cifs_mount(struct cifs_sb_info *cifs_sb, struct smb_vol *volume_info)
 	struct tcon_link *tlink;
 #ifdef CONFIG_CIFS_DFS_UPCALL
 	int referral_walks_count = 0;
+<<<<<<< HEAD
 #endif
+=======
+>>>>>>> 04bf786... Merge branch 'for-linus' into for-3.1/core
 
 	rc = bdi_setup_and_register(&cifs_sb->bdi, "cifs", BDI_CAP_MAP_COPY);
 	if (rc)
@@ -3021,7 +3031,10 @@ cifs_mount(struct cifs_sb_info *cifs_sb, struct smb_vol *volume_info)
 
 	cifs_sb->bdi.ra_pages = default_backing_dev_info.ra_pages;
 
+<<<<<<< HEAD
 #ifdef CONFIG_CIFS_DFS_UPCALL
+=======
+>>>>>>> 04bf786... Merge branch 'for-linus' into for-3.1/core
 try_mount_again:
 	/* cleanup activities if we're chasing a referral */
 	if (referral_walks_count) {

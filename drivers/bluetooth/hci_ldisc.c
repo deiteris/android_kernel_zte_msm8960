@@ -369,9 +369,14 @@ static void hci_uart_tty_receive(struct tty_struct *tty, const u8 *data, char *f
 		return;
 
 	spin_lock(&hu->rx_lock);
+<<<<<<< HEAD
 	ret = hu->proto->recv(hu, (void *) data, count);
 	if (ret > 0)
 		hu->hdev->stat.byte_rx += count;
+=======
+	hu->proto->recv(hu, (void *) data, count);
+	hu->hdev->stat.byte_rx += count;
+>>>>>>> 04bf786... Merge branch 'for-linus' into for-3.1/core
 	spin_unlock(&hu->rx_lock);
 
 	tty_unthrottle(tty);
