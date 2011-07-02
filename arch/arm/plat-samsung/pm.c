@@ -233,7 +233,11 @@ static void __maybe_unused s3c_pm_show_resume_irqs(int start,
 
 void (*pm_cpu_prep)(void);
 <<<<<<< HEAD
+<<<<<<< HEAD
 void (*pm_cpu_sleep)(void);
+=======
+int (*pm_cpu_sleep)(unsigned long);
+>>>>>>> 29cb3cd... ARM: pm: allow suspend finisher to return error codes
 =======
 int (*pm_cpu_sleep)(unsigned long);
 >>>>>>> 29cb3cd... ARM: pm: allow suspend finisher to return error codes

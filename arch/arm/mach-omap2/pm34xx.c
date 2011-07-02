@@ -331,6 +331,9 @@ static int omap34xx_do_sram_idle(unsigned long save_state)
 {
 	omap34xx_cpu_suspend(save_state);
 	return 0;
+<<<<<<< HEAD
+>>>>>>> 29cb3cd... ARM: pm: allow suspend finisher to return error codes
+=======
 >>>>>>> 29cb3cd... ARM: pm: allow suspend finisher to return error codes
 }
 
