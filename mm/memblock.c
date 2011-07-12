@@ -47,17 +47,6 @@ static inline phys_addr_t memblock_cap_size(phys_addr_t base, phys_addr_t *size)
 /*
  * Address comparison utilities
  */
-
-static phys_addr_t __init_memblock memblock_align_down(phys_addr_t addr, phys_addr_t size)
-{
-	return addr & ~(size - 1);
-}
-
-static phys_addr_t __init_memblock memblock_align_up(phys_addr_t addr, phys_addr_t size)
-{
-	return (addr + (size - 1)) & ~(size - 1);
-}
-
 static unsigned long __init_memblock memblock_addrs_overlap(phys_addr_t base1, phys_addr_t size1,
 				       phys_addr_t base2, phys_addr_t size2)
 {
@@ -93,7 +82,7 @@ static phys_addr_t __init_memblock memblock_find_region(phys_addr_t start, phys_
 	if (end < size)
 		return 0;
 
-	base = memblock_align_down((end - size), align);
+	base = round_down(end - size, align);
 
 	/* Prevent allocations returning 0 as it's also used to
 	 * indicate an allocation failure
@@ -108,7 +97,7 @@ static phys_addr_t __init_memblock memblock_find_region(phys_addr_t start, phys_
 		res_base = memblock.reserved.regions[j].base;
 		if (res_base < size)
 			break;
-		base = memblock_align_down(res_base - size, align);
+		base = round_down(res_base - size, align);
 	}
 
 	return 0;
@@ -487,7 +476,7 @@ phys_addr_t __init __memblock_alloc_base(phys_addr_t size, phys_addr_t align, ph
 	/* We align the size to limit fragmentation. Without this, a lot of
 	 * small allocs quickly eat up the whole reserve array on sparc
 	 */
-	size = memblock_align_up(size, align);
+	size = round_up(size, align);
 
 	found = memblock_find_in_range(0, max_addr, size, align);
 	if (found && !memblock_add_region(&memblock.reserved, found, size))
@@ -562,7 +551,7 @@ static phys_addr_t __init memblock_alloc_nid_region(struct memblock_region *mp,
 	start = mp->base;
 	end = start + mp->size;
 
-	start = memblock_align_up(start, align);
+	start = round_up(start, align);
 	while (start < end) {
 		phys_addr_t this_end;
 		int this_nid;
@@ -590,7 +579,7 @@ phys_addr_t __init memblock_alloc_nid(phys_addr_t size, phys_addr_t align, int n
 	/* We align the size to limit fragmentation. Without this, a lot of
 	 * small allocs quickly eat up the whole reserve array on sparc
 	 */
-	size = memblock_align_up(size, align);
+	size = round_up(size, align);
 
 	/* We do a bottom-up search for a region with the right
 	 * nid since that's easier considering how memblock_nid_range()
