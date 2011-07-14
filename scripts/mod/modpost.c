@@ -590,9 +590,7 @@ static void handle_modversions(struct module *mod, struct elf_info *info,
 {
 	unsigned int crc;
 	enum export export;
-
-	if ((!is_vmlinux(mod->name) || mod->is_dot_o) &&
-	    strncmp(symname, "__ksymtab", 9) == 0)
+	if (!is_vmlinux(mod->name) && strncmp(symname, "__ksymtab", 9) == 0)
 		export = export_from_secname(info, get_secindex(info, sym));
 	else
 		export = export_from_sec(info, get_secindex(info, sym));
