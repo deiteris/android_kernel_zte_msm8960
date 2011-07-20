@@ -466,6 +466,23 @@ static void ipi_timer(void)
 	irq_exit();
 }
 
+<<<<<<< HEAD
+=======
+#ifdef CONFIG_LOCAL_TIMERS
+irqreturn_t percpu_timer_handler(int irq, void *dev_id)
+{
+	struct clock_event_device *evt = &__get_cpu_var(percpu_clockevent);
+
+	if (local_timer_ack()) {
+		evt->event_handler(evt);
+		return IRQ_HANDLED;
+	}
+
+	return IRQ_NONE;
+}
+#endif
+
+>>>>>>> 292b293... ARM: gic: consolidate PPI handling
 #ifdef CONFIG_GENERIC_CLOCKEVENTS_BROADCAST
 static void smp_timer_broadcast(const struct cpumask *mask)
 {
