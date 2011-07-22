@@ -47,6 +47,7 @@ void gic_secondary_init(unsigned int);
 void gic_handle_irq(struct pt_regs *regs);
 void gic_cascade_irq(unsigned int gic_nr, unsigned int irq);
 void gic_raise_softirq(const struct cpumask *mask, unsigned int irq);
+<<<<<<< HEAD
 void gic_enable_ppi(unsigned int);
 bool gic_is_spi_pending(unsigned int irq);
 void gic_clear_spi_pending(unsigned int irq);
@@ -57,6 +58,8 @@ static inline void gic_init(unsigned int nr, int start,
 {
 	gic_init_bases(nr, start, dist, cpu, 0);
 }
+=======
+>>>>>>> 28af690... ARM: gic, local timers: use the request_percpu_irq() interface
 
 #endif
 

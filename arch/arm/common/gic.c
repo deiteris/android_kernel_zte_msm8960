@@ -44,8 +44,11 @@
 #include <asm/exception.h>
 #include <asm/mach/irq.h>
 #include <asm/hardware/gic.h>
+<<<<<<< HEAD
 #include <asm/system.h>
 #include <asm/localtimer.h>
+=======
+>>>>>>> 28af690... ARM: gic, local timers: use the request_percpu_irq() interface
 
 union gic_base {
 	void __iomem *common_base;
@@ -503,7 +506,12 @@ void __init gic_cascade_irq(unsigned int gic_nr, unsigned int irq)
 	irq_set_chained_handler(irq, gic_handle_cascade_irq);
 }
 
+<<<<<<< HEAD
 static void __init gic_dist_init(struct gic_chip_data *gic)
+=======
+static void __init gic_dist_init(struct gic_chip_data *gic,
+	unsigned int irq_start)
+>>>>>>> 28af690... ARM: gic, local timers: use the request_percpu_irq() interface
 {
 	unsigned int i, irq;
 	u32 cpumask;
@@ -523,6 +531,35 @@ static void __init gic_dist_init(struct gic_chip_data *gic)
 	writel_relaxed(0, base + GIC_DIST_CTRL);
 
 	/*
+<<<<<<< HEAD
+=======
+	 * Find out how many interrupts are supported.
+	 * The GIC only supports up to 1020 interrupt sources.
+	 */
+	gic_irqs = readl_relaxed(base + GIC_DIST_CTR) & 0x1f;
+	gic_irqs = (gic_irqs + 1) * 32;
+	if (gic_irqs > 1020)
+		gic_irqs = 1020;
+
+	/*
+	 * Nobody would be insane enough to use PPIs on a secondary
+	 * GIC, right?
+	 */
+	if (gic == &gic_data[0]) {
+		nrppis = (32 - irq_start) & 31;
+
+		/* The GIC only supports up to 16 PPIs. */
+		if (nrppis > 16)
+			BUG();
+
+		ppi_base = gic->irq_offset + 32 - nrppis;
+	}
+
+	pr_info("Configuring GIC with %d sources (%d PPIs)\n",
+		gic_irqs, (gic == &gic_data[0]) ? nrppis : 0);
+
+	/*
+>>>>>>> 28af690... ARM: gic, local timers: use the request_percpu_irq() interface
 	 * Set all global interrupts to be level triggered, active low.
 	 */
 	for (i = 32; i < gic_irqs; i += 16)
@@ -558,6 +595,7 @@ static void __init gic_dist_init(struct gic_chip_data *gic)
 	/*
 	 * Setup the Linux IRQ subsystem.
 	 */
+<<<<<<< HEAD
 	irq_domain_for_each_irq(domain, i, irq) {
 		if (i < 32) {
 			irq_set_percpu_devid(irq);
@@ -570,6 +608,16 @@ static void __init gic_dist_init(struct gic_chip_data *gic)
 			set_irq_flags(irq, IRQF_VALID | IRQF_PROBE);
 		}
 		irq_set_chip_data(irq, gic);
+=======
+	for (i = 0; i < nrppis; i++) {
+		int ppi = i + ppi_base;
+
+		irq_set_percpu_devid(ppi);
+		irq_set_chip_and_handler(ppi, &gic_chip,
+					 handle_percpu_devid_irq);
+		irq_set_chip_data(ppi, gic);
+		set_irq_flags(ppi, IRQF_VALID | IRQF_NOAUTOEN);
+>>>>>>> 28af690... ARM: gic, local timers: use the request_percpu_irq() interface
 	}
 
 	gic->max_irq = gic_irqs;
