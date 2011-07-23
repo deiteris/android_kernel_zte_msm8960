@@ -264,6 +264,12 @@ int jffs2_check_acl(struct inode *inode, int mask)
 	struct posix_acl *acl;
 	int rc;
 
+<<<<<<< HEAD
+=======
+	if (mask & MAY_NOT_BLOCK)
+		return -ECHILD;
+
+>>>>>>> bbd9d6f... Merge branch 'for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/viro/vfs-2.6
 	acl = jffs2_get_acl(inode, ACL_TYPE_ACCESS);
 	if (IS_ERR(acl))
 		return PTR_ERR(acl);
