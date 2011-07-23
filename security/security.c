@@ -518,7 +518,11 @@ int security_inode_permission(struct inode *inode, int mask)
 {
 	if (unlikely(IS_PRIVATE(inode)))
 		return 0;
+<<<<<<< HEAD
 	return security_ops->inode_permission(inode, mask, 0);
+=======
+	return security_ops->inode_permission(inode, mask);
+>>>>>>> bbd9d6f... Merge branch 'for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/viro/vfs-2.6
 }
 
 int security_inode_setattr(struct dentry *dentry, struct iattr *attr)
