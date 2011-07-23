@@ -56,7 +56,7 @@ static int nfs_link(struct dentry *, struct inode *, struct dentry *);
 static int nfs_mknod(struct inode *, struct dentry *, int, dev_t);
 static int nfs_rename(struct inode *, struct dentry *,
 		      struct inode *, struct dentry *);
-static int nfs_fsync_dir(struct file *, int);
+static int nfs_fsync_dir(struct file *, loff_t, loff_t, int);
 static loff_t nfs_llseek_dir(struct file *, loff_t, int);
 static void nfs_readdir_clear_array(struct page*);
 
@@ -955,15 +955,19 @@ out:
  * All directory operations under NFS are synchronous, so fsync()
  * is a dummy operation.
  */
-static int nfs_fsync_dir(struct file *filp, int datasync)
+static int nfs_fsync_dir(struct file *filp, loff_t start, loff_t end,
+			 int datasync)
 {
 	struct dentry *dentry = filp->f_path.dentry;
+	struct inode *inode = dentry->d_inode;
 
 	dfprintk(FILE, "NFS: fsync dir(%s/%s) datasync %d\n",
 			dentry->d_parent->d_name.name, dentry->d_name.name,
 			datasync);
 
+	mutex_lock(&inode->i_mutex);
 	nfs_inc_stats(dentry->d_inode, NFSIOS_VFSFSYNC);
+	mutex_unlock(&inode->i_mutex);
 	return 0;
 }
 
@@ -1007,14 +1011,12 @@ static int nfs_check_verifier(struct inode *dir, struct dentry *dentry)
  * Return the intent data that applies to this particular path component
  *
  * Note that the current set of intents only apply to the very last
- * component of the path.
- * We check for this using LOOKUP_CONTINUE and LOOKUP_PARENT.
+ * component of the path and none of them is set before that last
+ * component.
  */
 static inline unsigned int nfs_lookup_check_intent(struct nameidata *nd,
 						unsigned int mask)
 {
-	if (nd->flags & (LOOKUP_CONTINUE|LOOKUP_PARENT))
-		return 0;
 	return nd->flags & mask;
 }
 
@@ -1595,7 +1597,11 @@ static int nfs_open_create(struct inode *dir, struct dentry *dentry, int mode,
 	attr.ia_mode = mode;
 	attr.ia_valid = ATTR_MODE;
 
+<<<<<<< HEAD
 	if (nd && (nd->flags & LOOKUP_OPEN) != 0)
+=======
+	if (nd)
+>>>>>>> bbd9d6f... Merge branch 'for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/viro/vfs-2.6
 		open_flags = nd->intent.open.flags;
 
 	ctx = create_nfs_open_context(dentry, open_flags);
@@ -1606,7 +1612,11 @@ static int nfs_open_create(struct inode *dir, struct dentry *dentry, int mode,
 	error = NFS_PROTO(dir)->create(dir, dentry, &attr, open_flags, ctx);
 	if (error != 0)
 		goto out_put_ctx;
+<<<<<<< HEAD
 	if (nd && (nd->flags & LOOKUP_OPEN) != 0) {
+=======
+	if (nd) {
+>>>>>>> bbd9d6f... Merge branch 'for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/viro/vfs-2.6
 		error = nfs_intent_set_file(nd, ctx);
 		if (error < 0)
 			goto out_err;
@@ -1685,7 +1695,11 @@ static int nfs_create(struct inode *dir, struct dentry *dentry, int mode,
 	attr.ia_mode = mode;
 	attr.ia_valid = ATTR_MODE;
 
+<<<<<<< HEAD
 	if (nd && (nd->flags & LOOKUP_OPEN) != 0)
+=======
+	if (nd)
+>>>>>>> bbd9d6f... Merge branch 'for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/viro/vfs-2.6
 		open_flags = nd->intent.open.flags;
 
 	error = NFS_PROTO(dir)->create(dir, dentry, &attr, open_flags, NULL);
