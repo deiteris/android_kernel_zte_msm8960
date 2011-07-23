@@ -28,7 +28,11 @@ struct jffs2_acl_header {
 
 struct posix_acl *jffs2_get_acl(struct inode *inode, int type);
 extern int jffs2_acl_chmod(struct inode *);
+<<<<<<< HEAD
 extern int jffs2_init_acl_pre(struct inode *, struct inode *, int *);
+=======
+extern int jffs2_init_acl_pre(struct inode *, struct inode *, umode_t *);
+>>>>>>> d3fb612... switch posix_acl_create() to umode_t *
 extern int jffs2_init_acl_post(struct inode *);
 
 extern const struct xattr_handler jffs2_acl_access_xattr_handler;
