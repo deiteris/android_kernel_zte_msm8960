@@ -28,7 +28,13 @@
 #include <linux/init.h>
 #include <linux/connector.h>
 #include <linux/gfp.h>
+<<<<<<< HEAD
 #include <asm/atomic.h>
+=======
+#include <linux/ptrace.h>
+#include <linux/atomic.h>
+
+>>>>>>> 60063497... atomic: use <linux/atomic.h>
 #include <asm/unaligned.h>
 
 #include <linux/cn_proc.h>

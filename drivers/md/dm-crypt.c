@@ -18,7 +18,12 @@
 #include <linux/crypto.h>
 #include <linux/workqueue.h>
 #include <linux/backing-dev.h>
+<<<<<<< HEAD
 #include <asm/atomic.h>
+=======
+#include <linux/percpu.h>
+#include <linux/atomic.h>
+>>>>>>> 60063497... atomic: use <linux/atomic.h>
 #include <linux/scatterlist.h>
 #include <asm/page.h>
 #include <asm/unaligned.h>

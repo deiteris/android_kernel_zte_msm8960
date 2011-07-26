@@ -29,6 +29,11 @@
 #include <linux/crc32.h>
 #include <linux/module.h>
 #include <linux/types.h>
+<<<<<<< HEAD
+=======
+#include <linux/init.h>
+#include <linux/atomic.h>
+>>>>>>> 60063497... atomic: use <linux/atomic.h>
 #include "crc32defs.h"
 
 #if CRC_LE_BITS > 8
