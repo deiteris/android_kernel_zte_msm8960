@@ -9,6 +9,7 @@
 #define __LINUX_POSIX_ACL_H
 
 #include <linux/slab.h>
+#include <linux/rcupdate.h>
 
 #define ACL_UNDEFINED_ID	(-1)
 
@@ -38,7 +39,10 @@ struct posix_acl_entry {
 };
 
 struct posix_acl {
-	atomic_t		a_refcount;
+	union {
+		atomic_t		a_refcount;
+		struct rcu_head		a_rcu;
+	};
 	unsigned int		a_count;
 	struct posix_acl_entry	a_entries[0];
 };
@@ -65,7 +69,7 @@ static inline void
 posix_acl_release(struct posix_acl *acl)
 {
 	if (acl && atomic_dec_and_test(&acl->a_refcount))
-		kfree(acl);
+		kfree_rcu(acl, a_rcu);
 }
 
 
@@ -108,8 +112,9 @@ static inline struct posix_acl *get_cached_acl(struct inode *inode, int type)
 	return acl;
 }
 
-static inline int negative_cached_acl(struct inode *inode, int type)
+static inline struct posix_acl *get_cached_acl_rcu(struct inode *inode, int type)
 {
+<<<<<<< HEAD
 	struct posix_acl **p, *acl;
 	switch (type) {
 	case ACL_TYPE_ACCESS:
@@ -125,6 +130,9 @@ static inline int negative_cached_acl(struct inode *inode, int type)
 	if (acl)
 		return 0;
 	return 1;
+=======
+	return rcu_dereference(*acl_by_type(inode, type));
+>>>>>>> 3567866... RCUify freeing acls, let check_acl() go ahead in RCU mode if acl is cached
 }
 
 static inline void set_cached_acl(struct inode *inode,
@@ -133,6 +141,7 @@ static inline void set_cached_acl(struct inode *inode,
 {
 	struct posix_acl *old = NULL;
 	spin_lock(&inode->i_lock);
+<<<<<<< HEAD
 	switch (type) {
 	case ACL_TYPE_ACCESS:
 		old = inode->i_acl;
@@ -143,6 +152,10 @@ static inline void set_cached_acl(struct inode *inode,
 		inode->i_default_acl = posix_acl_dup(acl);
 		break;
 	}
+=======
+	old = *p;
+	rcu_assign_pointer(*p, posix_acl_dup(acl));
+>>>>>>> 3567866... RCUify freeing acls, let check_acl() go ahead in RCU mode if acl is cached
 	spin_unlock(&inode->i_lock);
 	if (old != ACL_NOT_CACHED)
 		posix_acl_release(old);
