@@ -1439,8 +1439,8 @@ static int __init fail_page_alloc_debugfs(void)
 {
 	mode_t mode = S_IFREG | S_IRUSR | S_IWUSR;
 	struct dentry *dir;
-	int err;
 
+<<<<<<< HEAD
 	err = init_fault_attr_dentries(&fail_page_alloc.attr,
 				       "fail_page_alloc");
 	if (err)
@@ -1469,6 +1469,28 @@ static int __init fail_page_alloc_debugfs(void)
 	}
 
 	return err;
+=======
+	dir = fault_create_debugfs_attr("fail_page_alloc", NULL,
+					&fail_page_alloc.attr);
+	if (IS_ERR(dir))
+		return PTR_ERR(dir);
+
+	if (!debugfs_create_bool("ignore-gfp-wait", mode, dir,
+				&fail_page_alloc.ignore_gfp_wait))
+		goto fail;
+	if (!debugfs_create_bool("ignore-gfp-highmem", mode, dir,
+				&fail_page_alloc.ignore_gfp_highmem))
+		goto fail;
+	if (!debugfs_create_u32("min-order", mode, dir,
+				&fail_page_alloc.min_order))
+		goto fail;
+
+	return 0;
+fail:
+	debugfs_remove_recursive(dir);
+
+	return -ENOMEM;
+>>>>>>> dd48c08... fault-injection: add ability to export fault_attr in arbitrary directory
 }
 
 late_initcall(fail_page_alloc_debugfs);

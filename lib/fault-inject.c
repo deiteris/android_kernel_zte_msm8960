@@ -198,6 +198,7 @@ static struct dentry *debugfs_create_atomic_t(const char *name, mode_t mode,
 	return debugfs_create_file(name, mode, parent, value, &fops_atomic_t);
 }
 
+<<<<<<< HEAD
 void cleanup_fault_attr_dentries(struct fault_attr *attr)
 {
 	debugfs_remove(attr->dentries.probability_file);
@@ -245,10 +246,15 @@ void cleanup_fault_attr_dentries(struct fault_attr *attr)
 }
 
 int init_fault_attr_dentries(struct fault_attr *attr, const char *name)
+=======
+struct dentry *fault_create_debugfs_attr(const char *name,
+			struct dentry *parent, struct fault_attr *attr)
+>>>>>>> dd48c08... fault-injection: add ability to export fault_attr in arbitrary directory
 {
 	mode_t mode = S_IFREG | S_IRUSR | S_IWUSR;
 	struct dentry *dir;
 
+<<<<<<< HEAD
 	memset(&attr->dentries, 0, sizeof(attr->dentries));
 
 	dir = debugfs_create_dir(name, NULL);
@@ -258,6 +264,11 @@ int init_fault_attr_dentries(struct fault_attr *attr, const char *name)
 
 	attr->dentries.probability_file =
 		debugfs_create_ul("probability", mode, dir, &attr->probability);
+=======
+	dir = debugfs_create_dir(name, parent);
+	if (!dir)
+		return ERR_PTR(-ENOMEM);
+>>>>>>> dd48c08... fault-injection: add ability to export fault_attr in arbitrary directory
 
 	attr->dentries.interval_file =
 		debugfs_create_ul("interval", mode, dir, &attr->interval);
@@ -306,10 +317,16 @@ int init_fault_attr_dentries(struct fault_attr *attr, const char *name)
 
 #endif /* CONFIG_FAULT_INJECTION_STACKTRACE_FILTER */
 
-	return 0;
+	return dir;
 fail:
+<<<<<<< HEAD
 	cleanup_fault_attr_dentries(attr);
 	return -ENOMEM;
+=======
+	debugfs_remove_recursive(dir);
+
+	return ERR_PTR(-ENOMEM);
+>>>>>>> dd48c08... fault-injection: add ability to export fault_attr in arbitrary directory
 }
 
 #endif /* CONFIG_FAULT_INJECTION_DEBUG_FS */
