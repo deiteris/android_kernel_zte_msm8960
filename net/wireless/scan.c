@@ -863,7 +863,8 @@ int cfg80211_wext_siwscan(struct net_device *dev,
 			creq->n_ssids = 0;
 	}
 	for (i = 0; i < IEEE80211_NUM_BANDS; i++)
-		creq->rates[i] = (1 << wiphy->bands[i]->n_bitrates) - 1;
+		if (wiphy->bands[i])
+			creq->rates[i] = (1 << wiphy->bands[i]->n_bitrates) - 1;
 
 	rdev->scan_req = creq;
 	err = rdev->ops->scan(wiphy, dev, creq);
