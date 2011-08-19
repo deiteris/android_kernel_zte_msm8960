@@ -45,6 +45,7 @@
 #include <asm/cacheflush.h>
 #include <asm/cachetype.h>
 #include <asm/tlbflush.h>
+#include <asm/system.h>
 
 #include <asm/prom.h>
 #include <asm/mach/arch.h>
@@ -127,6 +128,13 @@ struct cpu_cache_fns cpu_cache __read_mostly;
 struct outer_cache_fns outer_cache __read_mostly;
 EXPORT_SYMBOL(outer_cache);
 #endif
+
+/*
+ * Cached cpu_architecture() result for use by assembler code.
+ * C code should use the cpu_architecture() function instead of accessing this
+ * variable directly.
+ */
+int __cpu_architecture __read_mostly = CPU_ARCH_UNKNOWN;
 
 struct stack {
 	u32 irq[3];
@@ -223,7 +231,7 @@ static const char *proc_arch[] = {
 	"?(17)",
 };
 
-int cpu_architecture(void)
+static int __get_cpu_architecture(void)
 {
 	int cpu_arch;
 
@@ -254,6 +262,13 @@ int cpu_architecture(void)
 		cpu_arch = CPU_ARCH_UNKNOWN;
 
 	return cpu_arch;
+}
+
+int __pure cpu_architecture(void)
+{
+	BUG_ON(__cpu_architecture == CPU_ARCH_UNKNOWN);
+
+	return __cpu_architecture;
 }
 
 static int cpu_has_aliasing_icache(unsigned int arch)
@@ -427,6 +442,7 @@ static void __init setup_processor(void)
 	}
 
 	cpu_name = list->cpu_name;
+	__cpu_architecture = __get_cpu_architecture();
 
 #ifdef MULTI_CPU
 	processor = *list->proc;
