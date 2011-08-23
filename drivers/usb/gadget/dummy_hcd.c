@@ -343,7 +343,17 @@ dummy_enable (struct usb_ep *_ep, const struct usb_endpoint_descriptor *desc)
 	dum = ep_to_dummy (ep);
 	if (!dum->driver || !is_enabled (dum))
 		return -ESHUTDOWN;
+<<<<<<< HEAD
 	max = le16_to_cpu(desc->wMaxPacketSize) & 0x3ff;
+=======
+
+	/*
+	 * For HS/FS devices only bits 0..10 of the wMaxPacketSize represent the
+	 * maximum packet size.
+	 * For SS devices the wMaxPacketSize is limited by 1024.
+	 */
+	max = usb_endpoint_maxp(desc) & 0x7ff;
+>>>>>>> 29cc889... USB: use usb_endpoint_maxp() instead of le16_to_cpu()
 
 	/* drivers must not request bad settings, since lower levels
 	 * (hardware or its drivers) may not check.  some endpoints
@@ -1157,7 +1167,7 @@ static int periodic_bytes (struct dummy *dum, struct dummy_ep *ep)
 		int	tmp;
 
 		/* high bandwidth mode */
-		tmp = le16_to_cpu(ep->desc->wMaxPacketSize);
+		tmp = usb_endpoint_maxp(ep->desc);
 		tmp = (tmp >> 11) & 0x03;
 		tmp *= 8 /* applies to entire frame */;
 		limit += limit * tmp;
