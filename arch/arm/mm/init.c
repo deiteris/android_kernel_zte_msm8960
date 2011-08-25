@@ -20,7 +20,6 @@
 #include <linux/highmem.h>
 #include <linux/gfp.h>
 #include <linux/memblock.h>
-#include <linux/sort.h>
 
 #include <asm/mach-types.h>
 #include <asm/prom.h>
@@ -144,30 +143,18 @@ void show_mem(unsigned int filter)
 }
 
 static void __init find_limits(unsigned long *min, unsigned long *max_low,
-	unsigned long *max_high)
+			       unsigned long *max_high)
 {
 	struct meminfo *mi = &meminfo;
 	int i;
 
-	*min = -1UL;
-	*max_low = *max_high = 0;
-
-	for_each_bank (i, mi) {
-		struct membank *bank = &mi->bank[i];
-		unsigned long start, end;
-
-		start = bank_pfn_start(bank);
-		end = bank_pfn_end(bank);
-
-		if (*min > start)
-			*min = start;
-		if (*max_high < end)
-			*max_high = end;
-		if (bank->highmem)
-			continue;
-		if (*max_low < end)
-			*max_low = end;
-	}
+	/* This assumes the meminfo array is properly sorted */
+	*min = bank_pfn_start(&mi->bank[0]);
+	for_each_bank (i, mi)
+		if (mi->bank[i].highmem)
+				break;
+	*max_low = bank_pfn_end(&mi->bank[i - 1]);
+	*max_high = bank_pfn_end(&mi->bank[mi->nr_banks - 1]);
 }
 
 static void __init arm_bootmem_init(unsigned long start_pfn,
@@ -342,38 +329,9 @@ static void __init arm_memory_present(void)
 }
 #endif
 
-static int __init meminfo_cmp(const void *_a, const void *_b)
-{
-	const struct membank *a = _a, *b = _b;
-	long cmp = bank_pfn_start(a) - bank_pfn_start(b);
-	return cmp < 0 ? -1 : cmp > 0 ? 1 : 0;
-}
-
-#ifdef CONFIG_DONT_MAP_HOLE_AFTER_MEMBANK0
-unsigned long membank0_size;
-EXPORT_SYMBOL(membank0_size);
-unsigned long membank1_start;
-EXPORT_SYMBOL(membank1_start);
-
-void __init find_membank0_hole(void)
-{
-	sort(&meminfo.bank, meminfo.nr_banks,
-		sizeof(meminfo.bank[0]), meminfo_cmp, NULL);
-
-	membank0_size = meminfo.bank[0].size;
-	membank1_start = meminfo.bank[1].start;
-
-	pr_info("m0 size %lx m1 start %lx\n", membank0_size, membank1_start);
-}
-#endif
-
 void __init arm_memblock_init(struct meminfo *mi, struct machine_desc *mdesc)
 {
 	int i;
-
-#ifndef CONFIG_DONT_MAP_HOLE_AFTER_MEMBANK0
-	sort(&meminfo.bank, meminfo.nr_banks, sizeof(meminfo.bank[0]), meminfo_cmp, NULL);
-#endif
 
 	memblock_init();
 	for (i = 0; i < mi->nr_banks; i++)
