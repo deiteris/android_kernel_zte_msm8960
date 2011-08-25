@@ -13,7 +13,7 @@
 #include <linux/cpu.h>
 
 #include <asm/cacheflush.h>
-<<<<<<< HEAD
+#include <asm/smp_plat.h>
 #include <asm/vfp.h>
 
 #include <mach/msm_rtb.h>
@@ -21,9 +21,7 @@
 #include "pm.h"
 #include "qdss.h"
 #include "spm.h"
-=======
-#include <asm/smp_plat.h>
->>>>>>> eb50439... ARM: 7293/1: logical_cpu_map: decouple CPU mapping from SMP
+
 
 extern volatile int pen_release;
 
