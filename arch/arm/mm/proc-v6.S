@@ -164,9 +164,6 @@ ENTRY(cpu_v6_do_resume)
 	mov	r0, r11			@ control register
 	b	cpu_resume_mmu
 ENDPROC(cpu_v6_do_resume)
-cpu_resume_l1_flags:
-	ALT_SMP(.long PMD_TYPE_SECT | PMD_SECT_AP_WRITE | PMD_FLAGS_SMP)
-	ALT_UP(.long  PMD_TYPE_SECT | PMD_SECT_AP_WRITE | PMD_FLAGS_UP)
 #endif
 
 
