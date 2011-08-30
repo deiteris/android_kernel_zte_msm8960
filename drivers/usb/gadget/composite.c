@@ -407,6 +407,7 @@ static int set_config(struct usb_composite_dev *cdev,
 	} else
 		result = 0;
 
+<<<<<<< HEAD
 	INFO(cdev, "%s speed config #%d: %s\n",
 		({ char *speed;
 		switch (gadget->speed) {
@@ -415,6 +416,11 @@ static int set_config(struct usb_composite_dev *cdev,
 		case USB_SPEED_HIGH:	speed = "high"; break;
 		default:		speed = "?"; break;
 		} ; speed; }), number, c ? c->label : "unconfigured");
+=======
+	INFO(cdev, "%s config #%d: %s\n",
+	     usb_speed_string(gadget->speed),
+	     number, c ? c->label : "unconfigured");
+>>>>>>> e538dfd... usb: Provide usb_speed_string() function
 
 	if (!c)
 		goto done;
