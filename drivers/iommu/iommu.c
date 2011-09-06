@@ -16,6 +16,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  */
 
+#include <linux/device.h>
 #include <linux/kernel.h>
 #include <linux/bug.h>
 #include <linux/types.h>
@@ -66,11 +67,14 @@ int bus_set_iommu(struct bus_type *bus, struct iommu_ops *ops)
 }
 EXPORT_SYMBOL_GPL(bus_set_iommu);
 
-bool iommu_found(void)
+bool iommu_present(struct bus_type *bus)
 {
-	return iommu_ops != NULL;
+	if (bus->iommu_ops != NULL)
+		return true;
+	else
+		return iommu_ops != NULL;
 }
-EXPORT_SYMBOL_GPL(iommu_found);
+EXPORT_SYMBOL_GPL(iommu_present);
 
 /**
  * iommu_set_fault_handler() - set a fault handler for an iommu domain
@@ -92,19 +96,27 @@ void iommu_set_fault_handler(struct iommu_domain *domain,
 }
 EXPORT_SYMBOL_GPL(iommu_set_fault_handler);
 
-struct iommu_domain *iommu_domain_alloc(int flags)
+struct iommu_domain *iommu_domain_alloc(struct bus_type *bus)
 {
 	struct iommu_domain *domain;
+	struct iommu_ops *ops;
 	int ret;
 
-	if (!iommu_found())
+	if (bus->iommu_ops)
+		ops = bus->iommu_ops;
+	else
+		ops = iommu_ops;
+
+	if (ops == NULL)
 		return NULL;
 
 	domain = kmalloc(sizeof(*domain), GFP_KERNEL);
 	if (!domain)
 		return NULL;
 
-	ret = iommu_ops->domain_init(domain, flags);
+	domain->ops = ops;
+
+	ret = iommu_ops->domain_init(domain);
 	if (ret)
 		goto out_free;
 
