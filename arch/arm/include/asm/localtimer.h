@@ -10,7 +10,11 @@
 #ifndef __ASM_ARM_LOCALTIMER_H
 #define __ASM_ARM_LOCALTIMER_H
 
+<<<<<<< HEAD
 #include <linux/interrupt.h>
+=======
+#include <linux/errno.h>
+>>>>>>> bb1ac3e... ARM: 7122/1: localtimer: add header linux/errno.h explicitly
 
 struct clock_event_device;
 
