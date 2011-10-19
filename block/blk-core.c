@@ -1558,6 +1558,7 @@ static inline void __generic_make_request(struct bio *bio)
 			goto end_io;
 		}
 
+<<<<<<< HEAD
 		if (blk_throtl_bio(q, &bio))
 			goto end_io;
 
@@ -1567,6 +1568,10 @@ static inline void __generic_make_request(struct bio *bio)
 		 */
 		if (!bio)
 			break;
+=======
+	if (blk_throtl_bio(q, bio))
+		return false;	/* throttled, will be resubmitted later */
+>>>>>>> bc16a4f... block: reorganize throtl_get_tg() and blk_throtl_bio()
 
 		trace_block_bio_queue(q, bio);
 
