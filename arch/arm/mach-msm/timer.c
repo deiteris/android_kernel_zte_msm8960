@@ -113,11 +113,18 @@ struct msm_clock {
 	uint32_t                    index;
 	void __iomem                *global_counter;
 	void __iomem                *local_counter;
+<<<<<<< HEAD
 	uint32_t		    status_mask;
 	union {
 		struct clock_event_device		*evt;
 		struct clock_event_device __percpu	**percpu_evt;
 	};
+=======
+	union {
+		struct clock_event_device		*evt;
+		struct clock_event_device __percpu	**percpu_evt;
+	};		
+>>>>>>> 1fdb24e... Merge branch 'devel-stable' of http://ftp.arm.linux.org.uk/pub/linux/arm/kernel/git-cur/linux-2.6-arm
 };
 
 enum {
@@ -195,7 +202,11 @@ static struct msm_clock msm_clocks[] = {
 static DEFINE_PER_CPU(struct msm_clock_percpu_data[NR_TIMERS],
     msm_clocks_percpu);
 
+<<<<<<< HEAD
 static DEFINE_PER_CPU(struct msm_clock *, msm_active_clock);
+=======
+static struct msm_clock msm_clocks[];
+>>>>>>> 1fdb24e... Merge branch 'devel-stable' of http://ftp.arm.linux.org.uk/pub/linux/arm/kernel/git-cur/linux-2.6-arm
 
 static irqreturn_t msm_timer_interrupt(int irq, void *dev_id)
 {
@@ -382,6 +393,7 @@ static void msm_timer_set_mode(enum clock_event_mode mode,
 	local_irq_restore(irq_flags);
 }
 
+<<<<<<< HEAD
 void __iomem *msm_timer_get_timer0_base(void)
 {
 	return MSM_TMR_BASE + global_timer_offset;
@@ -434,6 +446,47 @@ uint32_t msm_timer_get_sclk_ticks(void)
 			break;
 
 		udelay(tmp);
+=======
+static struct msm_clock msm_clocks[] = {
+	[MSM_CLOCK_GPT] = {
+		.clockevent = {
+			.name           = "gp_timer",
+			.features       = CLOCK_EVT_FEAT_ONESHOT,
+			.shift          = 32,
+			.rating         = 200,
+			.set_next_event = msm_timer_set_next_event,
+			.set_mode       = msm_timer_set_mode,
+		},
+		.clocksource = {
+			.name           = "gp_timer",
+			.rating         = 200,
+			.read           = msm_read_timer_count,
+			.mask           = CLOCKSOURCE_MASK(32),
+			.flags          = CLOCK_SOURCE_IS_CONTINUOUS,
+		},
+		.irq = INT_GP_TIMER_EXP,
+		.freq = GPT_HZ,
+	},
+	[MSM_CLOCK_DGT] = {
+		.clockevent = {
+			.name           = "dg_timer",
+			.features       = CLOCK_EVT_FEAT_ONESHOT,
+			.shift          = 32 + MSM_DGT_SHIFT,
+			.rating         = 300,
+			.set_next_event = msm_timer_set_next_event,
+			.set_mode       = msm_timer_set_mode,
+		},
+		.clocksource = {
+			.name           = "dg_timer",
+			.rating         = 300,
+			.read           = msm_read_timer_count,
+			.mask           = CLOCKSOURCE_MASK((32 - MSM_DGT_SHIFT)),
+			.flags          = CLOCK_SOURCE_IS_CONTINUOUS,
+		},
+		.irq = INT_DEBUG_TIMER_EXP,
+		.freq = DGT_HZ >> MSM_DGT_SHIFT,
+		.shift = MSM_DGT_SHIFT,
+>>>>>>> 1fdb24e... Merge branch 'devel-stable' of http://ftp.arm.linux.org.uk/pub/linux/arm/kernel/git-cur/linux-2.6-arm
 	}
 
 	if (!loop_zero_count) {
@@ -1078,8 +1131,12 @@ static void __init msm_timer_init(void)
 			       "failed for %s\n", cs->name);
 
 		ce->irq = clock->irq;
+<<<<<<< HEAD
 		if (cpu_is_msm8x60() || cpu_is_msm8960() || cpu_is_apq8064() ||
 				cpu_is_msm8930() || cpu_is_msm9615()) {
+=======
+		if (cpu_is_msm8x60() || cpu_is_msm8960()) {
+>>>>>>> 1fdb24e... Merge branch 'devel-stable' of http://ftp.arm.linux.org.uk/pub/linux/arm/kernel/git-cur/linux-2.6-arm
 			clock->percpu_evt = alloc_percpu(struct clock_event_device *);
 			if (!clock->percpu_evt) {
 				pr_err("msm_timer_init: memory allocation "
@@ -1091,8 +1148,12 @@ static void __init msm_timer_init(void)
 			res = request_percpu_irq(ce->irq, msm_timer_interrupt,
 						 ce->name, clock->percpu_evt);
 			if (!res)
+<<<<<<< HEAD
 				enable_percpu_irq(ce->irq,
 						 IRQ_TYPE_EDGE_RISING);
+=======
+				enable_percpu_irq(ce->irq, 0);
+>>>>>>> 1fdb24e... Merge branch 'devel-stable' of http://ftp.arm.linux.org.uk/pub/linux/arm/kernel/git-cur/linux-2.6-arm
 		} else {
 			clock->evt = ce;
 			res = request_irq(ce->irq, msm_timer_interrupt,
@@ -1103,6 +1164,7 @@ static void __init msm_timer_init(void)
 		if (res)
 			pr_err("msm_timer_init: request_irq failed for %s\n",
 			       ce->name);
+<<<<<<< HEAD
 
 		chip = irq_get_chip(clock->irq);
 		if (chip && chip->irq_mask)
@@ -1112,6 +1174,8 @@ static void __init msm_timer_init(void)
 			while (__raw_readl(MSM_TMR_BASE + TIMER_STATUS) &
 			       clock->status_mask)
 				;
+=======
+>>>>>>> 1fdb24e... Merge branch 'devel-stable' of http://ftp.arm.linux.org.uk/pub/linux/arm/kernel/git-cur/linux-2.6-arm
 
 		clockevents_register_device(ce);
 	}
@@ -1128,8 +1192,13 @@ static void __init msm_timer_init(void)
 
 int __cpuinit local_timer_setup(struct clock_event_device *evt)
 {
+<<<<<<< HEAD
 	static DEFINE_PER_CPU(bool, first_boot) = true;
 	struct msm_clock *clock = &msm_clocks[msm_global_timer];
+=======
+	static bool local_timer_inited;
+	struct msm_clock *clock = &msm_clocks[MSM_GLOBAL_TIMER];
+>>>>>>> 1fdb24e... Merge branch 'devel-stable' of http://ftp.arm.linux.org.uk/pub/linux/arm/kernel/git-cur/linux-2.6-arm
 
 	/* Use existing clock_event for cpu 0 */
 	if (!smp_processor_id())
@@ -1139,6 +1208,7 @@ int __cpuinit local_timer_setup(struct clock_event_device *evt)
 			|| cpu_is_msm8930())
 		__raw_writel(DGT_CLK_CTL_DIV_4, MSM_TMR_BASE + DGT_CLK_CTL);
 
+<<<<<<< HEAD
 	if (__get_cpu_var(first_boot)) {
 		__raw_writel(0, clock->regbase  + TIMER_ENABLE);
 		__raw_writel(0, clock->regbase + TIMER_CLEAR);
@@ -1148,6 +1218,13 @@ int __cpuinit local_timer_setup(struct clock_event_device *evt)
 			while (__raw_readl(MSM_TMR_BASE + TIMER_STATUS) &
 			       clock->status_mask)
 				;
+=======
+	if (!local_timer_inited) {
+		writel(0, clock->regbase  + TIMER_ENABLE);
+		writel(0, clock->regbase + TIMER_CLEAR);
+		writel(~0, clock->regbase + TIMER_MATCH_VAL);
+		local_timer_inited = true;
+>>>>>>> 1fdb24e... Merge branch 'devel-stable' of http://ftp.arm.linux.org.uk/pub/linux/arm/kernel/git-cur/linux-2.6-arm
 	}
 	evt->irq = clock->irq;
 	evt->name = "local_timer";
@@ -1162,6 +1239,10 @@ int __cpuinit local_timer_setup(struct clock_event_device *evt)
 	evt->min_delta_ns = clockevent_delta2ns(4, evt);
 
 	*__this_cpu_ptr(clock->percpu_evt) = evt;
+<<<<<<< HEAD
+=======
+	enable_percpu_irq(evt->irq, 0);
+>>>>>>> 1fdb24e... Merge branch 'devel-stable' of http://ftp.arm.linux.org.uk/pub/linux/arm/kernel/git-cur/linux-2.6-arm
 
 	clockevents_register_device(evt);
 	enable_percpu_irq(evt->irq, IRQ_TYPE_EDGE_RISING);

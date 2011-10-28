@@ -9899,6 +9899,7 @@ static struct regulator *bt_regs[ARRAY_SIZE(bt_regs_info)];
 
 static int bahama_bt(int on)
 {
+<<<<<<< HEAD
 	int rc;
 	int i;
 	struct marimba config = { .mod_id =  SLAVE_ID_BAHAMA};
@@ -10258,6 +10259,10 @@ void msm_fusion_setup_pinctrl(void)
 struct msm_board_data {
 	struct msm_gpiomux_configs *gpiomux_cfgs;
 };
+=======
+	gic_init(0, GIC_PPI_START, MSM_QGIC_DIST_BASE,
+		 (void *)MSM_QGIC_CPU_BASE);
+>>>>>>> 1fdb24e... Merge branch 'devel-stable' of http://ftp.arm.linux.org.uk/pub/linux/arm/kernel/git-cur/linux-2.6-arm
 
 static struct msm_board_data msm8x60_rumi3_board_data __initdata = {
 	.gpiomux_cfgs = msm8x60_surf_ffa_gpiomux_cfgs,
@@ -10307,6 +10312,7 @@ static void __init msm8x60_init(struct msm_board_data *board_data)
 	 * Initialize RPM first as other drivers and devices may need
 	 * it for their initialization.
 	 */
+<<<<<<< HEAD
 #ifdef CONFIG_MSM_RPM
 	BUG_ON(msm_rpm_init(&msm_rpm_data));
 #endif
@@ -10615,6 +10621,10 @@ static void __init msm8x60_charm_ffa_init(void)
 static void __init msm8x60_charm_init_early(void)
 {
 	msm8x60_allocate_memory_regions();
+=======
+	if (!machine_is_msm8x60_sim())
+		writel(0x0000FFFF, MSM_QGIC_DIST_BASE + GIC_DIST_ENABLE_SET);
+>>>>>>> 1fdb24e... Merge branch 'devel-stable' of http://ftp.arm.linux.org.uk/pub/linux/arm/kernel/git-cur/linux-2.6-arm
 }
 
 static void __init msm8x60_dragon_init(void)

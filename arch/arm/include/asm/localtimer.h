@@ -10,6 +10,10 @@
 #ifndef __ASM_ARM_LOCALTIMER_H
 #define __ASM_ARM_LOCALTIMER_H
 
+<<<<<<< HEAD
+=======
+#include <linux/errno.h>
+>>>>>>> 1fdb24e... Merge branch 'devel-stable' of http://ftp.arm.linux.org.uk/pub/linux/arm/kernel/git-cur/linux-2.6-arm
 #include <linux/interrupt.h>
 
 struct clock_event_device;
