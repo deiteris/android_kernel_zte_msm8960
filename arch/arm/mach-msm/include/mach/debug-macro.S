@@ -20,10 +20,17 @@
 #include <mach/msm_iomap.h>
 #include <mach/msm_serial_hsl_regs.h>
 
+<<<<<<< HEAD
 #ifdef MSM_DEBUG_UART_PHYS
        .macro  addruart, rp, rv
 	ldr     \rp, =MSM_DEBUG_UART_PHYS
 	ldr     \rv, =MSM_DEBUG_UART_BASE
+=======
+#if defined(CONFIG_HAS_MSM_DEBUG_UART_PHYS) && !defined(CONFIG_MSM_DEBUG_UART_NONE)
+	.macro	addruart, rp, rv, tmp
+	ldr	\rp, =MSM_DEBUG_UART_PHYS
+	ldr	\rv, =MSM_DEBUG_UART_BASE
+>>>>>>> 1fdb24e... Merge branch 'devel-stable' of http://ftp.arm.linux.org.uk/pub/linux/arm/kernel/git-cur/linux-2.6-arm
 	.endm
 
 	.macro	senduart,rd,rx
@@ -65,8 +72,14 @@
 	.endm
 
 #else
+<<<<<<< HEAD
 
 	.macro  addruart, rp, rv
+=======
+	.macro  addruart, rp, rv, tmp
+	mov	\rv, #0xff000000
+	orr	\rv, \rv, #0x00f00000
+>>>>>>> 1fdb24e... Merge branch 'devel-stable' of http://ftp.arm.linux.org.uk/pub/linux/arm/kernel/git-cur/linux-2.6-arm
 	.endm
 
 	.macro	senduart,rd,rx

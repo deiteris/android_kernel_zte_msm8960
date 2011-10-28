@@ -21,8 +21,11 @@ unsigned int __machine_arch_type;
 #include <linux/compiler.h>	/* for inline */
 #include <linux/types.h>
 #include <linux/linkage.h>
+<<<<<<< HEAD
 #include <asm/setup.h>
 #include <asm/string.h>
+=======
+>>>>>>> 1fdb24e... Merge branch 'devel-stable' of http://ftp.arm.linux.org.uk/pub/linux/arm/kernel/git-cur/linux-2.6-arm
 
 static void putstr(const char *ptr);
 extern void error(char *x);

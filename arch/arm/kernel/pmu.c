@@ -10,13 +10,10 @@
  *
  */
 
-#define pr_fmt(fmt) "PMU: " fmt
-
-#include <linux/cpumask.h>
 #include <linux/err.h>
-#include <linux/interrupt.h>
 #include <linux/kernel.h>
 #include <linux/module.h>
+<<<<<<< HEAD
 #include <linux/platform_device.h>
 
 #include <asm/pmu.h>
@@ -169,5 +166,25 @@ init_pmu(enum arm_pmu_type device)
 	}
 
 	return err;
+=======
+
+#include <asm/pmu.h>
+
+/*
+ * PMU locking to ensure mutual exclusion between different subsystems.
+ */
+static unsigned long pmu_lock[BITS_TO_LONGS(ARM_NUM_PMU_DEVICES)];
+
+int
+reserve_pmu(enum arm_pmu_type type)
+{
+	return test_and_set_bit_lock(type, pmu_lock) ? -EBUSY : 0;
 }
-EXPORT_SYMBOL_GPL(init_pmu);
+EXPORT_SYMBOL_GPL(reserve_pmu);
+
+void
+release_pmu(enum arm_pmu_type type)
+{
+	clear_bit_unlock(type, pmu_lock);
+>>>>>>> 1fdb24e... Merge branch 'devel-stable' of http://ftp.arm.linux.org.uk/pub/linux/arm/kernel/git-cur/linux-2.6-arm
+}

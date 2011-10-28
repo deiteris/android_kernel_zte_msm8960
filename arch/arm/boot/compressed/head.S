@@ -306,7 +306,12 @@ restart:	adr	r0, LC0
 		 * of RAM and hope for the best.
 		 */
 		cmp	r0, #1
+<<<<<<< HEAD
 		sub	r0, r4, #(TEXT_OFFSET - 0x100)
+=======
+		sub	r0, r4, #TEXT_OFFSET
+		add	r0, r0, #0x100
+>>>>>>> 1fdb24e... Merge branch 'devel-stable' of http://ftp.arm.linux.org.uk/pub/linux/arm/kernel/git-cur/linux-2.6-arm
 		mov	r1, r6
 		sub	r2, sp, r6
 		blne	atags_to_fdt

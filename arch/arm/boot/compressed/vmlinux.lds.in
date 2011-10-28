@@ -46,7 +46,10 @@ SECTIONS
   _got_start = .;
   .got			: { *(.got) }
   _got_end = .;
+<<<<<<< HEAD
   .got.plt		: { *(.got.plt) }
+=======
+>>>>>>> 1fdb24e... Merge branch 'devel-stable' of http://ftp.arm.linux.org.uk/pub/linux/arm/kernel/git-cur/linux-2.6-arm
 
   /* ensure the zImage file size is always a multiple of 64 bits */
   /* (without a dummy byte, ld just ignores the empty section) */
