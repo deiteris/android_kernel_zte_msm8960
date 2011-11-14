@@ -230,6 +230,9 @@ void cpu_idle(void)
 		tick_nohz_stop_sched_tick(1);
 		while (!need_resched()) {
 			local_irq_disable();
+#ifdef CONFIG_PL310_ERRATA_769419
+			wmb();
+#endif
 			if (hlt_counter) {
 				local_irq_enable();
 				cpu_relax();
