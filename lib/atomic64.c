@@ -13,8 +13,13 @@
 #include <linux/cache.h>
 #include <linux/spinlock.h>
 #include <linux/init.h>
+<<<<<<< HEAD
 #include <linux/module.h>
 #include <asm/atomic.h>
+=======
+#include <linux/export.h>
+#include <linux/atomic.h>
+>>>>>>> 8bc3bcc... lib: reduce the use of module.h wherever possible
 
 /*
  * We use a hashed array of spinlocks to provide exclusive access
