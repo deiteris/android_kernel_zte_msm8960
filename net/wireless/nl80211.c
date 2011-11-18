@@ -200,6 +200,10 @@ static const struct nla_policy nl80211_policy[NL80211_ATTR_MAX+1] = {
 	[NL80211_ATTR_PROBE_RESP] = { .type = NLA_BINARY,
 				      .len = IEEE80211_MAX_DATA_LEN },
 	[NL80211_ATTR_DFS_REGION] = { .type = NLA_U8 },
+	[NL80211_ATTR_DISABLE_HT] = { .type = NLA_FLAG },
+	[NL80211_ATTR_HT_CAPABILITY_MASK] = {
+		.len = NL80211_HT_CAPABILITY_LEN
+	},
 };
 
 /* policy for the key attributes */
@@ -1031,6 +1035,11 @@ static int nl80211_send_wiphy(struct sk_buff *msg, u32 pid, u32 seq, int flags,
 			dev->wiphy.ap_sme_capa);
 
 	NLA_PUT_U32(msg, NL80211_ATTR_FEATURE_FLAGS, dev->wiphy.features);
+
+	if (dev->wiphy.ht_capa_mod_mask)
+		NLA_PUT(msg, NL80211_ATTR_HT_CAPABILITY_MASK,
+			sizeof(*dev->wiphy.ht_capa_mod_mask),
+			dev->wiphy.ht_capa_mod_mask);
 
 	return genlmsg_end(msg, hdr);
 
@@ -4402,6 +4411,9 @@ static int nl80211_associate(struct sk_buff *skb, struct genl_info *info)
 	const u8 *bssid, *ssid, *ie = NULL, *prev_bssid = NULL;
 	int err, ssid_len, ie_len = 0;
 	bool use_mfp = false;
+	u32 flags = 0;
+	struct ieee80211_ht_cap *ht_capa = NULL;
+	struct ieee80211_ht_cap *ht_capa_mask = NULL;
 
 	if (!is_valid_ie_attr(info->attrs[NL80211_ATTR_IE]))
 		return -EINVAL;
@@ -4445,11 +4457,25 @@ static int nl80211_associate(struct sk_buff *skb, struct genl_info *info)
 	if (info->attrs[NL80211_ATTR_PREV_BSSID])
 		prev_bssid = nla_data(info->attrs[NL80211_ATTR_PREV_BSSID]);
 
+	if (nla_get_flag(info->attrs[NL80211_ATTR_DISABLE_HT]))
+		flags |= ASSOC_REQ_DISABLE_HT;
+
+	if (info->attrs[NL80211_ATTR_HT_CAPABILITY_MASK])
+		ht_capa_mask =
+			nla_data(info->attrs[NL80211_ATTR_HT_CAPABILITY_MASK]);
+
+	if (info->attrs[NL80211_ATTR_HT_CAPABILITY]) {
+		if (!ht_capa_mask)
+			return -EINVAL;
+		ht_capa = nla_data(info->attrs[NL80211_ATTR_HT_CAPABILITY]);
+	}
+
 	err = nl80211_crypto_settings(rdev, info, &crypto, 1);
 	if (!err)
 		err = cfg80211_mlme_assoc(rdev, dev, chan, bssid, prev_bssid,
 					  ssid, ssid_len, ie, ie_len, use_mfp,
-					  &crypto);
+					  &crypto, flags, ht_capa,
+					  ht_capa_mask);
 
 	return err;
 }
@@ -4853,6 +4879,22 @@ static int nl80211_connect(struct sk_buff *skb, struct genl_info *info)
 			return PTR_ERR(connkeys);
 	}
 
+	if (nla_get_flag(info->attrs[NL80211_ATTR_DISABLE_HT]))
+		connect.flags |= ASSOC_REQ_DISABLE_HT;
+
+	if (info->attrs[NL80211_ATTR_HT_CAPABILITY_MASK])
+		memcpy(&connect.ht_capa_mask,
+		       nla_data(info->attrs[NL80211_ATTR_HT_CAPABILITY_MASK]),
+		       sizeof(connect.ht_capa_mask));
+
+	if (info->attrs[NL80211_ATTR_HT_CAPABILITY]) {
+		if (!info->attrs[NL80211_ATTR_HT_CAPABILITY_MASK])
+			return -EINVAL;
+		memcpy(&connect.ht_capa,
+		       nla_data(info->attrs[NL80211_ATTR_HT_CAPABILITY]),
+		       sizeof(connect.ht_capa));
+	}
+
 	err = cfg80211_connect(rdev, dev, &connect, connkeys);
 	if (err)
 		kfree(connkeys);
@@ -5231,10 +5273,11 @@ static int nl80211_tx_mgmt(struct sk_buff *skb, struct genl_info *info)
 	int err;
 	void *hdr = NULL;
 	u64 cookie;
-	struct sk_buff *msg;
+	struct sk_buff *msg = NULL;
 	unsigned int wait = 0;
-	bool offchan;
-	bool no_cck;
+	bool offchan, no_cck, dont_wait_for_ack;
+
+	dont_wait_for_ack = info->attrs[NL80211_ATTR_DONT_WAIT_FOR_ACK];
 
 	if (!info->attrs[NL80211_ATTR_FRAME] ||
 	    !info->attrs[NL80211_ATTR_WIPHY_FREQ])
@@ -5281,29 +5324,36 @@ static int nl80211_tx_mgmt(struct sk_buff *skb, struct genl_info *info)
 	if (chan == NULL)
 		return -EINVAL;
 
-	msg = nlmsg_new(NLMSG_DEFAULT_SIZE, GFP_KERNEL);
-	if (!msg)
-		return -ENOMEM;
+	if (!dont_wait_for_ack) {
+		msg = nlmsg_new(NLMSG_DEFAULT_SIZE, GFP_KERNEL);
+		if (!msg)
+			return -ENOMEM;
 
-	hdr = nl80211hdr_put(msg, info->snd_pid, info->snd_seq, 0,
-			     NL80211_CMD_FRAME);
+		hdr = nl80211hdr_put(msg, info->snd_pid, info->snd_seq, 0,
+				     NL80211_CMD_FRAME);
 
-	if (IS_ERR(hdr)) {
-		err = PTR_ERR(hdr);
-		goto free_msg;
+		if (IS_ERR(hdr)) {
+			err = PTR_ERR(hdr);
+			goto free_msg;
+		}
 	}
+
 	err = cfg80211_mlme_mgmt_tx(rdev, dev, chan, offchan, channel_type,
 				    channel_type_valid, wait,
 				    nla_data(info->attrs[NL80211_ATTR_FRAME]),
 				    nla_len(info->attrs[NL80211_ATTR_FRAME]),
-				    no_cck, &cookie);
+				    no_cck, dont_wait_for_ack, &cookie);
 	if (err)
 		goto free_msg;
 
-	NLA_PUT_U64(msg, NL80211_ATTR_COOKIE, cookie);
+	if (msg) {
+		NLA_PUT_U64(msg, NL80211_ATTR_COOKIE, cookie);
 
-	genlmsg_end(msg, hdr);
-	return genlmsg_reply(msg, info);
+		genlmsg_end(msg, hdr);
+		return genlmsg_reply(msg, info);
+	}
+
+	return 0;
 
  nla_put_failure:
 	err = -ENOBUFS;
