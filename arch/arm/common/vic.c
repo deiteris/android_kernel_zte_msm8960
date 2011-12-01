@@ -301,7 +301,7 @@ static void __init vic_set_irq_sources(void __iomem *base,
  *  and 020 within the page. We call this "second block".
  */
 static void __init vic_init_st(void __iomem *base, unsigned int irq_start,
-				u32 vic_sources)
+			       u32 vic_sources, struct device_node *node)
 {
 	unsigned int i;
 	int vic_2nd_block = ((unsigned long)base & ~PAGE_MASK) != 0;
@@ -328,6 +328,7 @@ static void __init vic_init_st(void __iomem *base, unsigned int irq_start,
 	}
 
 	vic_set_irq_sources(base, irq_start, vic_sources);
+	vic_register(base, irq_start, 0, node);
 }
 
 /**
@@ -356,7 +357,7 @@ void __init vic_init(void __iomem *base, unsigned int irq_start,
 
 	switch(vendor) {
 	case AMBA_VENDOR_ST:
-		vic_init_st(base, irq_start, vic_sources);
+		vic_init_st(base, irq_start, vic_sources, node);
 		return;
 	default:
 		printk(KERN_WARNING "VIC: unknown vendor, continuing anyways\n");
