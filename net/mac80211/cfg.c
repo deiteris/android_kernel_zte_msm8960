@@ -836,6 +836,22 @@ static int ieee80211_change_station(struct wiphy *wiphy,
 		return -ENOENT;
 	}
 
+	/* The TDLS bit cannot be toggled after the STA was added */
+	if ((params->sta_flags_mask & BIT(NL80211_STA_FLAG_TDLS_PEER)) &&
+	    !!(params->sta_flags_set & BIT(NL80211_STA_FLAG_TDLS_PEER)) !=
+	    !!test_sta_flag(sta, WLAN_STA_TDLS_PEER)) {
+		rcu_read_unlock();
+		return -EINVAL;
+	}
+
+	/* in station mode, supported rates are only valid with TDLS */
+	if (sdata->vif.type == NL80211_IFTYPE_STATION &&
+	    params->supported_rates &&
+	    !test_sta_flag(sta, WLAN_STA_TDLS_PEER)) {
+		rcu_read_unlock();
+		return -EINVAL;
+	}
+
 	if (params->vlan && params->vlan != sta->sdata->dev) {
 		vlansdata = IEEE80211_DEV_TO_SUB_IF(params->vlan);
 
