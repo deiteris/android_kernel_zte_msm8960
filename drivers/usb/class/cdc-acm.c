@@ -556,9 +556,25 @@ static void acm_port_down(struct acm *acm)
 
 static void acm_tty_hangup(struct tty_struct *tty)
 {
+<<<<<<< HEAD
 	struct acm *acm = tty->driver_data;
 	tty_port_hangup(&acm->port);
 	acm_port_down(acm);
+=======
+	struct acm *acm;
+
+	mutex_lock(&open_mutex);
+	acm = tty->driver_data;
+
+	if (!acm)
+		goto out;
+
+	tty_port_hangup(&acm->port);
+	acm_port_down(acm);
+
+out:
+	mutex_unlock(&open_mutex);
+>>>>>>> 68f7609... usb: cdc-acm: Fix acm_tty_hangup() vs. acm_tty_close() race
 }
 
 static void acm_tty_close(struct tty_struct *tty, struct file *filp)
