@@ -182,12 +182,18 @@ static const struct nla_policy nl80211_policy[NL80211_ATTR_MAX+1] = {
 	[NL80211_ATTR_STA_PLINK_STATE] = { .type = NLA_U8 },
 	[NL80211_ATTR_SCHED_SCAN_INTERVAL] = { .type = NLA_U32 },
 	[NL80211_ATTR_HIDDEN_SSID] = { .type = NLA_U32 },
+<<<<<<< HEAD
 	[NL80211_ATTR_SCAN_SUPP_RATES] = { .type = NLA_NESTED },
+=======
+>>>>>>> 51e0d25... nl80211/cfg80211: Add crypto settings into NEW_BEACON
 	[NL80211_ATTR_IE_PROBE_RESP] = { .type = NLA_BINARY,
 					 .len = IEEE80211_MAX_DATA_LEN },
 	[NL80211_ATTR_IE_ASSOC_RESP] = { .type = NLA_BINARY,
 					 .len = IEEE80211_MAX_DATA_LEN },
+<<<<<<< HEAD
 	[NL80211_ATTR_TX_NO_CCK_RATE] = { .type = NLA_FLAG },
+=======
+>>>>>>> 51e0d25... nl80211/cfg80211: Add crypto settings into NEW_BEACON
 };
 
 /* policy for the key attributes */
