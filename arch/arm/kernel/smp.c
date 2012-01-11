@@ -493,6 +493,22 @@ static void __cpuinit broadcast_timer_setup(struct clock_event_device *evt)
 	clockevents_register_device(evt);
 }
 
+<<<<<<< HEAD
+=======
+static struct local_timer_ops *lt_ops;
+
+#ifdef CONFIG_LOCAL_TIMERS
+int local_timer_register(struct local_timer_ops *ops)
+{
+	if (lt_ops)
+		return -EBUSY;
+
+	lt_ops = ops;
+	return 0;
+}
+#endif
+
+>>>>>>> b1bf878... ARM: local timers: Add A15 architected timer support-MSM
 void __cpuinit percpu_timer_setup(void)
 {
 	unsigned int cpu = smp_processor_id();
