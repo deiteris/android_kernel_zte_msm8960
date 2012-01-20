@@ -19,6 +19,7 @@
 #include <asm/cacheflush.h>
 #include <asm/cputype.h>
 #include <asm/mach-types.h>
+#include <asm/smp_plat.h>
 
 #include <mach/socinfo.h>
 #include <mach/smp.h>
