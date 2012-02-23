@@ -99,8 +99,8 @@ static int setup_clocks(struct footswitch *fs)
 					clock->reset_rate : DEFAULT_RATE;
 			rc = clk_set_rate(clock->clk, rate);
 			if (rc && rc != -ENOSYS) {
-				pr_err("Failed to set %s rate to %lu Hz.\n",
-					clock->name, clock->rate);
+				pr_err("Failed to set %s %s rate to %lu Hz.\n",
+				       fs->desc.name, clock->name, clock->rate);
 				for (clock--; clock >= fs->clk_data; clock--) {
 					if (clock->enabled)
 						clk_disable(clock->clk);
@@ -130,8 +130,8 @@ static void restore_clocks(struct footswitch *fs)
 		if (clock->enabled)
 			clk_disable(clock->clk);
 		if (clock->rate && clk_set_rate(clock->clk, clock->rate))
-			pr_err("Failed to restore %s rate to %lu Hz.\n",
-				clock->name, clock->rate);
+			pr_err("Failed to restore %s %s rate to %lu Hz.\n",
+			       fs->desc.name, clock->name, clock->rate);
 	}
 }
 
@@ -166,14 +166,14 @@ static int footswitch_enable(struct regulator_dev *rdev)
 	if (fs->bus_port0) {
 		rc = msm_bus_axi_portunhalt(fs->bus_port0);
 		if (rc) {
-			pr_err("Port 0 unhalt failed.\n");
+			pr_err("%s port 0 unhalt failed.\n", fs->desc.name);
 			goto err;
 		}
 	}
 	if (fs->bus_port1) {
 		rc = msm_bus_axi_portunhalt(fs->bus_port1);
 		if (rc) {
-			pr_err("Port 1 unhalt failed.\n");
+			pr_err("%s port 1 unhalt failed.\n", fs->desc.name);
 			goto err_port2_halt;
 		}
 	}
@@ -251,14 +251,14 @@ static int footswitch_disable(struct regulator_dev *rdev)
 	if (fs->bus_port0) {
 		rc = msm_bus_axi_porthalt(fs->bus_port0);
 		if (rc) {
-			pr_err("Port 0 halt failed.\n");
+			pr_err("%s port 0 halt failed.\n", fs->desc.name);
 			goto err;
 		}
 	}
 	if (fs->bus_port1) {
 		rc = msm_bus_axi_porthalt(fs->bus_port1);
 		if (rc) {
-			pr_err("Port 1 halt failed.\n");
+			pr_err("%s port 1 halt failed.\n", fs->desc.name);
 			goto err_port2_halt;
 		}
 	}
@@ -328,7 +328,7 @@ static int gfx2d_footswitch_enable(struct regulator_dev *rdev)
 	if (fs->bus_port0) {
 		rc = msm_bus_axi_portunhalt(fs->bus_port0);
 		if (rc) {
-			pr_err("Port 0 unhalt failed.\n");
+			pr_err("%s port 0 unhalt failed.\n", fs->desc.name);
 			goto err;
 		}
 	}
@@ -403,7 +403,7 @@ static int gfx2d_footswitch_disable(struct regulator_dev *rdev)
 	if (fs->bus_port0) {
 		rc = msm_bus_axi_porthalt(fs->bus_port0);
 		if (rc) {
-			pr_err("Port 0 halt failed.\n");
+			pr_err("%s port 0 halt failed.\n", fs->desc.name);
 			goto err;
 		}
 	}
@@ -634,7 +634,8 @@ static int footswitch_probe(struct platform_device *pdev)
 		clock->clk = clk_get(&pdev->dev, clock->name);
 		if (IS_ERR(clock->clk)) {
 			rc = PTR_ERR(clock->clk);
-			pr_err("clk_get(%s) failed\n", clock->name);
+			pr_err("%s clk_get(%s) failed\n", fs->desc.name,
+			       clock->name);
 			goto err;
 		}
 		if (!strncmp(clock->name, "core_clk", 8))
