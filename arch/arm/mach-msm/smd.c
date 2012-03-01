@@ -161,6 +161,7 @@ static struct interrupt_config private_intr_config[NUM_SMD_SUBSYSTEMS] = {
 		.smsm.irq_handler = smsm_wcnss_irq_handler,
 	},
 };
+struct interrupt_stat interrupt_stats[NUM_SMD_SUBSYSTEMS];
 
 #define SMSM_STATE_ADDR(entry)           (smsm_info.state + entry)
 #define SMSM_INTR_MASK_ADDR(entry, host) (smsm_info.intr_mask + \
@@ -394,33 +395,42 @@ static inline void notify_modem_smd(void)
 {
 	static const struct interrupt_config_item *intr
 	   = &private_intr_config[SMD_MODEM].smd;
-	if (intr->out_base)
+	if (intr->out_base) {
+		++interrupt_stats[SMD_MODEM].smd_out_config_count;
 		smd_write_intr(intr->out_bit_pos,
 		intr->out_base + intr->out_offset);
-	else
+	} else {
+		++interrupt_stats[SMD_MODEM].smd_out_hardcode_count;
 		MSM_TRIG_A2M_SMD_INT;
+	}
 }
 
 static inline void notify_dsp_smd(void)
 {
 	static const struct interrupt_config_item *intr
 		= &private_intr_config[SMD_Q6].smd;
-	if (intr->out_base)
+	if (intr->out_base) {
+		++interrupt_stats[SMD_Q6].smd_out_config_count;
 		smd_write_intr(intr->out_bit_pos,
 		intr->out_base + intr->out_offset);
-	else
+	} else {
+		++interrupt_stats[SMD_Q6].smd_out_hardcode_count;
 		MSM_TRIG_A2Q6_SMD_INT;
+	}
 }
 
 static inline void notify_dsps_smd(void)
 {
 	static const struct interrupt_config_item *intr
 		= &private_intr_config[SMD_DSPS].smd;
-	if (intr->out_base)
+	if (intr->out_base) {
+		++interrupt_stats[SMD_DSPS].smd_out_config_count;
 		smd_write_intr(intr->out_bit_pos,
 		intr->out_base + intr->out_offset);
-	else
+	} else {
+		++interrupt_stats[SMD_DSPS].smd_out_hardcode_count;
 		MSM_TRIG_A2DSPS_SMD_INT;
+	}
 }
 
 static inline void notify_wcnss_smd(void)
@@ -429,44 +439,56 @@ static inline void notify_wcnss_smd(void)
 		= &private_intr_config[SMD_WCNSS].smd;
 	wakeup_v1_riva();
 
-	if (intr->out_base)
+	if (intr->out_base) {
+		++interrupt_stats[SMD_WCNSS].smd_out_config_count;
 		smd_write_intr(intr->out_bit_pos,
 		intr->out_base + intr->out_offset);
-	else
+	} else {
+		++interrupt_stats[SMD_WCNSS].smd_out_hardcode_count;
 		MSM_TRIG_A2WCNSS_SMD_INT;
+	}
 }
 
 static inline void notify_modem_smsm(void)
 {
 	static const struct interrupt_config_item *intr
 		= &private_intr_config[SMD_MODEM].smsm;
-	if (intr->out_base)
+	if (intr->out_base) {
+		++interrupt_stats[SMD_MODEM].smsm_out_config_count;
 		smd_write_intr(intr->out_bit_pos,
 		intr->out_base + intr->out_offset);
-	else
+	} else {
+		++interrupt_stats[SMD_MODEM].smsm_out_hardcode_count;
 		MSM_TRIG_A2M_SMSM_INT;
+	}
 }
 
 static inline void notify_dsp_smsm(void)
 {
 	static const struct interrupt_config_item *intr
 		= &private_intr_config[SMD_Q6].smsm;
-	if (intr->out_base)
+	if (intr->out_base) {
+		++interrupt_stats[SMD_Q6].smsm_out_config_count;
 		smd_write_intr(intr->out_bit_pos,
 		intr->out_base + intr->out_offset);
-	else
+	} else {
+		++interrupt_stats[SMD_Q6].smsm_out_hardcode_count;
 		MSM_TRIG_A2Q6_SMSM_INT;
+	}
 }
 
 static inline void notify_dsps_smsm(void)
 {
 	static const struct interrupt_config_item *intr
 		= &private_intr_config[SMD_DSPS].smsm;
-	if (intr->out_base)
+	if (intr->out_base) {
+		++interrupt_stats[SMD_DSPS].smsm_out_config_count;
 		smd_write_intr(intr->out_bit_pos,
 		intr->out_base + intr->out_offset);
-	else
+	} else {
+		++interrupt_stats[SMD_DSPS].smsm_out_hardcode_count;
 		MSM_TRIG_A2DSPS_SMSM_INT;
+	}
 }
 
 static inline void notify_wcnss_smsm(void)
@@ -475,11 +497,14 @@ static inline void notify_wcnss_smsm(void)
 		= &private_intr_config[SMD_WCNSS].smsm;
 	wakeup_v1_riva();
 
-	if (intr->out_base)
+	if (intr->out_base) {
+		++interrupt_stats[SMD_WCNSS].smsm_out_config_count;
 		smd_write_intr(intr->out_bit_pos,
 		intr->out_base + intr->out_offset);
-	else
+	} else {
+		++interrupt_stats[SMD_WCNSS].smsm_out_hardcode_count;
 		MSM_TRIG_A2WCNSS_SMSM_INT;
+	}
 }
 
 static void notify_other_smsm(uint32_t smsm_entry, uint32_t notify_mask)
@@ -792,6 +817,30 @@ const char *smd_edge_to_subsystem(uint32_t type)
 }
 EXPORT_SYMBOL(smd_edge_to_subsystem);
 
+/*
+ * Returns a pointer to the subsystem name given the
+ * remote processor ID.
+ *
+ * @pid     Remote processor ID
+ * @returns Pointer to subsystem name or NULL if not found
+ */
+const char *smd_pid_to_subsystem(uint32_t pid)
+{
+	const char *subsys = NULL;
+	int i;
+
+	for (i = 0; i < ARRAY_SIZE(edge_to_pids); ++i) {
+		if (pid == edge_to_pids[i].remote_pid &&
+			edge_to_pids[i].subsys_name[0] != 0x0
+			) {
+			subsys = edge_to_pids[i].subsys_name;
+			break;
+		}
+	}
+
+	return subsys;
+}
+EXPORT_SYMBOL(smd_pid_to_subsystem);
 
 static void smd_reset_edge(struct smd_half_channel *ch, unsigned new_state)
 {
@@ -1208,6 +1257,7 @@ static void handle_smd_irq(struct list_head *list, void (*notify)(void))
 static irqreturn_t smd_modem_irq_handler(int irq, void *data)
 {
 	SMx_POWER_INFO("SMD Int Modem->Apps\n");
+	++interrupt_stats[SMD_MODEM].smd_in_count;
 	handle_smd_irq(&smd_ch_list_modem, notify_modem_smd);
 	handle_smd_irq_closing_list();
 	return IRQ_HANDLED;
@@ -1216,6 +1266,7 @@ static irqreturn_t smd_modem_irq_handler(int irq, void *data)
 static irqreturn_t smd_dsp_irq_handler(int irq, void *data)
 {
 	SMx_POWER_INFO("SMD Int LPASS->Apps\n");
+	++interrupt_stats[SMD_Q6].smd_in_count;
 	handle_smd_irq(&smd_ch_list_dsp, notify_dsp_smd);
 	handle_smd_irq_closing_list();
 	return IRQ_HANDLED;
@@ -1224,6 +1275,7 @@ static irqreturn_t smd_dsp_irq_handler(int irq, void *data)
 static irqreturn_t smd_dsps_irq_handler(int irq, void *data)
 {
 	SMx_POWER_INFO("SMD Int DSPS->Apps\n");
+	++interrupt_stats[SMD_DSPS].smd_in_count;
 	handle_smd_irq(&smd_ch_list_dsps, notify_dsps_smd);
 	handle_smd_irq_closing_list();
 	return IRQ_HANDLED;
@@ -1232,6 +1284,7 @@ static irqreturn_t smd_dsps_irq_handler(int irq, void *data)
 static irqreturn_t smd_wcnss_irq_handler(int irq, void *data)
 {
 	SMx_POWER_INFO("SMD Int WCNSS->Apps\n");
+	++interrupt_stats[SMD_WCNSS].smd_in_count;
 	handle_smd_irq(&smd_ch_list_wcnss, notify_wcnss_smd);
 	handle_smd_irq_closing_list();
 	return IRQ_HANDLED;
@@ -2562,24 +2615,28 @@ static irqreturn_t smsm_irq_handler(int irq, void *data)
 static irqreturn_t smsm_modem_irq_handler(int irq, void *data)
 {
 	SMx_POWER_INFO("SMSM Int Modem->Apps\n");
+	++interrupt_stats[SMD_MODEM].smsm_in_count;
 	return smsm_irq_handler(irq, data);
 }
 
 static irqreturn_t smsm_dsp_irq_handler(int irq, void *data)
 {
 	SMx_POWER_INFO("SMSM Int LPASS->Apps\n");
+	++interrupt_stats[SMD_Q6].smsm_in_count;
 	return smsm_irq_handler(irq, data);
 }
 
 static irqreturn_t smsm_dsps_irq_handler(int irq, void *data)
 {
 	SMx_POWER_INFO("SMSM Int DSPS->Apps\n");
+	++interrupt_stats[SMD_DSPS].smsm_in_count;
 	return smsm_irq_handler(irq, data);
 }
 
 static irqreturn_t smsm_wcnss_irq_handler(int irq, void *data)
 {
 	SMx_POWER_INFO("SMSM Int WCNSS->Apps\n");
+	++interrupt_stats[SMD_WCNSS].smsm_in_count;
 	return smsm_irq_handler(irq, data);
 }
 
