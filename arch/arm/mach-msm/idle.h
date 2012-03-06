@@ -1,4 +1,4 @@
-/* Copyright (c) 2007-2009,2011 Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2007-2009,2012 Code Aurora Forum. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -37,6 +37,15 @@ extern unsigned long msm_pm_pc_pgd;
 extern unsigned long msm_pm_boot_vector[NR_CPUS];
 #else
 static inline void msm_pm_set_l2_flush_flag(unsigned int flag)
+{
+	/* empty */
+}
+static inline void msm_pm_boot_entry(void)
+{
+	/* empty */
+}
+static inline void msm_pm_write_boot_vector(unsigned int cpu,
+						unsigned long address)
 {
 	/* empty */
 }

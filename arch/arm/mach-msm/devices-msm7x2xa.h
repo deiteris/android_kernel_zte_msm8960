@@ -23,4 +23,15 @@ extern struct platform_device msm7x27a_device_vfe;
 extern struct platform_device msm7x27a_device_csic0;
 extern struct platform_device msm7x27a_device_csic1;
 extern struct platform_device msm7x27a_device_clkctl;
+<<<<<<< HEAD
+=======
+
+extern struct platform_device msm8625_device_csic0;
+extern struct platform_device msm8625_device_csic1;
+
+void __init msm8625_init_irq(void);
+void __init msm8625_map_io(void);
+int  ar600x_wlan_power(bool on);
+void __init msm8x25_spm_device_init(void);
+>>>>>>> 41786ab... pm2: Power Management driver changes for 8x25
 #endif
