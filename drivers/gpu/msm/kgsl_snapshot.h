@@ -136,6 +136,8 @@ struct kgsl_snapshot_debug {
 	int size;   /* Size of the section in bytes */
 } __packed;
 
+#define SNAPSHOT_GPU_OBJECT_SHADER 1
+
 struct kgsl_snapshot_gpu_object {
 	int type;      /* Type of GPU object */
 	__u32 gpuaddr; /* GPU address of the the object */
