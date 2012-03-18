@@ -16,10 +16,10 @@
 #include <asm/smp_plat.h>
 #include <asm/vfp.h>
 
+#include <mach/qdss.h>
 #include <mach/msm_rtb.h>
 
 #include "pm.h"
-#include "qdss.h"
 #include "spm.h"
 
 
