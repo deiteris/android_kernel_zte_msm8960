@@ -629,6 +629,7 @@ int rcg_clk_handoff(struct clk *c)
 		return 0;
 
 	clk->current_freq = freq;
+	c->rate = freq->freq_hz;
 
 	return 1;
 }
