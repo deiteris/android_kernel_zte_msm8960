@@ -17,6 +17,7 @@
 #include <linux/file.h>
 #include <linux/fs.h>
 #include <linux/kernel.h>
+#include <linux/poll.h>
 #include <linux/sched.h>
 #include <linux/slab.h>
 #include <linux/sync.h>
@@ -194,12 +195,14 @@ out:
 }
 
 static int sync_fence_release(struct inode *inode, struct file *file);
+static unsigned int sync_fence_poll(struct file *file, poll_table *wait);
 static long sync_fence_ioctl(struct file *file, unsigned int cmd,
 			     unsigned long arg);
 
 
 static const struct file_operations sync_fence_fops = {
 	.release = sync_fence_release,
+	.poll = sync_fence_poll,
 	.unlocked_ioctl = sync_fence_ioctl,
 };
 
@@ -456,6 +459,20 @@ static int sync_fence_release(struct inode *inode, struct file *file)
 	kfree(fence);
 
 	return 0;
+}
+
+static unsigned int sync_fence_poll(struct file *file, poll_table *wait)
+{
+	struct sync_fence *fence = file->private_data;
+
+	poll_wait(file, &fence->wq, wait);
+
+	if (fence->status == 1)
+		return POLLIN;
+	else if (fence->status < 0)
+		return POLLERR;
+	else
+		return 0;
 }
 
 static long sync_fence_ioctl_wait(struct sync_fence *fence, unsigned long arg)
