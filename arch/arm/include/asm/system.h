@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 #ifndef __ASM_ARM_SYSTEM_H
 #define __ASM_ARM_SYSTEM_H
 
@@ -458,3 +459,13 @@ static inline unsigned long long __cmpxchg64_mb(volatile void *ptr,
 #endif /* __KERNEL__ */
 
 #endif
+=======
+/* FILE TO BE DELETED. DO NOT ADD STUFF HERE! */
+#include <asm/barrier.h>
+#include <asm/compiler.h>
+#include <asm/cmpxchg.h>
+#include <asm/exec.h>
+#include <asm/switch_to.h>
+#include <asm/system_info.h>
+#include <asm/system_misc.h>
+>>>>>>> 9f97da7... Disintegrate asm/system.h for ARM

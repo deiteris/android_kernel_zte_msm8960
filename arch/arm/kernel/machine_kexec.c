@@ -12,7 +12,11 @@
 #include <asm/mmu_context.h>
 #include <asm/cacheflush.h>
 #include <asm/mach-types.h>
+<<<<<<< HEAD
 #include <asm/mmu_writeable.h>
+=======
+#include <asm/system_misc.h>
+>>>>>>> 9f97da7... Disintegrate asm/system.h for ARM
 
 extern const unsigned char relocate_new_kernel[];
 extern const unsigned int relocate_new_kernel_size;

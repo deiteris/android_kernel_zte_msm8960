@@ -24,6 +24,10 @@
 #include <asm/unwind.h>
 #include <asm/unistd.h>
 #include <asm/tls.h>
+<<<<<<< HEAD
+=======
+#include <asm/system_info.h>
+>>>>>>> 9f97da7... Disintegrate asm/system.h for ARM
 
 #include "entry-header.S"
 #include <asm/entry-macro-multi.S>
