@@ -351,6 +351,10 @@ static void msm_gpio_irq_ack(struct irq_data *d)
 
 static void __msm_gpio_irq_mask(unsigned int gpio)
 {
+<<<<<<< HEAD
+=======
+	__raw_writel(TARGET_PROC_NONE, GPIO_INTR_CFG_SU(gpio));
+>>>>>>> 8fe95be... msm: gpio-v2: Fix spurious interrupts when gpio-irq is unmasked
 	clr_gpio_bits(INTR_ENABLE, GPIO_INTR_CFG(gpio));
 }
 
@@ -372,8 +376,13 @@ static void msm_gpio_irq_mask(struct irq_data *d)
 
 static void __msm_gpio_irq_unmask(unsigned int gpio)
 {
+<<<<<<< HEAD
 	__raw_writel(BIT(INTR_STATUS_BIT), GPIO_INTR_STATUS(gpio));
 	set_gpio_bits(INTR_ENABLE, GPIO_INTR_CFG(gpio));
+=======
+	set_gpio_bits(INTR_ENABLE, GPIO_INTR_CFG(gpio));
+	__raw_writel(TARGET_PROC_SCORPION, GPIO_INTR_CFG_SU(gpio));
+>>>>>>> 8fe95be... msm: gpio-v2: Fix spurious interrupts when gpio-irq is unmasked
 }
 
 static void msm_gpio_irq_unmask(struct irq_data *d)
@@ -433,6 +442,21 @@ static int msm_gpio_irq_set_type(struct irq_data *d, unsigned int flow_type)
 		bits &= ~INTR_POL_CTL_HI;
 
 	__raw_writel(bits, GPIO_INTR_CFG(gpio));
+	/* RAW_STATUS_EN is left on for all gpio irqs. Due to the
+	 * internal circuitry of TLMM, toggling the RAW_STATUS
+	 * could cause the INTR_STATUS to be set for EDGE interrupts.
+	 */
+	set_gpio_bits(INTR_RAW_STATUS_EN, GPIO_INTR_CFG(gpio));
+
+	/* Sometimes it might take a little while to update
+	* the interrupt status after the RAW_STATUS is enabled
+	*/
+	udelay(5);
+
+	/* Clear the interrupt status to clear out any spurious
+	 * irq as a result of the above operation
+	 */
+	__raw_writel(BIT(INTR_STATUS_BIT), GPIO_INTR_STATUS(gpio));
 
 	/* Sometimes it might take a little while to update
 	* the interrupt status after the RAW_STATUS is enabled
