@@ -2970,7 +2970,6 @@ void notify_smsm_cb_clients_worker(struct work_struct *work)
 	uint32_t use_wakelock;
 	int ret;
 	unsigned long flags;
-	int snapshot_size = SMSM_NUM_ENTRIES * sizeof(uint32_t);
 
 	if (!smd_initialized)
 		return;
