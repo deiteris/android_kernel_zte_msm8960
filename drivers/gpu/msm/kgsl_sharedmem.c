@@ -562,6 +562,8 @@ _kgsl_sharedmem_page_alloc(struct kgsl_memdesc *memdesc,
 			kunmap_atomic(ptr, KM_USER0);
 		}
 	}
+	outer_cache_range_op_sg(memdesc->sg, memdesc->sglen,
+				KGSL_CACHE_OP_FLUSH);
 
 	outer_cache_range_op_sg(memdesc->sg, memdesc->sglen,
 				KGSL_CACHE_OP_FLUSH);
