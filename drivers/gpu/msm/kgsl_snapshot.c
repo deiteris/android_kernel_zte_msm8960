@@ -28,6 +28,7 @@ struct kgsl_snapshot_object {
 	unsigned int gpuaddr;
 	unsigned int ptbase;
 	unsigned int size;
+	unsigned int offset;
 	int type;
 	struct kgsl_mem_entry *entry;
 	struct list_head node;
@@ -230,7 +231,7 @@ static int kgsl_snapshot_dump_object(struct kgsl_device *device,
 		 * then offset the source pointer
 		 */
 
-		offset = obj->gpuaddr - obj->entry->memdesc.gpuaddr;
+		offset = obj->offset;
 
 		/*
 		 * Then  adjust it to account for the offset for the output
@@ -349,6 +350,7 @@ int kgsl_snapshot_get_object(struct kgsl_device *device, unsigned int ptbase,
 	obj->gpuaddr = gpuaddr;
 	obj->ptbase = ptbase;
 	obj->size = size;
+	obj->offset = offset;
 
 	list_add(&obj->node, &device->snapshot_obj_list);
 
