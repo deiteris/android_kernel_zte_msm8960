@@ -3093,11 +3093,14 @@ void snd_soc_dapm_shutdown(struct snd_soc_card *card)
 		if (codec->dapm.bias_level == SND_SOC_BIAS_STANDBY)
 			snd_soc_dapm_set_bias_level(&codec->dapm,
 						    SND_SOC_BIAS_OFF);
+<<<<<<< HEAD
 	}
 
 	list_for_each_entry(platform, &card->platform_dev_list, list) {
 		soc_dapm_shutdown_codec(&platform->dapm);
 		snd_soc_dapm_set_bias_level(&platform->dapm, SND_SOC_BIAS_OFF);
+=======
+>>>>>>> 94225ab... Merge linux-stable 3.0.28 into android-3.0
 	}
 }
 

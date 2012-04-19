@@ -201,6 +201,7 @@ static int proc_root_link(struct inode *inode, struct path *path)
 }
 
 static struct mm_struct *mm_access(struct task_struct *task, unsigned int mode)
+<<<<<<< HEAD
 {
 	struct mm_struct *mm;
 	int err;
@@ -221,6 +222,8 @@ static struct mm_struct *mm_access(struct task_struct *task, unsigned int mode)
 }
 
 struct mm_struct *mm_for_maps(struct task_struct *task)
+=======
+>>>>>>> 94225ab... Merge linux-stable 3.0.28 into android-3.0
 {
 	return mm_access(task, PTRACE_MODE_READ);
 }
@@ -237,7 +240,11 @@ struct mm_struct *mm_for_smaps(struct task_struct *task)
 	mm = get_task_mm(task);
 	if (mm && mm != current->mm &&
 			!ptrace_may_access(task, mode) &&
+<<<<<<< HEAD
 	                !capable(CAP_SYS_RESOURCE)) {
+=======
+			!capable(CAP_SYS_RESOURCE)) {
+>>>>>>> 94225ab... Merge linux-stable 3.0.28 into android-3.0
 		mmput(mm);
 		mm = ERR_PTR(-EACCES);
 	}
@@ -246,6 +253,13 @@ struct mm_struct *mm_for_smaps(struct task_struct *task)
 	return mm;
 }
 
+<<<<<<< HEAD
+=======
+struct mm_struct *mm_for_maps(struct task_struct *task)
+{
+	return mm_access(task, PTRACE_MODE_READ);
+}
+>>>>>>> 94225ab... Merge linux-stable 3.0.28 into android-3.0
 
 static int proc_pid_cmdline(struct task_struct *task, char * buffer)
 {
@@ -821,7 +835,10 @@ static ssize_t mem_rw(struct file *file, char __user *buf,
 			size_t count, loff_t *ppos, int write)
 {
 	struct mm_struct *mm = file->private_data;
+<<<<<<< HEAD
 
+=======
+>>>>>>> 94225ab... Merge linux-stable 3.0.28 into android-3.0
 	unsigned long addr = *ppos;
 	ssize_t copied;
 	char *page;
@@ -876,11 +893,22 @@ static ssize_t mem_read(struct file *file, char __user *buf,
 	return mem_rw(file, buf, count, ppos, 0);
 }
 
+<<<<<<< HEAD
+=======
+#define mem_write NULL
+
+#ifndef mem_write
+/* This is a security hazard */
+>>>>>>> 94225ab... Merge linux-stable 3.0.28 into android-3.0
 static ssize_t mem_write(struct file *file, const char __user *buf,
 			 size_t count, loff_t *ppos)
 {
 	return mem_rw(file, (char __user*)buf, count, ppos, 1);
 }
+<<<<<<< HEAD
+=======
+#endif
+>>>>>>> 94225ab... Merge linux-stable 3.0.28 into android-3.0
 
 loff_t mem_lseek(struct file *file, loff_t offset, int orig)
 {

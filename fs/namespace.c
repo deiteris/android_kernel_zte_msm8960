@@ -1106,6 +1106,7 @@ static int show_vfsstat(struct seq_file *m, void *v)
 
 	/* device */
 	if (mnt->mnt_sb->s_op->show_devname) {
+		seq_puts(m, "device ");
 		err = mnt->mnt_sb->s_op->show_devname(m, mnt);
 	} else {
 		if (mnt->mnt_devname) {
@@ -2731,6 +2732,7 @@ struct vfsmount *kern_mount_data(struct file_system_type *type, void *data)
 }
 EXPORT_SYMBOL_GPL(kern_mount_data);
 
+<<<<<<< HEAD
 void kern_unmount(struct vfsmount *mnt)
 {
 	/* release long term mount so mount point can be released */
@@ -2740,6 +2742,8 @@ void kern_unmount(struct vfsmount *mnt)
 	}
 }
 
+=======
+>>>>>>> 94225ab... Merge linux-stable 3.0.28 into android-3.0
 bool our_mnt(struct vfsmount *mnt)
 {
 	return check_mnt(mnt);

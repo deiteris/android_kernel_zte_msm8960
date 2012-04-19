@@ -1277,11 +1277,19 @@ static void setup_vmalloc_vm(struct vm_struct *vm, struct vmap_area *va,
 	va->private = vm;
 	va->flags |= VM_VM_AREA;
 }
+<<<<<<< HEAD
 
 static void insert_vmalloc_vmlist(struct vm_struct *vm)
 {
 	struct vm_struct *tmp, **p;
 
+=======
+
+static void insert_vmalloc_vmlist(struct vm_struct *vm)
+{
+	struct vm_struct *tmp, **p;
+
+>>>>>>> 94225ab... Merge linux-stable 3.0.28 into android-3.0
 	vm->flags &= ~VM_UNLIST;
 	write_lock(&vmlist_lock);
 	for (p = &vmlist; (tmp = *p) != NULL; p = &tmp->next) {

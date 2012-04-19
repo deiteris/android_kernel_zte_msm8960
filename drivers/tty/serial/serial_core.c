@@ -2005,11 +2005,15 @@ int uart_resume_port(struct uart_driver *drv, struct uart_port *uport)
 		 */
 		if (port->tty && port->tty->termios && termios.c_cflag == 0)
 			termios = *(port->tty->termios);
+<<<<<<< HEAD
 		/*
 		 * As we need to set the uart clock rate back to 7.3 MHz.
 		 * We need this change.
 		 *
 		 */
+=======
+
+>>>>>>> 94225ab... Merge linux-stable 3.0.28 into android-3.0
 		if (console_suspend_enabled)
 			uart_change_pm(state, 0);
 		uport->ops->set_termios(uport, &termios, NULL);

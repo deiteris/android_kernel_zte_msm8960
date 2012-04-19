@@ -258,21 +258,28 @@ static int ipoib_mcast_join_finish(struct ipoib_mcast *mcast,
 	netif_tx_lock_bh(dev);
 	while (!skb_queue_empty(&mcast->pkt_queue)) {
 		struct sk_buff *skb = skb_dequeue(&mcast->pkt_queue);
+<<<<<<< HEAD
 		struct dst_entry *dst = skb_dst(skb);
 		struct neighbour *n = NULL;
+=======
+>>>>>>> 94225ab... Merge linux-stable 3.0.28 into android-3.0
 
 		netif_tx_unlock_bh(dev);
 
 		skb->dev = dev;
+<<<<<<< HEAD
 		if (dst)
 			n = dst_get_neighbour_raw(dst);
 		if (!dst || !n) {
 			/* put pseudoheader back on for next time */
 			skb_push(skb, sizeof (struct ipoib_pseudoheader));
 		}
+=======
+>>>>>>> 94225ab... Merge linux-stable 3.0.28 into android-3.0
 
 		if (dev_queue_xmit(skb))
 			ipoib_warn(priv, "dev_queue_xmit failed to requeue packet\n");
+
 		netif_tx_lock_bh(dev);
 	}
 	netif_tx_unlock_bh(dev);
