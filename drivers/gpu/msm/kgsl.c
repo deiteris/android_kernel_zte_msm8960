@@ -673,6 +673,11 @@ static int kgsl_release(struct inode *inodep, struct file *filep)
 	mutex_lock(&device->mutex);
 	kgsl_check_suspended(device);
 
+	/* clean up any to-be-freed entries that belong to this
+	 * process and this device
+	 */
+	kgsl_cancel_events(device, dev_priv);
+
 	while (1) {
 		context = idr_get_next(&device->context_idr, &next);
 		if (context == NULL)
@@ -691,10 +696,6 @@ static int kgsl_release(struct inode *inodep, struct file *filep)
 		result = device->ftbl->stop(device);
 		kgsl_pwrctrl_set_state(device, KGSL_STATE_INIT);
 	}
-	/* clean up any to-be-freed entries that belong to this
-	 * process and this device
-	 */
-	kgsl_cancel_events(device, dev_priv);
 
 	mutex_unlock(&device->mutex);
 	kfree(dev_priv);
