@@ -647,7 +647,6 @@ static struct pm8921_bms_platform_data pm8921_bms_pdata __devinitdata = {
 	.r_sense		= 10,
 	.i_test			= 2500,
 	.v_failure		= 3000,
-	.calib_delay_ms		= 600000,
 	.max_voltage_uv		= MAX_VOLTAGE_MV * 1000,
 	.rconn_mohm		= 30,
 };
@@ -813,6 +812,7 @@ static struct pm8xxx_vibrator_platform_data pm8xxx_vib_pdata = {
 
 static struct pm8xxx_ccadc_platform_data pm8xxx_ccadc_pdata = {
 	.r_sense		= 10,
+	.calib_delay_ms		= 600000,
 };
 
 /**
