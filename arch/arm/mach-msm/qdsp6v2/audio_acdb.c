@@ -669,8 +669,6 @@ static int register_memory(void)
 		goto err_ion_handle;
 	}
 	kvaddr = (unsigned long)kvptr;
-	mutex_unlock(&acdb_data.acdb_mutex);
-
 	atomic64_set(&acdb_data.paddr, paddr);
 	atomic64_set(&acdb_data.kvaddr, kvaddr);
 	atomic64_set(&acdb_data.mem_len, mem_len);
