@@ -332,7 +332,7 @@ struct pm8921_chg_chip {
 	enum pm8921_chg_led_src_config	led_src_config;
 	int				recent_reported_soc;
 	bool				host_mode;
-	u8                               active_path;
+	u8                              active_path;
 };
 
 /* user space parameter to limit usb current */
