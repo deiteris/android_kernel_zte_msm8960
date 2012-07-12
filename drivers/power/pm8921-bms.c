@@ -1577,8 +1577,8 @@ static int calculate_state_of_charge(struct pm8921_bms_chip *chip,
 						fcc_uah, unusable_charge_uah);
 		soc = 0;
 	} else {
-		soc = (remaining_usable_charge_uah * 100)
-			/ (fcc_uah - unusable_charge_uah);
+		soc = DIV_ROUND_CLOSEST((remaining_usable_charge_uah * 100),
+					(fcc_uah - unusable_charge_uah));
 	}
 
 	if (soc > 100)
