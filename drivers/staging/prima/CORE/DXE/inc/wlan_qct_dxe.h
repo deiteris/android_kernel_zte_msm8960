@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2012-2013, The Linux Foundation. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -80,17 +80,8 @@ when           who        what, where, why
 #define WLANDXE_DEFAULT_RX_OS_BUFFER_SIZE  (VPKT_SIZE_BUFFER)
 
 /*The maximum number of packets that can be chained in dxe for the Low 
-  priority channel
-  Note: Increased it to 240 from 128 for Windows(EA) becase Windows is
-  able to push 2~6 packet chain in one NET_BUFFER. It causes TX low
-  resource condition more easily than LA. It ends up to cause low 
-  throughut number and spend more CPU time*/
-#ifdef WINDOWS_DT
-#define WLANDXE_LO_PRI_RES_NUM 240
-#else
+  priority channel */
 #define WLANDXE_LO_PRI_RES_NUM 128
-#endif
-
 
 /*The maximum number of packets that can be chained in dxe for the HI 
   priority channel */
@@ -283,7 +274,6 @@ wpt_status WLANDXE_TxFrame
 
   @  Parameters
       pDXEContext : DXE Control Block
-      ucTxResReq          TX resource number required by TL/WDI
 
   @  Return
       wpt_status
@@ -291,8 +281,7 @@ wpt_status WLANDXE_TxFrame
 wpt_status
 WLANDXE_CompleteTX
 (
-  void* pDXEContext,
-  wpt_uint32 ucTxResReq
+  void* pDXEContext
 );
 
 /*==========================================================================
@@ -375,21 +364,28 @@ wpt_status WLANDXE_SetPowerState
 );
 
 /*==========================================================================
-  @  Function Name 
-      WLANDXE_GetFreeTxDataResNumber
+  @  Function Name
+    WLANDXE_ChannelDebug
 
-  @  Description 
-      Returns free descriptor numbers for TX data channel (TX high priority)
+  @  Description
+    Display DXE Channel debugging information
+    User may request to display DXE channel snapshot
+    Or if host driver detects any abnormal stcuk may display
 
   @  Parameters
-      pVoid            pDXEContext : DXE Control Block
+    displaySnapshot : Dispaly DXE snapshot option
+    enableStallDetect : Enable stall detect feature
+                        This feature will take effect to data performance
+                        Not integrate till fully verification
 
   @  Return
-      wpt_uint32      Free descriptor number of TX high pri ch
+    NONE
+
 ===========================================================================*/
-wpt_uint32 WLANDXE_GetFreeTxDataResNumber
+void WLANDXE_ChannelDebug
 (
-   void *pDXEContext
+   wpt_boolean    displaySnapshot,
+   wpt_boolean    enableStallDetect
 );
 
 #ifdef WLANDXE_TEST_CHANNEL_ENABLE

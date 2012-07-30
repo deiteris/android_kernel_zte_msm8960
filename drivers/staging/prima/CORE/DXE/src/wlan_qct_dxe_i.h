@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2012-2013, The Linux Foundation. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -74,6 +74,8 @@ when           who        what, where, why
  * This is temporary definition location to make compile and unit test
  * If official msmreg.h integrated, this part will be eliminated */
 /* Start with base address */
+
+#define WLANDXE_BMU_AVAILABLE_BD_PDU     0x03080084
 
 #define WLANDXE_CCU_DXE_INT_SELECT       0x03200b10
 #define WLANDXE_CCU_DXE_INT_SELECT_STAT  0x03200b14
@@ -358,8 +360,6 @@ when           who        what, where, why
 #define WLANDXE_INT_MASK_CHAN_5          0x00000020
 #define WLANDXE_INT_MASK_CHAN_6          0x00000040
 
-#define WLANDXE_TX_LOW_RES_THRESHOLD     (5)
-
 /* DXE Descriptor Endian swap macro */
 #ifdef WLANDXE_ENDIAN_SWAP_ENABLE
 #define WLANDXE_U32_SWAP_ENDIAN(a) (((a & 0x000000FF) << 24) |    \
@@ -573,8 +573,7 @@ typedef struct
 typedef struct
 {
    WLANDXE_TXCompIntEnableType     txIntEnable;
-   unsigned int                    txLowResourceThreshold_LoPriCh;
-   unsigned int                    txLowResourceThreshold_HiPriCh;
+   unsigned int                    txLowResourceThreshold;
    unsigned int                    rxLowResourceThreshold;
    unsigned int                    txInterruptEnableFrameCount;
    unsigned int                    txInterruptEnablePeriod;
@@ -605,6 +604,7 @@ typedef struct
    wpt_uint32                      dxeCookie;
    wpt_packet                     *freeRXPacket;
    wpt_boolean                     rxPalPacketUnavailable;
+   wpt_boolean                     driverReloadInProcessing;
 } WLANDXE_CtrlBlkType;
 
 /*==========================================================================
