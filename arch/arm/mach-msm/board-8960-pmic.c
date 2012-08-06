@@ -603,19 +603,18 @@ static int pm8921_therm_mitigation[] = {
 #if defined(CONFIG_ZTE_BATTERY_GORDON_4350MV_1780MAH)||defined(CONFIG_ZTE_BATTERY_ELDEN_4350MV_1735MAH)||defined(CONFIG_ZTE_BATTERY_ILIAMNA_4350MV_1735MAH)||defined(CONFIG_ZTE_BATTERY_HAYES_4350MV_1735MAH) || defined(CONFIG_ZTE_BATTERY_KISKA_4350MV_1735MAH)
 #define MAX_VOLTAGE_MV 4350
 #else
-#define MAX_VOLTAGE_MV 4220
+#define MAX_VOLTAGE_MV 4200
 #endif
-
-
+#define CHG_TERM_MA		100
 static struct pm8921_charger_platform_data pm8921_chg_pdata __devinitdata = {
 	.safety_time		= 360,  
 	.update_time		= 20000,  
 	.max_voltage		= MAX_VOLTAGE_MV,
 	.min_voltage		= 3200,
 	.resume_voltage_delta	= 100,
-	.term_current		= 100,
+	.term_current		= CHG_TERM_MA,
 	.cool_temp		= 0,
-	.warm_temp		= 45, 
+	.warm_temp		= 45,
 	.temp_check_period	= 1,
 	.max_bat_chg_current	= 1100,
 	.cool_bat_chg_current	= 350,
@@ -624,17 +623,17 @@ static struct pm8921_charger_platform_data pm8921_chg_pdata __devinitdata = {
 	.warm_bat_voltage	= MAX_VOLTAGE_MV-100,
 	.thermal_mitigation	= pm8921_therm_mitigation,
 	.thermal_levels		= ARRAY_SIZE(pm8921_therm_mitigation),
-/*JEITA compliance ¨C (-10oC ~ 60oC),must fixed with hw Thermistor Pull-Up Resistors
+/*JEITA compliance (-10oC ~ 60oC), must fixed with hw Thermistor Pull-Up Resistors
 CHG_BATT_TEMP_THR_COLD = 80% --->-10oC
 CHG_BATT_TEMP_THR_HOT = 20%-----> 60oC
 */
-  #if defined CONFIG_ZTE_NON_JEITA_COMPLIANCE
+#if defined CONFIG_ZTE_NON_JEITA_COMPLIANCE
 	.cold_thr=PM_SMBC_BATT_TEMP_COLD_THR__LOW, // 70%  //45 degreeC
-  .hot_thr=PM_SMBC_BATT_TEMP_HOT_THR__HIGH,  // 35%   //0 degreeC
-  #else
+	.hot_thr=PM_SMBC_BATT_TEMP_HOT_THR__HIGH,  // 35%   //0 degreeC
+#else
 	.cold_thr=PM_SMBC_BATT_TEMP_COLD_THR__HIGH, // 80% 
-       .hot_thr=PM_SMBC_BATT_TEMP_HOT_THR__LOW,      // 20%
-  #endif
+	.hot_thr=PM_SMBC_BATT_TEMP_HOT_THR__LOW,      // 20%
+#endif
 	   .rconn_mohm		= 18,
 };
 
@@ -643,13 +642,14 @@ static struct pm8xxx_misc_platform_data pm8xxx_misc_pdata = {
 };
 
 static struct pm8921_bms_platform_data pm8921_bms_pdata __devinitdata = {
-	.battery_type		= BATT_UNKNOWN,
-	.r_sense		= 10,
-	.v_cutoff		= 3400,
-	.max_voltage_uv		= MAX_VOLTAGE_MV * 1000,
-	.rconn_mohm		= 30,
-	.shutdown_soc_valid_limit = 20,
-	.adjust_soc_low_threshold = 25,
+	.battery_type			= BATT_UNKNOWN,
+	.r_sense			= 10,
+	.v_cutoff			= 3400,
+	.max_voltage_uv			= MAX_VOLTAGE_MV * 1000,
+	.rconn_mohm			= 30,
+	.shutdown_soc_valid_limit	= 20,
+	.adjust_soc_low_threshold	= 25,
+	.chg_term_ua			= CHG_TERM_MA * 1000,
 };
 
 #define	PM8921_LC_LED_MAX_CURRENT	4	/* I = 4mA */
