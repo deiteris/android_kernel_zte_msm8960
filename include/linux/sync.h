@@ -40,14 +40,14 @@ struct sync_fence;
  *			 -1 if a will signabl before b
  * @free_pt:		called before sync_pt is freed
  * @release_obj:	called before sync_timeline is freed
- * @print_obj:		print aditional debug information about sync_timeline.
- *			  should not print a newline
- * @print_pt:		print aditional debug information about sync_pt.
- *			  should not print a newline
+ * @print_obj:		deprecated
+ * @print_pt:		deprecated
  * @fill_driver_data:	write implmentation specific driver data to data.
  *			  should return an error if there is not enough room
  *			  as specified by size.  This information is returned
  *			  to userspace by SYNC_IOC_FENCE_INFO.
+ * @timeline_value_str: fill str with the value of the sync_timeline's counter
+ * @pt_value_str:	fill str with the value of the sync_pt
  */
 struct sync_timeline_ops {
 	const char *driver_name;
@@ -66,19 +66,23 @@ struct sync_timeline_ops {
 
 	/* optional */
 	void (*release_obj)(struct sync_timeline *sync_timeline);
-<<<<<<< HEAD
-=======
 
-	/* optional */
+	/* deprecated */
 	void (*print_obj)(struct seq_file *s,
 			  struct sync_timeline *sync_timeline);
 
-	/* optional */
+	/* deprecated */
 	void (*print_pt)(struct seq_file *s, struct sync_pt *sync_pt);
 
 	/* optional */
 	int (*fill_driver_data)(struct sync_pt *syncpt, void *data, int size);
->>>>>>> ad65f8f... sync: add ioctl to get fence data
+
+	/* optional */
+	void (*timeline_value_str)(struct sync_timeline *timeline, char *str,
+				   int size);
+
+	/* optional */
+	void (*pt_value_str)(struct sync_pt *pt, char *str, int size);
 };
 
 /**
@@ -91,6 +95,7 @@ struct sync_timeline_ops {
  * @child_list_lock:	lock protecting @child_list_head, destroyed, and
  *			  sync_pt.status
  * @active_list_head:	list of active (unsignaled/errored) sync_pts
+ * @sync_timeline_list:	membership in global sync_timeline_list
  */
 struct sync_timeline {
 	struct kref		kref;
@@ -105,6 +110,8 @@ struct sync_timeline {
 
 	struct list_head	active_list_head;
 	spinlock_t		active_list_lock;
+
+	struct list_head	sync_timeline_list;
 };
 
 /**
@@ -147,6 +154,7 @@ struct sync_pt {
  * @status:		1: signaled, 0:active, <0: error
  *
  * @wq:			wait queue for fence signaling
+ * @sync_fence_list:	membership in global fence list
  */
 struct sync_fence {
 	struct file		*file;
@@ -161,6 +169,8 @@ struct sync_fence {
 	int			status;
 
 	wait_queue_head_t	wq;
+
+	struct list_head	sync_fence_list;
 };
 
 struct sync_fence_waiter;
@@ -330,9 +340,6 @@ int sync_fence_cancel_async(struct sync_fence *fence,
  * if @timeout < 0
  */
 int sync_fence_wait(struct sync_fence *fence, long timeout);
-
-/* useful for sync driver's debug print handlers */
-const char *sync_status_str(int status);
 
 #endif /* __KERNEL__ */
 
