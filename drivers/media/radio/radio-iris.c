@@ -2534,7 +2534,6 @@ static int iris_search(struct iris_device *radio, int on, int dir)
 		case SCAN_FOR_WEAK:
 			radio->srch_st_list.srch_list_dir = dir;
 			radio->srch_st_list.srch_list_mode = srch;
-			radio->srch_st_list.srch_list_max = 0;
 			retval = hci_fm_search_station_list(
 				&radio->srch_st_list, radio->fm_hdev);
 			break;
@@ -3169,6 +3168,7 @@ static int iris_vidioc_s_ctrl(struct file *file, void *priv,
 		radio->srch_rds.srch_pi = ctrl->value;
 		break;
 	case V4L2_CID_PRIVATE_IRIS_SRCH_CNT:
+		radio->srch_st_list.srch_list_max = ctrl->value;
 		break;
 	case V4L2_CID_PRIVATE_IRIS_SPACING:
 		if (radio->mode == FM_RECV) {
