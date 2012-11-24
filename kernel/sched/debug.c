@@ -1,5 +1,5 @@
 /*
- * kernel/time/sched_debug.c
+ * kernel/sched/debug.c
  *
  * Print the CFS rbtree
  *
@@ -15,6 +15,8 @@
 #include <linux/seq_file.h>
 #include <linux/kallsyms.h>
 #include <linux/utsname.h>
+
+#include "sched.h"
 
 static DEFINE_SPINLOCK(sched_debug_lock);
 
@@ -289,7 +291,6 @@ static void print_cpu(struct seq_file *m, int cpu)
 
 	P(yld_count);
 
-	P(sched_switch);
 	P(sched_count);
 	P(sched_goidle);
 #ifdef CONFIG_SMP
@@ -376,7 +377,7 @@ static int sched_debug_show(struct seq_file *m, void *v)
 	return 0;
 }
 
-static void sysrq_sched_debug_show(void)
+void sysrq_sched_debug_show(void)
 {
 	sched_debug_show(NULL, NULL);
 }
