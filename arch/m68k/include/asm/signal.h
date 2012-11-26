@@ -1,5 +1,5 @@
-#ifndef _ASMARM_SIGNAL_H
-#define _ASMARM_SIGNAL_H
+#ifndef _M68K_SIGNAL_H
+#define _M68K_SIGNAL_H
 
 #include <linux/types.h>
 
@@ -70,20 +70,15 @@ typedef unsigned long sigset_t;
 #define SIGRTMIN	32
 #define SIGRTMAX	_NSIG
 
-#define SIGSWI		32
-
 /*
  * SA_FLAGS values:
  *
- * SA_NOCLDSTOP		flag to turn off SIGCHLD when children stop.
- * SA_NOCLDWAIT		flag on SIGCHLD to inhibit zombies.
- * SA_SIGINFO		deliver the signal with SIGINFO structs
- * SA_THIRTYTWO		delivers the signal in 32-bit mode, even if the task 
- *			is running in 26-bit.
- * SA_ONSTACK		allows alternate signal stacks (see sigaltstack(2)).
- * SA_RESTART		flag to get restarting signals (which were the default long ago)
- * SA_NODEFER		prevents the current signal from being masked in the handler.
- * SA_RESETHAND		clears the handler when the signal is delivered.
+ * SA_ONSTACK indicates that a registered stack_t will be used.
+ * SA_RESTART flag to get restarting signals (which were the default long ago)
+ * SA_NOCLDSTOP flag to turn off SIGCHLD when children stop.
+ * SA_RESETHAND clears the handler when the signal is delivered.
+ * SA_NOCLDWAIT flag on SIGCHLD to inhibit zombies.
+ * SA_NODEFER prevents the current signal from being masked in the handler.
  *
  * SA_ONESHOT and SA_NOMASK are the historical Linux names for the Single
  * Unix names RESETHAND and NODEFER respectively.
@@ -91,8 +86,6 @@ typedef unsigned long sigset_t;
 #define SA_NOCLDSTOP	0x00000001
 #define SA_NOCLDWAIT	0x00000002
 #define SA_SIGINFO	0x00000004
-#define SA_THIRTYTWO	0x02000000
-#define SA_RESTORER	0x04000000
 #define SA_ONSTACK	0x08000000
 #define SA_RESTART	0x10000000
 #define SA_NODEFER	0x40000000
@@ -101,8 +94,7 @@ typedef unsigned long sigset_t;
 #define SA_NOMASK	SA_NODEFER
 #define SA_ONESHOT	SA_RESETHAND
 
-
-/* 
+/*
  * sigaltstack controls
  */
 #define SS_ONSTACK	1
@@ -132,7 +124,6 @@ struct sigaction {
 struct k_sigaction {
 	struct sigaction sa;
 };
-
 #else
 /* Here we must cater to libcs that poke about in kernel headers.  */
 
@@ -159,7 +150,65 @@ typedef struct sigaltstack {
 
 #ifdef __KERNEL__
 #include <asm/sigcontext.h>
-#define ptrace_signal_deliver(regs, cookie) do { } while (0)
-#endif
 
-#endif
+#ifndef __uClinux__
+#define __HAVE_ARCH_SIG_BITOPS
+
+static inline void sigaddset(sigset_t *set, int _sig)
+{
+	asm ("bfset %0{%1,#1}"
+		: "+o" (*set)
+		: "id" ((_sig - 1) ^ 31)
+		: "cc");
+}
+
+static inline void sigdelset(sigset_t *set, int _sig)
+{
+	asm ("bfclr %0{%1,#1}"
+		: "+o" (*set)
+		: "id" ((_sig - 1) ^ 31)
+		: "cc");
+}
+
+static inline int __const_sigismember(sigset_t *set, int _sig)
+{
+	unsigned long sig = _sig - 1;
+	return 1 & (set->sig[sig / _NSIG_BPW] >> (sig % _NSIG_BPW));
+}
+
+static inline int __gen_sigismember(sigset_t *set, int _sig)
+{
+	int ret;
+	asm ("bfextu %1{%2,#1},%0"
+		: "=d" (ret)
+		: "o" (*set), "id" ((_sig-1) ^ 31)
+		: "cc");
+	return ret;
+}
+
+#define sigismember(set,sig)			\
+	(__builtin_constant_p(sig) ?		\
+	 __const_sigismember(set,sig) :		\
+	 __gen_sigismember(set,sig))
+
+static inline int sigfindinword(unsigned long word)
+{
+	asm ("bfffo %1{#0,#0},%0"
+		: "=d" (word)
+		: "d" (word & -word)
+		: "cc");
+	return word ^ 31;
+}
+
+struct pt_regs;
+extern void ptrace_signal_deliver(struct pt_regs *regs, void *cookie);
+
+#else
+
+#undef __HAVE_ARCH_SIG_BITOPS
+#define ptrace_signal_deliver(regs, cookie) do { } while (0)
+
+#endif /* __uClinux__ */
+#endif /* __KERNEL__ */
+
+#endif /* _M68K_SIGNAL_H */
