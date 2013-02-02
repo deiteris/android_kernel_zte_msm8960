@@ -15,7 +15,12 @@
  */
 
 #include <linux/init.h>
+<<<<<<< HEAD
 #include <linux/module.h>
+=======
+#include <linux/export.h>
+#include <linux/kernel.h>
+>>>>>>> fd96761... kernel: Move REPEAT_BYTE definition into linux/kernel.h
 #include <linux/slab.h>
 #include <linux/fs.h>
 #include <linux/namei.h>
