@@ -329,6 +329,7 @@ static struct reserve_info apq8064_reserve_info __initdata = {
 	.paddr_to_memtype = apq8064_paddr_to_memtype,
 };
 
+<<<<<<< HEAD
 static int apq8064_memory_bank_size(void)
 {
 	return 1<<29;
@@ -361,13 +362,150 @@ static void __init locate_unstable_memory(void)
 		apq8064_reserve_info.low_unstable_address,
 		apq8064_reserve_info.max_unstable_size,
 		apq8064_reserve_info.bank_size);
+=======
+static char prim_panel_name[PANEL_NAME_MAX_LEN];
+static char ext_panel_name[PANEL_NAME_MAX_LEN];
+
+static int ext_resolution;
+
+static int __init prim_display_setup(char *param)
+{
+	if (strnlen(param, PANEL_NAME_MAX_LEN))
+		strlcpy(prim_panel_name, param, PANEL_NAME_MAX_LEN);
+	return 0;
+}
+early_param("prim_display", prim_display_setup);
+
+static int __init ext_display_setup(char *param)
+{
+	if (strnlen(param, PANEL_NAME_MAX_LEN))
+		strlcpy(ext_panel_name, param, PANEL_NAME_MAX_LEN);
+	return 0;
+}
+early_param("ext_display", ext_display_setup);
+
+static int __init hdmi_resulution_setup(char *param)
+{
+	int ret;
+	ret = kstrtoint(param, 10, &ext_resolution);
+	return ret;
+>>>>>>> 6e0e94d... msm: remove obsolete DMM code and config options
 }
 
 static void __init apq8064_reserve(void)
 {
+<<<<<<< HEAD
 	reserve_info = &apq8064_reserve_info;
 	locate_unstable_memory();
 	msm_reserve();
+=======
+	apq8064_set_display_params(prim_panel_name, ext_panel_name,
+		ext_resolution);
+	msm_reserve();
+}
+
+static void __init apq8064_early_reserve(void)
+{
+	reserve_info = &apq8064_reserve_info;
+}
+#ifdef CONFIG_USB_EHCI_MSM_HSIC
+/* Bandwidth requests (zero) if no vote placed */
+static struct msm_bus_vectors hsic_init_vectors[] = {
+	{
+		.src = MSM_BUS_MASTER_SPS,
+		.dst = MSM_BUS_SLAVE_SPS,
+		.ab = 0,
+		.ib = 0,
+	},
+};
+
+/* Bus bandwidth requests in Bytes/sec */
+static struct msm_bus_vectors hsic_max_vectors[] = {
+	{
+		.src = MSM_BUS_MASTER_SPS,
+		.dst = MSM_BUS_SLAVE_SPS,
+		.ab = 0,
+		.ib = 256000000, /*vote for 32Mhz dfab clk rate*/
+	},
+};
+
+static struct msm_bus_paths hsic_bus_scale_usecases[] = {
+	{
+		ARRAY_SIZE(hsic_init_vectors),
+		hsic_init_vectors,
+	},
+	{
+		ARRAY_SIZE(hsic_max_vectors),
+		hsic_max_vectors,
+	},
+};
+
+static struct msm_bus_scale_pdata hsic_bus_scale_pdata = {
+	hsic_bus_scale_usecases,
+	ARRAY_SIZE(hsic_bus_scale_usecases),
+	.name = "hsic",
+};
+
+static struct msm_hsic_host_platform_data msm_hsic_pdata = {
+	.strobe			= 88,
+	.data			= 89,
+	.bus_scale_table	= &hsic_bus_scale_pdata,
+};
+#else
+static struct msm_hsic_host_platform_data msm_hsic_pdata;
+#endif
+
+#define PID_MAGIC_ID		0x71432909
+#define SERIAL_NUM_MAGIC_ID	0x61945374
+#define SERIAL_NUMBER_LENGTH	127
+#define DLOAD_USB_BASE_ADD	0x2A03F0C8
+
+struct magic_num_struct {
+	uint32_t pid;
+	uint32_t serial_num;
+};
+
+struct dload_struct {
+	uint32_t	reserved1;
+	uint32_t	reserved2;
+	uint32_t	reserved3;
+	uint16_t	reserved4;
+	uint16_t	pid;
+	char		serial_number[SERIAL_NUMBER_LENGTH];
+	uint16_t	reserved5;
+	struct magic_num_struct magic_struct;
+};
+
+static int usb_diag_update_pid_and_serial_num(uint32_t pid, const char *snum)
+{
+	struct dload_struct __iomem *dload = 0;
+
+	dload = ioremap(DLOAD_USB_BASE_ADD, sizeof(*dload));
+	if (!dload) {
+		pr_err("%s: cannot remap I/O memory region: %08x\n",
+					__func__, DLOAD_USB_BASE_ADD);
+		return -ENXIO;
+	}
+
+	pr_debug("%s: dload:%p pid:%x serial_num:%s\n",
+				__func__, dload, pid, snum);
+	/* update pid */
+	dload->magic_struct.pid = PID_MAGIC_ID;
+	dload->pid = pid;
+
+	/* update serial number */
+	dload->magic_struct.serial_num = 0;
+	if (!snum) {
+		memset(dload->serial_number, 0, SERIAL_NUMBER_LENGTH);
+		goto out;
+	}
+
+	dload->magic_struct.serial_num = SERIAL_NUM_MAGIC_ID;
+	strlcpy(dload->serial_number, snum, SERIAL_NUMBER_LENGTH);
+out:
+	iounmap(dload);
+	return 0;
+>>>>>>> 6e0e94d... msm: remove obsolete DMM code and config options
 }
 
 static struct platform_device android_usb_device = {
@@ -786,9 +924,42 @@ static void __init apq8064_sim_init(void)
 static void __init apq8064_rumi3_init(void)
 {
 	apq8064_common_init();
+<<<<<<< HEAD
 	ethernet_init();
 	platform_add_devices(rumi3_devices, ARRAY_SIZE(rumi3_devices));
 	spi_register_board_info(spi_board_info, ARRAY_SIZE(spi_board_info));
+=======
+	if (machine_is_mpq8064_cdp() || machine_is_mpq8064_hrd() ||
+		machine_is_mpq8064_dtv()) {
+		enable_avc_i2c_bus();
+		msm_rotator_set_split_iommu_domain();
+		platform_add_devices(mpq_devices, ARRAY_SIZE(mpq_devices));
+		mpq8064_pcie_init();
+	} else {
+		ethernet_init();
+		msm_rotator_set_split_iommu_domain();
+		platform_add_devices(cdp_devices, ARRAY_SIZE(cdp_devices));
+		spi_register_board_info(spi_board_info,
+						ARRAY_SIZE(spi_board_info));
+	}
+	apq8064_init_fb();
+	apq8064_init_gpu();
+	platform_add_devices(apq8064_footswitch, apq8064_num_footswitch);
+#ifdef CONFIG_MSM_CAMERA
+	apq8064_init_cam();
+#endif
+
+	if (machine_is_apq8064_cdp() || machine_is_apq8064_liquid())
+		platform_device_register(&cdp_kp_pdev);
+
+	if (machine_is_apq8064_mtp())
+		platform_device_register(&mtp_kp_pdev);
+
+	if (machine_is_mpq8064_cdp()) {
+		platform_device_register(&mpq_gpio_keys_pdev);
+		platform_device_register(&mpq_keypad_device);
+	}
+>>>>>>> 6e0e94d... msm: remove obsolete DMM code and config options
 }
 
 MACHINE_START(APQ8064_SIM, "QCT APQ8064 SIMULATOR")

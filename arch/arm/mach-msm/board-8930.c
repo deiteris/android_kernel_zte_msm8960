@@ -455,6 +455,7 @@ static struct reserve_info msm8930_reserve_info __initdata = {
 	.paddr_to_memtype = msm8930_paddr_to_memtype,
 };
 
+<<<<<<< HEAD
 static int msm8930_memory_bank_size(void)
 {
 	return 1<<29;
@@ -504,22 +505,16 @@ static void __init place_movable_zone(void)
 #endif
 }
 
+=======
+>>>>>>> 6e0e94d... msm: remove obsolete DMM code and config options
 static void __init msm8930_early_memory(void)
 {
 	reserve_info = &msm8930_reserve_info;
-	locate_unstable_memory();
-	place_movable_zone();
 }
 
 static void __init msm8930_reserve(void)
 {
 	msm_reserve();
-}
-
-static int msm8930_change_memory_power(u64 start, u64 size,
-	int change_type)
-{
-	return soc_change_memory_power(start, size, change_type);
 }
 
 static void __init msm8930_allocate_memory_regions(void)
@@ -2232,11 +2227,14 @@ static void __init msm8930_cdp_init(void)
 	msm8930_init_fb();
 	slim_register_board_info(msm_slim_devices,
 		ARRAY_SIZE(msm_slim_devices));
+<<<<<<< HEAD
 	msm_pm_set_platform_data(msm_pm_data, ARRAY_SIZE(msm_pm_data));
 	msm_pm_set_rpm_wakeup_irq(RPM_APCC_CPU0_WAKE_UP_IRQ);
 	msm_cpuidle_set_states(msm_cstates, ARRAY_SIZE(msm_cstates),
 				msm_pm_data);
 	change_memory_power = &msm8930_change_memory_power;
+=======
+>>>>>>> 6e0e94d... msm: remove obsolete DMM code and config options
 	BUG_ON(msm_pm_boot_init(&msm_pm_boot_pdata));
 
 	if (PLATFORM_IS_CHARM25())

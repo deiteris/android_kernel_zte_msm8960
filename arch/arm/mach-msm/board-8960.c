@@ -1001,6 +1001,7 @@ static struct reserve_info msm8960_reserve_info __initdata = {
 	.paddr_to_memtype = msm8960_paddr_to_memtype,
 };
 
+<<<<<<< HEAD
 static int msm8960_memory_bank_size(void)
 {
 	return 1<<29;
@@ -1050,11 +1051,11 @@ static void __init place_movable_zone(void)
 #endif
 }
 
+=======
+>>>>>>> 6e0e94d... msm: remove obsolete DMM code and config options
 static void __init msm8960_early_memory(void)
 {
 	reserve_info = &msm8960_reserve_info;
-	locate_unstable_memory();
-	place_movable_zone();
 }
 
 static char prim_panel_name[PANEL_NAME_MAX_LEN];
@@ -1091,12 +1092,6 @@ static void __init msm8960_reserve(void)
 		fmem_pdata.phys = reserve_memory_for_fmem(fmem_pdata.size, fmem_pdata.align);
 #endif
 	}
-}
-
-static int msm8960_change_memory_power(u64 start, u64 size,
-	int change_type)
-{
-	return soc_change_memory_power(start, size, change_type);
 }
 
 static void __init msm8960_allocate_memory_regions(void)
@@ -3667,11 +3662,14 @@ static void __init msm8960_cdp_init(void)
 	slim_register_board_info(msm_slim_devices,
 		ARRAY_SIZE(msm_slim_devices));
 	msm8960_init_dsps();
+<<<<<<< HEAD
 	msm_pm_set_platform_data(msm_pm_data, ARRAY_SIZE(msm_pm_data));
 	msm_pm_set_rpm_wakeup_irq(RPM_APCC_CPU0_WAKE_UP_IRQ);
 	msm_cpuidle_set_states(msm_cstates, ARRAY_SIZE(msm_cstates),
 				msm_pm_data);
 	change_memory_power = &msm8960_change_memory_power;
+=======
+>>>>>>> 6e0e94d... msm: remove obsolete DMM code and config options
 	BUG_ON(msm_pm_boot_init(&msm_pm_boot_pdata));
 	msm_pm_init_sleep_status_data(&msm_pm_slp_sts_data);
 	if (PLATFORM_IS_CHARM25())
