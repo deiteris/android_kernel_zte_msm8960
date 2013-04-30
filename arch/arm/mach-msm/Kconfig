@@ -1355,6 +1355,22 @@ config MSM_RPCSERVER_WATCHDOG
 	help
 	  The dog_keepalive server handles watchdog events.
 
+<<<<<<< HEAD
+=======
+config USERSPACE_VOLTAGE_CONTROL
+	bool "Enable Userspace CPU Voltage Control"
+	default y
+	help
+		userspace voltage control
+
+config FORCE_FAST_CHARGE
+	bool "Force AC charge mode at will"
+	default y
+	help
+	  A simple sysfs interface to force adapters that
+	  are detected as USB to charge as AC.
+
+>>>>>>> 381496d... USB force fast charging
 config MSM_RPC_WATCHDOG
 	depends on MSM_ONCRPCROUTER
 	default n
