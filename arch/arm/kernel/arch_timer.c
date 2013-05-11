@@ -132,7 +132,7 @@ static int arch_timer_set_next_event(unsigned long evt,
 	return 0;
 }
 
-static void __cpuinit arch_timer_setup(void *data)
+static void arch_timer_setup(void *data)
 {
 	struct clock_event_device *clk = data;
 
@@ -250,7 +250,7 @@ static void notrace arch_timer_update_sched_clock(void)
 	update_sched_clock(&cd, arch_counter_get_cntvct32(), (u32)~0);
 }
 
-static void __cpuinit arch_timer_teardown(void *data)
+static void arch_timer_teardown(void *data)
 {
 	struct clock_event_device *clk = data;
 	pr_debug("arch_timer_teardown disable IRQ%d cpu #%d\n",
@@ -261,7 +261,7 @@ static void __cpuinit arch_timer_teardown(void *data)
 	arch_timer_set_mode(CLOCK_EVT_MODE_UNUSED, clk);
 }
 
-static int __cpuinit arch_timer_cpu_notify(struct notifier_block *self,
+static int arch_timer_cpu_notify(struct notifier_block *self,
 					   unsigned long action, void *data)
 {
 	int cpu = (int)data;
@@ -282,7 +282,7 @@ static int __cpuinit arch_timer_cpu_notify(struct notifier_block *self,
 	return NOTIFY_OK;
 }
 
-static struct notifier_block __cpuinitdata arch_timer_cpu_nb = {
+static struct notifier_block arch_timer_cpu_nb = {
 	.notifier_call = arch_timer_cpu_notify,
 };
 

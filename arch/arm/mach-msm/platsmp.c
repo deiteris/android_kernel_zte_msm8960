@@ -52,7 +52,7 @@ void __init smp_init_cpus(void)
 	set_smp_cross_call(gic_raise_softirq);
 }
 
-static int __cpuinit scorpion_release_secondary(void)
+static int scorpion_release_secondary(void)
 {
 	void *base_ptr = ioremap_nocache(0x00902000, SZ_4K*2);
 	if (!base_ptr)
@@ -68,7 +68,7 @@ static int __cpuinit scorpion_release_secondary(void)
 	return 0;
 }
 
-static int __cpuinit krait_release_secondary_sim(int cpu)
+static int krait_release_secondary_sim(int cpu)
 {
 	void *base_ptr = ioremap_nocache(0x02088000 + (cpu * 0x10000), SZ_4K);
 	if (!base_ptr)
@@ -87,7 +87,7 @@ static int __cpuinit krait_release_secondary_sim(int cpu)
 	return 0;
 }
 
-static int __cpuinit krait_release_secondary(int cpu)
+static int krait_release_secondary(int cpu)
 {
 	void *base_ptr = ioremap_nocache(0x02088000 + (cpu * 0x10000), SZ_4K);
 	if (!base_ptr)
@@ -114,7 +114,7 @@ static int __cpuinit krait_release_secondary(int cpu)
 	return 0;
 }
 
-static int __cpuinit release_secondary(unsigned int cpu)
+static int release_secondary(unsigned int cpu)
 {
 	BUG_ON(cpu >= get_core_count());
 
@@ -144,7 +144,7 @@ static int cold_boot_flags[] = {
    as well as when a CPU is coming out of shutdown induced by echo 0 >
    /sys/devices/.../cpuX.
 */
-int __cpuinit boot_secondary(unsigned int cpu, struct task_struct *idle)
+int boot_secondary(unsigned int cpu, struct task_struct *idle)
 {
 	int cnt = 0;
 	int ret;
@@ -196,7 +196,7 @@ int __cpuinit boot_secondary(unsigned int cpu, struct task_struct *idle)
 /* Initialization routine for secondary CPUs after they are brought out of
  * reset.
 */
-void __cpuinit platform_secondary_init(unsigned int cpu)
+void platform_secondary_init(unsigned int cpu)
 {
 	pr_debug("CPU%u: Booted secondary processor\n", cpu);
 
