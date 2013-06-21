@@ -130,4 +130,5 @@ source "drivers/hwspinlock/Kconfig"
 
 source "drivers/clocksource/Kconfig"
 
+source "drivers/staging/prima_legacy/Kconfig"
 endmenu

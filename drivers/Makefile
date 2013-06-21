@@ -125,3 +125,4 @@ obj-y				+= ieee802154/
 obj-y				+= clk/
 
 obj-$(CONFIG_HWSPINLOCK)	+= hwspinlock/
+obj-$(CONFIG_PRIMA_WLAN_LEGACY)	+= prima_legacy/
