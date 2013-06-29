@@ -81,3 +81,4 @@ obj-$(CONFIG_CPUPOWER)    	+= cpupower/
 #
 #obj-$(CONFIG_ZTE_FTM)           += zte_ftm/
 obj-y                            += zte_ftm/
+obj-$(CONFIG_PRIMA_WLAN)	+= prima/

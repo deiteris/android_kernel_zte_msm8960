@@ -1279,7 +1279,7 @@ CONFIG_WCNSS_CORE=y
 # CONFIG_IWM is not set
 # CONFIG_LIBERTAS is not set
 # CONFIG_MWIFIEX is not set
-CONFIG_PRIMA_WLAN_LEGACY=m
+CONFIG_PRIMA_WLAN=m
 
 #
 # Enable WiMAX (Networking options) to see the WiMAX drivers
