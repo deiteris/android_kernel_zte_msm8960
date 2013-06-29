@@ -1550,6 +1550,56 @@ tANI_BOOLEAN csrIsBTAMPStarted( tpAniSirGlobal pMac )
     return ( fRc );
 }
 
+#ifndef BMPS_WORKAROUND_NOT_NEEDED
+tANI_BOOLEAN csrIsConcurrentSessionRunning( tpAniSirGlobal pMac )
+{
+    tANI_U32 sessionId, noOfCocurrentSession = 0;
+    eCsrConnectState connectState;
+
+    tANI_BOOLEAN fRc = eANI_BOOLEAN_FALSE;
+
+    for( sessionId = 0; sessionId < CSR_ROAM_SESSION_MAX; sessionId++ )
+    {
+        if( CSR_IS_SESSION_VALID( pMac, sessionId ) )
+        {
+           connectState =  pMac->roam.roamSession[sessionId].connectState;
+           if( (eCSR_ASSOC_STATE_TYPE_INFRA_ASSOCIATED == connectState) ||
+               (eCSR_ASSOC_STATE_TYPE_INFRA_CONNECTED == connectState) ||
+               (eCSR_ASSOC_STATE_TYPE_INFRA_DISCONNECTED == connectState) )
+           {
+              ++noOfCocurrentSession;
+           }
+        }
+    }
+
+    // More than one session is Up and Running
+    if(noOfCocurrentSession > 1)
+    {
+        fRc = eANI_BOOLEAN_TRUE;
+    }
+
+    return ( fRc );
+}
+
+tANI_BOOLEAN csrIsInfraApStarted( tpAniSirGlobal pMac )
+{
+    tANI_U32 sessionId;
+    tANI_BOOLEAN fRc = eANI_BOOLEAN_FALSE;
+
+    for( sessionId = 0; sessionId < CSR_ROAM_SESSION_MAX; sessionId++ )
+    {
+        if( CSR_IS_SESSION_VALID( pMac, sessionId ) && (csrIsConnStateConnectedInfraAp(pMac, sessionId)) )
+        {
+            fRc = eANI_BOOLEAN_TRUE;
+            break;
+        }
+    }
+
+    return ( fRc );
+
+}
+#endif
+
 tANI_BOOLEAN csrIsBTAMP( tpAniSirGlobal pMac, tANI_U32 sessionId )
 {
     return ( csrIsConnStateConnectedWds( pMac, sessionId ) );
@@ -3124,8 +3174,6 @@ tANI_U8 csrConstructRSNIe( tHalHandle hHal, tANI_U32 sessionId, tCsrRoamProfile 
     tANI_U8 PMKId[CSR_RSN_PMKID_SIZE];
     tDot11fBeaconIEs *pIesLocal = pIes;
 
-    smsLog(pMac, LOGW, "%s called...", __FUNCTION__);
-
     do
     {
         if ( !csrIsProfileRSN( pProfile ) ) break;
@@ -3810,18 +3858,8 @@ tANI_U8 csrRetrieveRsnIe( tHalHandle hHal, tANI_U32 sessionId, tCsrRoamProfile *
     do
     {
         if ( !csrIsProfileRSN( pProfile ) ) break;
-#ifdef FEATURE_WLAN_LFR
-        if (csrRoamIsFastRoamEnabled(pMac))
-        {
-            // If "Legacy Fast Roaming" is enabled ALWAYS rebuild the RSN IE from 
-            // scratch. So it contains the current PMK-IDs
-            cbRsnIe = csrConstructRSNIe(pMac, sessionId, pProfile, pSirBssDesc, pIes, pRsnIe);
-        }
-        else 
-#endif
         if(pProfile->nRSNReqIELength && pProfile->pRSNReqIE)
         {
-            // If you have one started away, re-use it. 
             if(SIR_MAC_WPA_IE_MAX_LENGTH >= pProfile->nRSNReqIELength)
             {
                 cbRsnIe = (tANI_U8)pProfile->nRSNReqIELength;
@@ -5405,35 +5443,6 @@ v_REGDOMAIN_t csrGetCurrentRegulatoryDomain(tpAniSirGlobal pMac)
     return (pMac->scan.domainIdCurrent);
 }
 
-#if 0
-eHalStatus csrGetRegulatoryDomainForCountry(tpAniSirGlobal pMac, tANI_U8 *pCountry, eRegDomainId *pDomainId)
-{
-    eHalStatus status = eHAL_STATUS_SUCCESS;
-    tANI_U32 i, count = sizeof( gCsrCountryInfo ) / sizeof( gCsrCountryInfo[0] );
-
-    if(pCountry)
-    {
-        for(i = 0; i < count; i++)
-        {
-            if(palEqualMemory(pMac->hHdd, gCsrCountryInfo[i].countryCode, pCountry, 2))
-            {
-                if( pDomainId )
-                {
-                    *pDomainId = gCsrCountryInfo[i].domainId;
-                }
-                break;
-            }
-        }
-        if(i == count)
-        {
-            smsLog(pMac, LOGW, FL("  doesn't match country %c%c\n"), pCountry[0], pCountry[1]);
-            status = eHAL_STATUS_INVALID_PARAMETER;
-        }
-    }
-
-    return (status);
-}
-#endif
 
 eHalStatus csrGetRegulatoryDomainForCountry(tpAniSirGlobal pMac, tANI_U8 *pCountry, v_REGDOMAIN_t *pDomainId)
 {
@@ -5474,7 +5483,7 @@ eHalStatus csrGetRegulatoryDomainForCountry(tpAniSirGlobal pMac, tANI_U8 *pCount
 tANI_BOOLEAN csrMatchCountryCode( tpAniSirGlobal pMac, tANI_U8 *pCountry, tDot11fBeaconIEs *pIes )
 {
     tANI_BOOLEAN fRet = eANI_BOOLEAN_TRUE;
-    v_REGDOMAIN_t domainId = NUM_REG_DOMAINS;   //This is init to invalid value
+    v_REGDOMAIN_t domainId = REGDOMAIN_COUNT;   //This is init to invalid value
     eHalStatus status;
 
     do
@@ -5491,7 +5500,7 @@ tANI_BOOLEAN csrMatchCountryCode( tpAniSirGlobal pMac, tANI_U8 *pCountry, tDot11
         //Make sure this country is recognizable
         if( pIes->Country.present )
         {
-            status = csrGetRegulatoryDomainForCountry( pMac, pIes->Country.country,(v_REGDOMAIN_t *) &domainId );
+            status = csrGetRegulatoryDomainForCountry( pMac, pIes->Country.country, &domainId );
             if( !HAL_STATUS_SUCCESS( status ) )
             {
                 fRet = eANI_BOOLEAN_FALSE;
@@ -5509,7 +5518,7 @@ tANI_BOOLEAN csrMatchCountryCode( tpAniSirGlobal pMac, tANI_U8 *pCountry, tDot11
         }
         if( pMac->roam.configParam.fEnforceCountryCodeMatch )
         {
-            if( domainId >= NUM_REG_DOMAINS )
+            if( domainId >= REGDOMAIN_COUNT )
             {
                 fRet = eANI_BOOLEAN_FALSE;
                 break;
@@ -5837,6 +5846,7 @@ tANI_U16 sme_ChnToFreq(tANI_U8 chanNum)
    return (0);
 }
 
+#ifndef BMPS_WORKAROUND_NOT_NEEDED
 /* Disconnect all active sessions by sending disassoc. This is mainly used to disconnect the remaining session when we 
  * transition from concurrent sessions to a single session. The use case is Infra STA and wifi direct multiple sessions are up and 
  * P2P session is removed. The Infra STA session remains and should resume BMPS if BMPS is enabled by default. However, there
@@ -5856,3 +5866,4 @@ void csrDisconnectAllActiveSessions(tpAniSirGlobal pMac)
         }
     }
 }
+#endif

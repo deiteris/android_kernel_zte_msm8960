@@ -637,7 +637,7 @@ static eHalStatus hdd_DisConnectHandler( hdd_adapter_t *pAdapter, tCsrRoamInfo *
                                             eCsrRoamResult roamResult )
 {
     eHalStatus status = eHAL_STATUS_SUCCESS;
-
+    VOS_STATUS vstatus;
     struct net_device *dev = pAdapter->dev;
     hdd_context_t *pHddCtx = WLAN_HDD_GET_CTX(pAdapter);
     hdd_station_ctx_t *pHddStaCtx = WLAN_HDD_GET_STATION_CTX_PTR(pAdapter);
@@ -717,8 +717,8 @@ static eHalStatus hdd_DisConnectHandler( hdd_adapter_t *pAdapter, tCsrRoamInfo *
     
 
     //We should clear all sta register with TL, for now, only one.
-    status = hdd_roamDeregisterSTA( pAdapter, pHddStaCtx->conn_info.staId [0] );
-    if ( !VOS_IS_STATUS_SUCCESS(status ) )
+    vstatus = hdd_roamDeregisterSTA( pAdapter, pHddStaCtx->conn_info.staId [0] );
+    if ( !VOS_IS_STATUS_SUCCESS(vstatus ) )
     {
         VOS_TRACE(VOS_MODULE_ID_HDD, VOS_TRACE_LEVEL_WARN,
                   "hdd_roamDeregisterSTA() failed to for staID %d.  "
@@ -907,7 +907,7 @@ static VOS_STATUS hdd_roamRegisterSTA( hdd_adapter_t *pAdapter,
    return( vosStatus );
 }
 
-#if  defined (FEATURE_WLAN_CCX) || defined(FEATURE_WLAN_LFR)
+#ifdef FEATURE_WLAN_CCX
 static void hdd_SendReAssocEvent(struct net_device *dev, hdd_adapter_t *pAdapter,
     tCsrRoamInfo *pCsrRoamInfo, v_U8_t *reqRsnIe, tANI_U32 reqRsnLength)
 {
@@ -955,7 +955,7 @@ static eHalStatus hdd_AssociationCompletionHandler( hdd_adapter_t *pAdapter, tCs
     hdd_context_t *pHddCtx = WLAN_HDD_GET_CTX(pAdapter);
     hdd_station_ctx_t *pHddStaCtx = WLAN_HDD_GET_STATION_CTX_PTR(pAdapter);
     VOS_STATUS vosStatus;
-#if  defined (FEATURE_WLAN_CCX) || defined(FEATURE_WLAN_LFR)
+#ifdef FEATURE_WLAN_CCX
     int ft_carrier_on = FALSE;
 #endif
     int status;
@@ -991,7 +991,7 @@ static eHalStatus hdd_AssociationCompletionHandler( hdd_adapter_t *pAdapter, tCs
            kernel. we have registered net device notifier for device change notification. With this we will come to 
            know that the device is getting activated properly.
            */
-#if  defined (WLAN_FEATURE_VOWIFI_11R) || defined (FEATURE_WLAN_CCX) || defined(FEATURE_WLAN_LFR)
+#if  defined (WLAN_FEATURE_VOWIFI_11R) || defined (FEATURE_WLAN_CCX)
         if (pHddStaCtx->ft_carrier_on == FALSE)
         {
 #endif
@@ -1014,11 +1014,11 @@ static eHalStatus hdd_AssociationCompletionHandler( hdd_adapter_t *pAdapter, tCs
 
             // Disable Linkup Event Servicing - no more service required from the net device notifier call
             pAdapter->isLinkUpSvcNeeded = FALSE;
-#if  defined (WLAN_FEATURE_VOWIFI_11R) || defined (FEATURE_WLAN_CCX) || defined(FEATURE_WLAN_LFR)
+#if  defined (WLAN_FEATURE_VOWIFI_11R) || defined (FEATURE_WLAN_CCX)
         }
         else { 
             pHddStaCtx->ft_carrier_on = FALSE;
-#if  defined (FEATURE_WLAN_CCX) || defined(FEATURE_WLAN_LFR)
+#ifdef FEATURE_WLAN_CCX
             ft_carrier_on = TRUE;
 #endif /* FEATURE_WLAN_CCX */
         }
@@ -1055,7 +1055,7 @@ static eHalStatus hdd_AssociationCompletionHandler( hdd_adapter_t *pAdapter, tCs
                     pAdapter->sessionId,
                     &rspRsnLength,
                     rspRsnIe);
-#if  defined (FEATURE_WLAN_CCX) || defined(FEATURE_WLAN_LFR)
+#ifdef FEATURE_WLAN_CCX
             if(ft_carrier_on)
                     hdd_SendReAssocEvent(dev, pAdapter, pRoamInfo, reqRsnIe, reqRsnLength);
             else
@@ -1157,10 +1157,20 @@ static eHalStatus hdd_AssociationCompletionHandler( hdd_adapter_t *pAdapter, tCs
 
 #ifdef CONFIG_CFG80211
         /* inform association failure event to nl80211 */
-        cfg80211_connect_result(dev, pWextState->req_bssId,
+        if(eCSR_ROAM_RESULT_ASSOC_FAIL_CON_CHANNEL == roamResult)
+        {
+           cfg80211_connect_result(dev, pWextState->req_bssId,
+                NULL, 0, NULL, 0,
+                WLAN_STATUS_ASSOC_DENIED_UNSPEC, 
+                GFP_KERNEL);
+        }
+        else
+        {
+           cfg80211_connect_result(dev, pWextState->req_bssId,
                 NULL, 0, NULL, 0,
                 WLAN_STATUS_UNSPECIFIED_FAILURE, 
                 GFP_KERNEL);
+        }
 #endif 
 
         netif_tx_disable(dev);
@@ -1558,7 +1568,7 @@ eHalStatus hdd_smeRoamCallback( void *pContext, tCsrRoamInfo *pRoamInfo, tANI_U3
             }
             break;
             
-#if  defined (WLAN_FEATURE_VOWIFI_11R) || defined (FEATURE_WLAN_CCX) || defined(FEATURE_WLAN_LFR)
+#if  defined (WLAN_FEATURE_VOWIFI_11R) || defined (FEATURE_WLAN_CCX)
             /* We did pre-auth,then we attempted a 11r or ccx reassoc.
              * reassoc failed due to failure, timeout, reject from ap
              * in any case tell the OS, our carrier is off and mark 
@@ -1603,12 +1613,12 @@ eHalStatus hdd_smeRoamCallback( void *pContext, tCsrRoamInfo *pRoamInfo, tANI_U3
                 hdd_station_ctx_t *pHddStaCtx = WLAN_HDD_GET_STATION_CTX_PTR(pAdapter);
                 // notify apps that we can't pass traffic anymore
                 netif_tx_disable(dev);
-#if  defined (WLAN_FEATURE_VOWIFI_11R) || defined (FEATURE_WLAN_CCX) || defined(FEATURE_WLAN_LFR)
+#if  defined (WLAN_FEATURE_VOWIFI_11R) || defined (FEATURE_WLAN_CCX)
                 if (pHddStaCtx->ft_carrier_on == FALSE)
                 {
 #endif
                     netif_carrier_off(dev);
-#if  defined (WLAN_FEATURE_VOWIFI_11R) || defined (FEATURE_WLAN_CCX) || defined(FEATURE_WLAN_LFR)
+#if  defined (WLAN_FEATURE_VOWIFI_11R) || defined (FEATURE_WLAN_CCX)
                 }
 #endif
 
@@ -1721,12 +1731,6 @@ eHalStatus hdd_smeRoamCallback( void *pContext, tCsrRoamInfo *pRoamInfo, tANI_U3
         case eCSR_ROAM_FT_RESPONSE:
             hdd_SendFTEvent(pAdapter);
             break;
-#endif
-#ifdef FEATURE_WLAN_LFR
-        case eCSR_ROAM_PMK_NOTIFY:
-           /* Notify the supplicant of a new candidate */
-           halStatus = wlan_hdd_cfg80211_pmksa_candidate_notify(pAdapter, pRoamInfo, 1, false);
-           break;
 #endif
 
 #ifdef WLAN_FEATURE_P2P
@@ -2125,7 +2129,7 @@ int hdd_set_csr_auth_type ( hdd_adapter_t  *pAdapter, eCsrAuthType RSNAuthType)
                 ((pWextState->authKeyMgmt & IW_AUTH_KEY_MGMT_802_1X) 
                  == IW_AUTH_KEY_MGMT_802_1X)) {
                pRoamProfile->AuthType.authType[0] = eCSR_AUTH_TYPE_FT_RSN;   
-            }
+            }else
             if ((RSNAuthType == eCSR_AUTH_TYPE_FT_RSN_PSK) && 
                 ((pWextState->authKeyMgmt & IW_AUTH_KEY_MGMT_PSK)
                  == IW_AUTH_KEY_MGMT_PSK)) {
