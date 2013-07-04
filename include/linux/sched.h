@@ -139,7 +139,11 @@ extern int nr_processes(void);
 extern unsigned long nr_running(void);
 extern unsigned long nr_uninterruptible(void);
 extern unsigned long nr_iowait(void);
+<<<<<<< HEAD
 extern unsigned long avg_nr_running(void);
+=======
+extern unsigned long avg_nr_running(void); 
+>>>>>>> dc8647a... scheduler: compute time-average nr_running per run-queue
 extern unsigned long nr_iowait_cpu(int cpu);
 extern unsigned long this_cpu_load(void);
 
