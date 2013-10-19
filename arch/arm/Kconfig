@@ -30,6 +30,12 @@ config ARM
 	select HAVE_GENERIC_HARDIRQS
 	select HAVE_SPARSE_IRQ
 	select GENERIC_IRQ_SHOW
+<<<<<<< HEAD
+=======
+	select CPU_PM if (SUSPEND || CPU_IDLE)
+	select GENERIC_PCI_IOMAP
+	select HAVE_BPF_JIT if NET
+>>>>>>> 3ac70be... ARM: 7449/1: use generic strnlen_user and strncpy_from_user functions
 	select GENERIC_STRNCPY_FROM_USER
 	select GENERIC_STRNLEN_USER
 	help
