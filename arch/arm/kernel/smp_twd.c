@@ -89,7 +89,57 @@ void twd_timer_stop(struct clock_event_device *clk)
 	disable_percpu_irq(clk->irq);
 }
 
+<<<<<<< HEAD
 static void __cpuinit twd_calibrate_rate(void)
+=======
+#ifdef CONFIG_CPU_FREQ
+
+/*
+ * Updates clockevent frequency when the cpu frequency changes.
+ * Called on the cpu that is changing frequency with interrupts disabled.
+ */
+static void twd_update_frequency(void *data)
+{
+	twd_timer_rate = clk_get_rate(twd_clk);
+
+	clockevents_update_freq(*__this_cpu_ptr(twd_evt), twd_timer_rate);
+}
+
+static int twd_cpufreq_transition(struct notifier_block *nb,
+	unsigned long state, void *data)
+{
+	struct cpufreq_freqs *freqs = data;
+
+	/*
+	 * The twd clock events must be reprogrammed to account for the new
+	 * frequency.  The timer is local to a cpu, so cross-call to the
+	 * changing cpu.
+	 */
+	if (state == CPUFREQ_POSTCHANGE || state == CPUFREQ_RESUMECHANGE)
+		smp_call_function_single(freqs->cpu, twd_update_frequency,
+			NULL, 1);
+
+	return NOTIFY_OK;
+}
+
+static struct notifier_block twd_cpufreq_nb = {
+	.notifier_call = twd_cpufreq_transition,
+};
+
+static int twd_cpufreq_init(void)
+{
+	if (twd_evt && *__this_cpu_ptr(twd_evt) && !IS_ERR(twd_clk))
+		return cpufreq_register_notifier(&twd_cpufreq_nb,
+			CPUFREQ_TRANSITION_NOTIFIER);
+
+	return 0;
+}
+core_initcall(twd_cpufreq_init);
+
+#endif
+
+static void twd_calibrate_rate(void)
+>>>>>>> 689b4c7... cpuinit: get rid of __cpuinit, first regexp
 {
 	unsigned long count;
 	u64 waitjiffies;
@@ -143,7 +193,11 @@ static irqreturn_t twd_handler(int irq, void *dev_id)
 /*
  * Setup the local clock events for a CPU.
  */
+<<<<<<< HEAD
 void __cpuinit twd_timer_setup(struct clock_event_device *clk)
+=======
+static int twd_timer_setup(struct clock_event_device *clk)
+>>>>>>> 689b4c7... cpuinit: get rid of __cpuinit, first regexp
 {
 	struct clock_event_device **this_cpu_clk;
 

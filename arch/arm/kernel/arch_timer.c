@@ -136,8 +136,16 @@ static void __cpuinit arch_timer_setup(void *data)
 {
 	struct clock_event_device *clk = data;
 
+<<<<<<< HEAD
 	/* Be safe... */
 	arch_timer_stop();
+=======
+static int arch_timer_setup(struct clock_event_device *clk)
+{
+	/* setup clock event only once for CPU 0 */
+	if (!smp_processor_id() && clk->irq == arch_timer_ppi)
+		return 0;
+>>>>>>> 689b4c7... cpuinit: get rid of __cpuinit, first regexp
 
 	clk->features = CLOCK_EVT_FEAT_ONESHOT;
 	clk->name = "arch_sys_timer";
@@ -245,7 +253,11 @@ unsigned long long notrace sched_clock(void)
 	return cyc_to_sched_clock(&cd, arch_counter_get_cntvct32(), (u32)~0);
 }
 
+<<<<<<< HEAD
 static void notrace arch_timer_update_sched_clock(void)
+=======
+static void arch_timer_stop(struct clock_event_device *clk)
+>>>>>>> 689b4c7... cpuinit: get rid of __cpuinit, first regexp
 {
 	update_sched_clock(&cd, arch_counter_get_cntvct32(), (u32)~0);
 }

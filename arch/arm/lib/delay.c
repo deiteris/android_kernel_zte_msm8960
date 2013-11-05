@@ -79,11 +79,15 @@ void __const_udelay(unsigned long xloops)
 }
 EXPORT_SYMBOL(__const_udelay);
 
+<<<<<<< HEAD
 /*
  * usecs  <= 2000
  * HZ  <= 1000
  */
 void __udelay(unsigned long usecs)
+=======
+unsigned long calibrate_delay_is_known(void)
+>>>>>>> 689b4c7... cpuinit: get rid of __cpuinit, first regexp
 {
 	__const_udelay(usecs * ((2199023UL*HZ)>>11));
 }

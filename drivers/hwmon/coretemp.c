@@ -180,7 +180,12 @@ static ssize_t show_temp(struct device *dev,
 	return tdata->valid ? sprintf(buf, "%d\n", tdata->temp) : -EAGAIN;
 }
 
+<<<<<<< HEAD
 static int adjust_tjmax(struct cpuinfo_x86 *c, u32 id, struct device *dev)
+=======
+static int adjust_tjmax(struct cpuinfo_x86 *c, u32 id,
+				  struct device *dev)
+>>>>>>> 689b4c7... cpuinit: get rid of __cpuinit, first regexp
 {
 	/* The 100C is default for both mobile and non mobile CPUs */
 
@@ -274,7 +279,12 @@ static int adjust_tjmax(struct cpuinfo_x86 *c, u32 id, struct device *dev)
 	return tjmax;
 }
 
+<<<<<<< HEAD
 static int get_tjmax(struct cpuinfo_x86 *c, u32 id, struct device *dev)
+=======
+static int get_tjmax(struct cpuinfo_x86 *c, u32 id,
+			       struct device *dev)
+>>>>>>> 689b4c7... cpuinit: get rid of __cpuinit, first regexp
 {
 	/* The 100C is default for both mobile and non mobile CPUs */
 	int err;
@@ -340,8 +350,13 @@ static int create_name_attr(struct platform_data *pdata, struct device *dev)
 	return device_create_file(dev, &pdata->name_attr);
 }
 
+<<<<<<< HEAD
 static int create_core_attrs(struct temp_data *tdata, struct device *dev,
 				int attr_no)
+=======
+static int create_core_attrs(struct temp_data *tdata,
+				       struct device *dev, int attr_no)
+>>>>>>> 689b4c7... cpuinit: get rid of __cpuinit, first regexp
 {
 	int err, i;
 	static ssize_t (*rd_ptr[MAX_ATTRS]) (struct device *dev,
@@ -389,6 +404,7 @@ static void update_ttarget(__u8 cpu_model, struct temp_data *tdata,
 	 */
 	tdata->ttarget = tdata->tjmax - 20000;
 
+<<<<<<< HEAD
 	/*
 	 * Read the still undocumented IA32_TEMPERATURE_TARGET. It exists
 	 * on older CPUs but not in this register,
@@ -408,6 +424,9 @@ static void update_ttarget(__u8 cpu_model, struct temp_data *tdata,
 }
 
 static int __devinit chk_ucode_version(struct platform_device *pdev)
+=======
+static int chk_ucode_version(unsigned int cpu)
+>>>>>>> 689b4c7... cpuinit: get rid of __cpuinit, first regexp
 {
 	struct cpuinfo_x86 *c = &cpu_data(pdev->id);
 	int err;
@@ -454,7 +473,12 @@ static struct platform_device *coretemp_get_pdev(unsigned int cpu)
 	return NULL;
 }
 
+<<<<<<< HEAD
 static struct temp_data *init_temp_data(unsigned int cpu, int pkg_flag)
+=======
+static struct temp_data *init_temp_data(unsigned int cpu,
+						  int pkg_flag)
+>>>>>>> 689b4c7... cpuinit: get rid of __cpuinit, first regexp
 {
 	struct temp_data *tdata;
 
@@ -471,8 +495,12 @@ static struct temp_data *init_temp_data(unsigned int cpu, int pkg_flag)
 	return tdata;
 }
 
+<<<<<<< HEAD
 static int create_core_data(struct platform_data *pdata,
 				struct platform_device *pdev,
+=======
+static int create_core_data(struct platform_device *pdev,
+>>>>>>> 689b4c7... cpuinit: get rid of __cpuinit, first regexp
 				unsigned int cpu, int pkg_flag)
 {
 	struct temp_data *tdata;
@@ -623,7 +651,7 @@ static struct platform_driver coretemp_driver = {
 	.remove = __devexit_p(coretemp_remove),
 };
 
-static int __cpuinit coretemp_device_add(unsigned int cpu)
+static int coretemp_device_add(unsigned int cpu)
 {
 	int err;
 	struct platform_device *pdev;
@@ -697,7 +725,7 @@ static bool is_any_core_online(struct platform_data *pdata)
 	return false;
 }
 
-static void __cpuinit get_core_online(unsigned int cpu)
+static void get_core_online(unsigned int cpu)
 {
 	struct cpuinfo_x86 *c = &cpu_data(cpu);
 	struct platform_device *pdev = coretemp_get_pdev(cpu);
@@ -735,7 +763,7 @@ static void __cpuinit get_core_online(unsigned int cpu)
 	coretemp_add_core(cpu, 0);
 }
 
-static void __cpuinit put_core_offline(unsigned int cpu)
+static void put_core_offline(unsigned int cpu)
 {
 	int i, indx;
 	struct platform_data *pdata;
@@ -779,7 +807,7 @@ static void __cpuinit put_core_offline(unsigned int cpu)
 		coretemp_device_remove(cpu);
 }
 
-static int __cpuinit coretemp_cpu_callback(struct notifier_block *nfb,
+static int coretemp_cpu_callback(struct notifier_block *nfb,
 				 unsigned long action, void *hcpu)
 {
 	unsigned int cpu = (unsigned long) hcpu;

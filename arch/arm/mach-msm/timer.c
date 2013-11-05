@@ -957,7 +957,12 @@ static void notrace msm_update_sched_clock(void)
 	update_sched_clock(&cd, cyc, ((u32)~0) >> clock->shift);
 }
 
+<<<<<<< HEAD
 int read_current_timer(unsigned long *timer_val)
+=======
+#ifdef CONFIG_LOCAL_TIMERS
+int local_timer_setup(struct clock_event_device *evt)
+>>>>>>> 689b4c7... cpuinit: get rid of __cpuinit, first regexp
 {
 	struct msm_clock *dgt = &msm_clocks[MSM_CLOCK_DGT];
 	*timer_val = msm_read_timer_count(dgt, GLOBAL_TIMER);

@@ -1298,6 +1298,199 @@ static int rcutorture_booster_init(int cpu)
 	return 0;
 }
 
+<<<<<<< HEAD
+=======
+/*
+ * Cause the rcutorture test to shutdown the system after the test has
+ * run for the time specified by the shutdown_secs module parameter.
+ */
+static int
+rcu_torture_shutdown(void *arg)
+{
+	long delta;
+	unsigned long jiffies_snap;
+
+	VERBOSE_PRINTK_STRING("rcu_torture_shutdown task started");
+	jiffies_snap = ACCESS_ONCE(jiffies);
+	while (ULONG_CMP_LT(jiffies_snap, shutdown_time) &&
+	       !kthread_should_stop()) {
+		delta = shutdown_time - jiffies_snap;
+		if (verbose)
+			printk(KERN_ALERT "%s" TORTURE_FLAG
+			       "rcu_torture_shutdown task: %lu "
+			       "jiffies remaining\n",
+			       torture_type, delta);
+		schedule_timeout_interruptible(delta);
+		jiffies_snap = ACCESS_ONCE(jiffies);
+	}
+	if (kthread_should_stop()) {
+		VERBOSE_PRINTK_STRING("rcu_torture_shutdown task stopping");
+		return 0;
+	}
+
+	/* OK, shut down the system. */
+
+	VERBOSE_PRINTK_STRING("rcu_torture_shutdown task shutting down system");
+	shutdown_task = NULL;	/* Avoid self-kill deadlock. */
+	rcu_torture_cleanup();	/* Get the success/failure message. */
+	kernel_power_off();	/* Shut down the system. */
+	return 0;
+}
+
+#ifdef CONFIG_HOTPLUG_CPU
+
+/*
+ * Execute random CPU-hotplug operations at the interval specified
+ * by the onoff_interval.
+ */
+static int __cpuinit
+rcu_torture_onoff(void *arg)
+{
+	int cpu;
+	int maxcpu = -1;
+	DEFINE_RCU_RANDOM(rand);
+
+	VERBOSE_PRINTK_STRING("rcu_torture_onoff task started");
+	for_each_online_cpu(cpu)
+		maxcpu = cpu;
+	WARN_ON(maxcpu < 0);
+	if (onoff_holdoff > 0) {
+		VERBOSE_PRINTK_STRING("rcu_torture_onoff begin holdoff");
+		schedule_timeout_interruptible(onoff_holdoff * HZ);
+		VERBOSE_PRINTK_STRING("rcu_torture_onoff end holdoff");
+	}
+	while (!kthread_should_stop()) {
+		cpu = (rcu_random(&rand) >> 4) % (maxcpu + 1);
+		if (cpu_online(cpu) && cpu_is_hotpluggable(cpu)) {
+			if (verbose)
+				printk(KERN_ALERT "%s" TORTURE_FLAG
+				       "rcu_torture_onoff task: offlining %d\n",
+				       torture_type, cpu);
+			n_offline_attempts++;
+			if (cpu_down(cpu) == 0) {
+				if (verbose)
+					printk(KERN_ALERT "%s" TORTURE_FLAG
+					       "rcu_torture_onoff task: "
+					       "offlined %d\n",
+					       torture_type, cpu);
+				n_offline_successes++;
+			}
+		} else if (cpu_is_hotpluggable(cpu)) {
+			if (verbose)
+				printk(KERN_ALERT "%s" TORTURE_FLAG
+				       "rcu_torture_onoff task: onlining %d\n",
+				       torture_type, cpu);
+			n_online_attempts++;
+			if (cpu_up(cpu) == 0) {
+				if (verbose)
+					printk(KERN_ALERT "%s" TORTURE_FLAG
+					       "rcu_torture_onoff task: "
+					       "onlined %d\n",
+					       torture_type, cpu);
+				n_online_successes++;
+			}
+		}
+		schedule_timeout_interruptible(onoff_interval * HZ);
+	}
+	VERBOSE_PRINTK_STRING("rcu_torture_onoff task stopping");
+	return 0;
+}
+
+static int __cpuinit
+rcu_torture_onoff_init(void)
+{
+	int ret;
+
+	if (onoff_interval <= 0)
+		return 0;
+	onoff_task = kthread_run(rcu_torture_onoff, NULL, "rcu_torture_onoff");
+	if (IS_ERR(onoff_task)) {
+		ret = PTR_ERR(onoff_task);
+		onoff_task = NULL;
+		return ret;
+	}
+	return 0;
+}
+
+static void rcu_torture_onoff_cleanup(void)
+{
+	if (onoff_task == NULL)
+		return;
+	VERBOSE_PRINTK_STRING("Stopping rcu_torture_onoff task");
+	kthread_stop(onoff_task);
+}
+
+#else /* #ifdef CONFIG_HOTPLUG_CPU */
+
+static void
+rcu_torture_onoff_init(void)
+{
+}
+
+static void rcu_torture_onoff_cleanup(void)
+{
+}
+
+#endif /* #else #ifdef CONFIG_HOTPLUG_CPU */
+
+/*
+ * CPU-stall kthread.  It waits as specified by stall_cpu_holdoff, then
+ * induces a CPU stall for the time specified by stall_cpu.
+ */
+static int rcu_torture_stall(void *args)
+{
+	unsigned long stop_at;
+
+	VERBOSE_PRINTK_STRING("rcu_torture_stall task started");
+	if (stall_cpu_holdoff > 0) {
+		VERBOSE_PRINTK_STRING("rcu_torture_stall begin holdoff");
+		schedule_timeout_interruptible(stall_cpu_holdoff * HZ);
+		VERBOSE_PRINTK_STRING("rcu_torture_stall end holdoff");
+	}
+	if (!kthread_should_stop()) {
+		stop_at = get_seconds() + stall_cpu;
+		/* RCU CPU stall is expected behavior in following code. */
+		printk(KERN_ALERT "rcu_torture_stall start.\n");
+		rcu_read_lock();
+		preempt_disable();
+		while (ULONG_CMP_LT(get_seconds(), stop_at))
+			continue;  /* Induce RCU CPU stall warning. */
+		preempt_enable();
+		rcu_read_unlock();
+		printk(KERN_ALERT "rcu_torture_stall end.\n");
+	}
+	rcutorture_shutdown_absorb("rcu_torture_stall");
+	while (!kthread_should_stop())
+		schedule_timeout_interruptible(10 * HZ);
+	return 0;
+}
+
+/* Spawn CPU-stall kthread, if stall_cpu specified. */
+static int __init rcu_torture_stall_init(void)
+{
+	int ret;
+
+	if (stall_cpu <= 0)
+		return 0;
+	stall_task = kthread_run(rcu_torture_stall, NULL, "rcu_torture_stall");
+	if (IS_ERR(stall_task)) {
+		ret = PTR_ERR(stall_task);
+		stall_task = NULL;
+		return ret;
+	}
+	return 0;
+}
+
+/* Clean up after the CPU-stall kthread, if one was spawned. */
+static void rcu_torture_stall_cleanup(void)
+{
+	if (stall_task == NULL)
+		return;
+	VERBOSE_PRINTK_STRING("Stopping rcu_torture_stall_task.");
+	kthread_stop(stall_task);
+}
+
+>>>>>>> 689b4c7... cpuinit: get rid of __cpuinit, first regexp
 static int rcutorture_cpu_notify(struct notifier_block *self,
 				 unsigned long action, void *hcpu)
 {

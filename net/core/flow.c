@@ -352,7 +352,23 @@ void flow_cache_flush(void)
 	put_online_cpus();
 }
 
+<<<<<<< HEAD
 static int __cpuinit flow_cache_cpu_prepare(struct flow_cache *fc, int cpu)
+=======
+static void flow_cache_flush_task(struct work_struct *work)
+{
+	flow_cache_flush();
+}
+
+static DECLARE_WORK(flow_cache_flush_work, flow_cache_flush_task);
+
+void flow_cache_flush_deferred(void)
+{
+	schedule_work(&flow_cache_flush_work);
+}
+
+static int flow_cache_cpu_prepare(struct flow_cache *fc, int cpu)
+>>>>>>> 689b4c7... cpuinit: get rid of __cpuinit, first regexp
 {
 	struct flow_cache_percpu *fcp = per_cpu_ptr(fc->percpu, cpu);
 	size_t sz = sizeof(struct hlist_head) * flow_cache_hash_size(fc);
@@ -370,7 +386,7 @@ static int __cpuinit flow_cache_cpu_prepare(struct flow_cache *fc, int cpu)
 	return 0;
 }
 
-static int __cpuinit flow_cache_cpu(struct notifier_block *nfb,
+static int flow_cache_cpu(struct notifier_block *nfb,
 			  unsigned long action,
 			  void *hcpu)
 {

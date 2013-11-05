@@ -629,8 +629,192 @@ static void armpmu_enable(struct pmu *pmu)
 
 static void armpmu_disable(struct pmu *pmu)
 {
+<<<<<<< HEAD
 	if (armpmu)
 		armpmu->stop();
+=======
+	struct arm_pmu *armpmu = to_arm_pmu(pmu);
+	armpmu->stop();
+}
+
+static void armpmu_init(struct arm_pmu *armpmu)
+{
+	atomic_set(&armpmu->active_events, 0);
+	mutex_init(&armpmu->reserve_mutex);
+
+	armpmu->pmu.pmu_enable = armpmu_enable;
+	armpmu->pmu.pmu_disable = armpmu_disable;
+	armpmu->pmu.event_init = armpmu_event_init;
+	armpmu->pmu.add = armpmu_add;
+	armpmu->pmu.del = armpmu_del;
+	armpmu->pmu.start = armpmu_start;
+	armpmu->pmu.stop = armpmu_stop;
+	armpmu->pmu.read = armpmu_read;
+}
+
+int armpmu_register(struct arm_pmu *armpmu, char *name, int type)
+{
+	armpmu_init(armpmu);
+	return perf_pmu_register(&armpmu->pmu, name, type);
+}
+
+/* Include the PMU-specific implementations. */
+#include "perf_event_xscale.c"
+#include "perf_event_v6.c"
+#include "perf_event_v7.c"
+#include "perf_event_msm_krait.c"
+#include "perf_event_msm.c"
+
+/*
+ * Ensure the PMU has sane values out of reset.
+ * This requires SMP to be available, so exists as a separate initcall.
+ */
+static int __init
+cpu_pmu_reset(void)
+{
+	if (cpu_pmu && cpu_pmu->reset)
+		return on_each_cpu(cpu_pmu->reset, NULL, 1);
+	return 0;
+}
+arch_initcall(cpu_pmu_reset);
+
+/*
+ * PMU platform driver and devicetree bindings.
+ */
+static struct of_device_id armpmu_of_device_ids[] = {
+	{.compatible = "arm,cortex-a9-pmu"},
+	{.compatible = "arm,cortex-a8-pmu"},
+	{.compatible = "arm,cortex-a7-pmu"},
+	{.compatible = "arm,cortex-a5-pmu"},
+	{.compatible = "arm,arm1136-pmu"},
+	{.compatible = "arm,arm1176-pmu"},
+	{.compatible = "qcom,krait-pmu"},
+	{},
+};
+
+static struct platform_device_id armpmu_plat_device_ids[] = {
+	{.name = "cpu-pmu"},
+	{},
+};
+
+static int __devinit armpmu_device_probe(struct platform_device *pdev)
+{
+	if (!cpu_pmu)
+		return -ENODEV;
+
+	cpu_pmu->plat_device = pdev;
+
+	if (per_cpu_irq == 1)
+		cpu_pmu->plat_device->dev.platform_data = &multicore_data;
+
+	return 0;
+}
+
+static struct platform_driver armpmu_driver = {
+	.driver		= {
+		.name	= "cpu-pmu",
+		.of_match_table = armpmu_of_device_ids,
+	},
+	.probe		= armpmu_device_probe,
+	.id_table	= armpmu_plat_device_ids,
+};
+
+static int __init register_pmu_driver(void)
+{
+	return platform_driver_register(&armpmu_driver);
+}
+device_initcall(register_pmu_driver);
+
+static struct pmu_hw_events *armpmu_get_cpu_events(void)
+{
+	return &__get_cpu_var(cpu_hw_events);
+}
+
+static void __init cpu_pmu_init(struct arm_pmu *armpmu)
+{
+	int cpu;
+	for_each_possible_cpu(cpu) {
+		struct pmu_hw_events *events = &per_cpu(cpu_hw_events, cpu);
+		events->events = per_cpu(hw_events, cpu);
+		events->used_mask = per_cpu(used_mask, cpu);
+		raw_spin_lock_init(&events->pmu_lock);
+	}
+	armpmu->get_hw_events = armpmu_get_cpu_events;
+	armpmu->type = ARM_PMU_DEVICE_CPU;
+}
+
+static int cpu_has_active_perf(int cpu)
+{
+	struct pmu_hw_events *hw_events;
+	int enabled;
+
+	if (!cpu_pmu)
+		return 0;
+	hw_events = &per_cpu(cpu_hw_events, cpu);
+	enabled = bitmap_weight(hw_events->used_mask, cpu_pmu->num_events);
+
+	if (enabled)
+		/*Even one event's existence is good enough.*/
+		return 1;
+
+	return 0;
+}
+
+/*
+ * PMU hardware loses all context when a CPU goes offline.
+ * When a CPU is hotplugged back in, since some hardware registers are
+ * UNKNOWN at reset, the PMU must be explicitly reset to avoid reading
+ * junk values out of them.
+ */
+static int pmu_cpu_notify(struct notifier_block *b,
+					unsigned long action, void *hcpu)
+{
+	int irq;
+
+	if (cpu_has_active_perf((int)hcpu)) {
+		switch ((action & ~CPU_TASKS_FROZEN)) {
+
+		case CPU_DOWN_PREPARE:
+			/*
+			 * If this is on a multicore CPU, we need
+			 * to disarm the PMU IRQ before disappearing.
+			 */
+			if (cpu_pmu &&
+				cpu_pmu->plat_device->dev.platform_data) {
+				irq = platform_get_irq(cpu_pmu->plat_device, 0);
+				smp_call_function_single((int)hcpu,
+						disable_irq_callback, &irq, 1);
+			}
+			return NOTIFY_DONE;
+
+		case CPU_UP_PREPARE:
+			/*
+			 * If this is on a multicore CPU, we need
+			 * to arm the PMU IRQ before appearing.
+			 */
+			if (cpu_pmu &&
+				cpu_pmu->plat_device->dev.platform_data) {
+				irq = platform_get_irq(cpu_pmu->plat_device, 0);
+				smp_call_function_single((int)hcpu,
+						enable_irq_callback, &irq, 1);
+			}
+			return NOTIFY_DONE;
+
+		case CPU_STARTING:
+			if (cpu_pmu && cpu_pmu->reset) {
+				cpu_pmu->reset(NULL);
+				return NOTIFY_OK;
+			}
+		default:
+			return NOTIFY_DONE;
+		}
+	}
+
+	if ((action & ~CPU_TASKS_FROZEN) != CPU_STARTING)
+		return NOTIFY_DONE;
+
+	return NOTIFY_OK;
+>>>>>>> 689b4c7... cpuinit: get rid of __cpuinit, first regexp
 }
 
 static void armpmu_update_counters(void)
