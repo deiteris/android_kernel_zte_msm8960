@@ -169,4 +169,6 @@ source "drivers/staging/prima/Kconfig"
 #
 source "drivers/staging/zte_ftm/Kconfig"
 
+source "drivers/staging/cpupower/Kconfig" 
+
 endif # STAGING

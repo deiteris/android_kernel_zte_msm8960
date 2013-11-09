@@ -74,6 +74,7 @@ obj-$(CONFIG_DRM_PSB)		+= gma500/
 obj-$(CONFIG_INTEL_MEI)		+= mei/
 obj-$(CONFIG_MFD_NVEC)		+= nvec/
 obj-$(CONFIG_PRIMA_WLAN)	+= prima/
+obj-$(CONFIG_CPUPOWER)    	+= cpupower/
 
 #
 # Created by ZTE_BOOT_JIA_20120803 jia.jia
