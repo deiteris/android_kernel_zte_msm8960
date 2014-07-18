@@ -1367,10 +1367,7 @@ config HZ
 	int
 	default 200 if ARCH_EBSA110 || ARCH_S3C2410 || ARCH_S5P64X0 || \
 		ARCH_S5PV210 || ARCH_EXYNOS4
-	default OMAP_32K_TIMER_HZ if ARCH_OMAP && OMAP_32K_TIMER
-	default AT91_TIMER_HZ if ARCH_AT91
-	default SHMOBILE_TIMER_HZ if ARCH_SHMOBILE
-	default 100
+	default 1000
 
 config THUMB2_KERNEL
 	bool "Compile the kernel in Thumb-2 mode (EXPERIMENTAL)"
@@ -1988,44 +1985,6 @@ config CPU_FREQ_MSM
 menu "Floating point emulation"
 
 comment "At least one emulation must be selected"
-
-config FPE_NWFPE
-	bool "NWFPE math emulation"
-	depends on (!AEABI || OABI_COMPAT) && !THUMB2_KERNEL
-	---help---
-	  Say Y to include the NWFPE floating point emulator in the kernel.
-	  This is necessary to run most binaries. Linux does not currently
-	  support floating point hardware so you need to say Y here even if
-	  your machine has an FPA or floating point co-processor podule.
-
-	  You may say N here if you are going to load the Acorn FPEmulator
-	  early in the bootup.
-
-config FPE_NWFPE_XP
-	bool "Support extended precision"
-	depends on FPE_NWFPE
-	help
-	  Say Y to include 80-bit support in the kernel floating-point
-	  emulator.  Otherwise, only 32 and 64-bit support is compiled in.
-	  Note that gcc does not generate 80-bit operations by default,
-	  so in most cases this option only enlarges the size of the
-	  floating point emulator without any good reason.
-
-	  You almost surely want to say N here.
-
-config FPE_FASTFPE
-	bool "FastFPE math emulation (EXPERIMENTAL)"
-	depends on (!AEABI || OABI_COMPAT) && !CPU_32v3 && EXPERIMENTAL
-	---help---
-	  Say Y here to include the FAST floating point emulator in the kernel.
-	  This is an experimental much faster emulator which now also has full
-	  precision for the mantissa.  It does not support any exceptions.
-	  It is very simple, and approximately 3-6 times faster than NWFPE.
-
-	  It should be sufficient for most programs.  It may be not suitable
-	  for scientific calculations, but you have to check this for yourself.
-	  If you do not feel you need a faster FP emulation you should better
-	  choose NWFPE.
 
 config VFP
 	bool "VFP-format floating point maths"
