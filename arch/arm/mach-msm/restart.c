@@ -262,13 +262,11 @@ irqreturn_t resout_irq_handler(int irq, void *dev_id)
 #endif	
 
 #endif
-
-<<<<<<< HEAD
        preempt_disable();
 	while (1)	;
 	return IRQ_HANDLED;
 }
-=======
+
 #ifdef CONFIG_KEXEC_HARDBOOT
 void msm_kexec_hardboot(void)
 {
@@ -276,7 +274,6 @@ void msm_kexec_hardboot(void)
 	pm8xxx_reset_pwr_off(1);
 }
 #endif
->>>>>>> a56f758... Support hard booting to a kexec kernel.
 
 static int __init msm_restart_init(void)
 {

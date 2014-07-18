@@ -125,6 +125,10 @@
 #include <linux/kxtik.h> 
 #endif
 
+#ifdef CONFIG_KEXEC_HARDBOOT
+#include <asm/kexec.h>
+#endif
+
 /*
  * ZTE_PLATFORM
  */
@@ -144,8 +148,30 @@
  * Set to the last 1MB region of the first 'System RAM'
  * and the region allocated by '___alloc_bootmem' should be considered
  */
-#define MSM_RAM_CONSOLE_PHYS  0x88D00000 /* Refer to 'debug.c' in bootable */
-#define MSM_RAM_CONSOLE_SIZE  SZ_1M
+#define MSM_RAM_CONSOLE_PHYS  0xfff00000 /* Refer to 'debug.c' in bootable */
+#define MSM_RAM_CONSOLE_SIZE  (SZ_1M-SZ_4K)
+#endif
+#endif /* ZTE_RAM_CONSOLE */
+
+/*
+ * ZTE_PLATFORM
+ */
+#ifdef ZTE_RAM_CONSOLE
+#ifdef CONFIG_ANDROID_RAM_CONSOLE
+static struct resource ram_console_resource[] = {
+    {
+        .start  = MSM_RAM_CONSOLE_PHYS,
+        .end    = MSM_RAM_CONSOLE_PHYS + MSM_RAM_CONSOLE_SIZE - 1,
+        .flags	= IORESOURCE_MEM,
+    },
+};
+
+static struct platform_device ram_console_device = {
+    .name = "ram_console",
+    .id = -1,
+    .num_resources  = ARRAY_SIZE(ram_console_resource),
+    .resource       = ram_console_resource,
+};
 #endif
 #endif /* ZTE_RAM_CONSOLE */
 
@@ -1352,6 +1378,18 @@ static void __init msm8960_reserve(void)
 		fmem_pdata.phys = reserve_memory_for_fmem(fmem_pdata.size, fmem_pdata.align);
 #endif
 	}
+#ifdef ZTE_RAM_CONSOLE
+#ifdef CONFIG_ANDROID_RAM_CONSOLE
+	if (memblock_remove(MSM_RAM_CONSOLE_PHYS, MSM_RAM_CONSOLE_SIZE) == 0) {
+		ram_console_resource[0].start = MSM_RAM_CONSOLE_PHYS;
+		ram_console_resource[0].end   = MSM_RAM_CONSOLE_PHYS + MSM_RAM_CONSOLE_SIZE-1;
+	}
+#endif
+#endif
+
+#ifdef CONFIG_KEXEC_HARDBOOT
+	memblock_remove(KEXEC_HB_PAGE_ADDR, SZ_4K);
+#endif
 }
 
 static int msm8960_change_memory_power(u64 start, u64 size,
@@ -2609,28 +2647,6 @@ static struct platform_device msm_rpm_log_device = {
 		.platform_data = &msm_rpm_log_pdata,
 	},
 };
-
-/*
- * ZTE_PLATFORM
- */
-#ifdef ZTE_RAM_CONSOLE
-#ifdef CONFIG_ANDROID_RAM_CONSOLE
-static struct resource ram_console_resource[] = {
-    {
-        .start  = MSM_RAM_CONSOLE_PHYS,
-        .end    = MSM_RAM_CONSOLE_PHYS + MSM_RAM_CONSOLE_SIZE - 1,
-        .flags	= IORESOURCE_MEM,
-    },
-};
-
-static struct platform_device ram_console_device = {
-    .name = "ram_console",
-    .id = -1,
-    .num_resources  = ARRAY_SIZE(ram_console_resource),
-    .resource       = ram_console_resource,
-};
-#endif
-#endif /* ZTE_RAM_CONSOLE */
 
 /*
  * ZTE_PLATFORM
