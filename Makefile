@@ -1,7 +1,7 @@
 VERSION = 3
 PATCHLEVEL = 0
 SUBLEVEL = 8
-EXTRAVERSION =
+#EXTRAVERSION =
 NAME = Sneaky Weasel
 
 # *DOCUMENTATION*
@@ -165,7 +165,11 @@ export srctree objtree VPATH
 # then ARCH is assigned, getting whatever value it gets normally, and 
 # SUBARCH is subsequently ignored.
 
-SUBARCH := ARM
+SUBARCH := $(shell uname -m | sed -e s/i.86/i386/ -e s/sun4u/sparc64/ \
+				  -e s/arm.*/arm/ -e s/sa110/arm/ \
+				  -e s/s390x/s390/ -e s/parisc64/parisc/ \
+				  -e s/ppc.*/powerpc/ -e s/mips.*/mips/ \
+				  -e s/sh[234].*/sh/ )
 
 # Cross compiling and selecting different set of gcc/bin-utils
 # ---------------------------------------------------------------------------
@@ -326,7 +330,7 @@ include $(srctree)/scripts/Kbuild.include
 
 AS		= $(CROSS_COMPILE)as
 LD		= $(CROSS_COMPILE)ld
-REAL_CC		= $(CROSS_COMPILE)gcc
+CC		= $(CROSS_COMPILE)gcc
 CPP		= $(CC) -E
 AR		= $(CROSS_COMPILE)ar
 NM		= $(CROSS_COMPILE)nm
@@ -341,17 +345,14 @@ KALLSYMS	= scripts/kallsyms
 PERL		= perl
 CHECK		= sparse
 
-# Use the wrapper for the compiler.  This wrapper scans for new
-# warnings and causes the build to stop upon encountering them.
-CC		= $(srctree)/scripts/gcc-wrapper.py $(REAL_CC)
-
 CHECKFLAGS     := -D__linux__ -Dlinux -D__STDC__ -Dunix -D__unix__ \
 		  -Wbitwise -Wno-return-void $(CF)
-MODFLAGS       := -marm -mtune=cortex-a8 -mfpu=neon -ftree-vectorize -mvectorize-with-neon-quad
-CFLAGS_MODULE   = $(MODFLAGS)
-AFLAGS_MODULE   =
-LDFLAGS_MODULE  =
-CFLAGS_KERNEL	= $(MODFLAGS)
+GRAPHITE	= -floop-interchange -floop-strip-mine -floop-block -fgraphite-identity
+KERNELFLAGS	= -fgcse-lm -fgcse-sm -fsched-spec-load -fforce-addr -ffast-math -fsingle-precision-constant -marm -mtune=cortex-a8 -mfpu=neon -ftree-vectorize -fgcse-las -fipa-pta
+CFLAGS_MODULE   = $(KERNELFLAGS) -fno-pic 
+AFLAGS_MODULE   = 
+LDFLAGS_MODULE  = -T $(srctree)/scripts/module-common.lds
+CFLAGS_KERNEL   = $(KERNELFLAGS)
 AFLAGS_KERNEL	=
 CFLAGS_GCOV	= -fprofile-arcs -ftest-coverage
 
@@ -567,9 +568,9 @@ endif
 
 include $(srctree)/arch/$(SRCARCH)/Makefile
 
-ifneq ($(CONFIG_FRAME_WARN),0)
-KBUILD_CFLAGS += $(call cc-option,-Wframe-larger-than=${CONFIG_FRAME_WARN})
-endif
+#ifneq ($(CONFIG_FRAME_WARN),0)
+#KBUILD_CFLAGS += $(call cc-option,-Wframe-larger-than=${CONFIG_FRAME_WARN})
+#endif
 
 # Force gcc to behave correct even for buggy distributions
 ifndef CONFIG_CC_STACKPROTECTOR
