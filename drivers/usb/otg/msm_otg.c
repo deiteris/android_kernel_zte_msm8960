@@ -1027,10 +1027,7 @@ static void msm_otg_notify_charger(struct msm_otg *motg, unsigned mA)
 
 	if (motg->cur_power == mA)
 		return;
-<<<<<<< HEAD
 
-	dev_info(motg->otg.dev, "Avail curr from USB = %u\n", mA);
-=======
 #ifdef CONFIG_FORCE_FAST_CHARGE
 	if (force_fast_charge == 1) {
 			mA = USB_FASTCHG_LOAD;
@@ -1039,8 +1036,8 @@ static void msm_otg_notify_charger(struct msm_otg *motg, unsigned mA)
 		pr_info("USB fast charging is OFF.\n");
 	}
 #endif
-	dev_info(motg->phy.dev, "Avail curr from USB = %u\n", mA);
->>>>>>> 381496d... USB force fast charging
+
+	dev_info(motg->otg.dev, "Avail curr from USB = %u\n", mA);
 
 	/*
 	 *  Use Power Supply API if supported, otherwise fallback

@@ -326,24 +326,5 @@ obj-$(CONFIG_ARCH_MSM8960) += mdm2.o mdm_common.o
 obj-$(CONFIG_MSM_RTB) += msm_rtb.o
 obj-$(CONFIG_MSM_CACHE_ERP) += cache_erp.o
 obj-$(CONFIG_MSM_CACHE_DUMP) += msm_cache_dump.o
-<<<<<<< HEAD
-=======
 
-obj-$(CONFIG_MSM_HSIC_SYSMON) += hsic_sysmon.o
-obj-$(CONFIG_MSM_HSIC_SYSMON_TEST) += hsic_sysmon_test.o
-
-obj-$(CONFIG_MSM_RPM_SMD) += rpm-smd.o
-
-obj-$(CONFIG_PERFLOCK) += perflock.o
-obj-y += htc_ramdump.o
-
-obj-$(CONFIG_HTC_MONITOR) += htc_monitor.o
-
-obj-y += display/
-
-obj-$(CONFIG_IO_FOOTPRINT) += io_footprint.o
 obj-$(CONFIG_FORCE_FAST_CHARGE) += fastchg.o
-
-#PWR2_ADD, @CPU Sniffer: CPU usage statistics.
-obj-y += htc_cpu_usage_stats.o
->>>>>>> 381496d... USB force fast charging
