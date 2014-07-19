@@ -21,11 +21,7 @@
 #include <asm/asm-offsets.h>
 #include <asm/memory.h>
 #include <asm/thread_info.h>
-<<<<<<< HEAD
-#include <asm/system.h>
-=======
 #include <asm/pgtable.h>
->>>>>>> 15d07dc... ARM: move CP15 definitions to separate header file
 
 #ifdef CONFIG_DEBUG_LL
 #include <mach/debug-macro.S>

@@ -22,10 +22,7 @@
 #include <linux/sched.h>
 #include <linux/uaccess.h>
 
-<<<<<<< HEAD
-=======
 #include <asm/cp15.h>
->>>>>>> 15d07dc... ARM: move CP15 definitions to separate header file
 #include <asm/unaligned.h>
 
 #include "fault.h"
