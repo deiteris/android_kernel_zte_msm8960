@@ -181,12 +181,10 @@ obj-$(CONFIG_SND_SOC_MSM_STUB)  += snd-soc-msm-stub.o
 obj-$(CONFIG_SND_SOC_LM4857)	+= snd-soc-lm4857.o
 obj-$(CONFIG_SND_SOC_MAX9877)	+= snd-soc-max9877.o
 obj-$(CONFIG_SND_SOC_TPA6130A2)	+= snd-soc-tpa6130a2.o
-<<<<<<< HEAD
+
 # chenjun:CONFIG_SND_SOC_WM2000->CONFIG_MACH_GORDON
 obj-$(CONFIG_MACH_GORDON)	+= snd-soc-wm2000.o
 obj-$(CONFIG_SND_SOC_WM9090)	+= snd-soc-wm9090.o
-=======
 
 # Hack
 obj-$(CONFIG_SOUND_CONTROL_HAX_GPL) += sound_control_gpl.o
->>>>>>> f9ba2ee... codecs: wcd9310: adding faux sound control patch
