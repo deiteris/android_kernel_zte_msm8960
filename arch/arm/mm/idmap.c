@@ -3,11 +3,6 @@
 #include <asm/cputype.h>
 #include <asm/pgalloc.h>
 #include <asm/pgtable.h>
-<<<<<<< HEAD
-=======
-#include <asm/sections.h>
-#include <asm/system_info.h>
->>>>>>> 9f97da7... Disintegrate asm/system.h for ARM
 
 static void idmap_add_pmd(pud_t *pud, unsigned long addr, unsigned long end,
 	unsigned long prot)

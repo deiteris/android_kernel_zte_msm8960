@@ -18,6 +18,7 @@
 #include <linux/io.h>
 
 #include <asm/checksum.h>
+#include <asm/system.h>
 #include <asm/ftrace.h>
 
 /*

@@ -11,10 +11,6 @@
 #ifndef __ASM_PROC_DOMAIN_H
 #define __ASM_PROC_DOMAIN_H
 
-#ifndef __ASSEMBLY__
-#include <asm/barrier.h>
-#endif
-
 /*
  * Domain numbers
  *

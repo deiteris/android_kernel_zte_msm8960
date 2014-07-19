@@ -16,7 +16,6 @@
 
 #include <asm/irq.h>
 #include <asm/mach-types.h>
-#include <asm/system_info.h>
 #include <asm/hardware/dec21285.h>
 #include <mach/hardware.h>
 
