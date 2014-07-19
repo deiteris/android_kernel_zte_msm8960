@@ -4,12 +4,7 @@
  */
 
 #include <linux/kernel.h>
-<<<<<<< HEAD
-#include <linux/module.h>
-=======
 #include <linux/export.h>
-#include <linux/bitops.h>
->>>>>>> 8bc3bcc... lib: reduce the use of module.h wherever possible
 #include <linux/cryptohash.h>
 
 /* The SHA f()-functions.  */
