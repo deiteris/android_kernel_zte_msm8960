@@ -149,9 +149,18 @@
  * and the region allocated by '___alloc_bootmem' should be considered
  */
 #define MSM_RAM_CONSOLE_PHYS  0xfff00000 /* Refer to 'debug.c' in bootable */
-#define MSM_RAM_CONSOLE_SIZE  (SZ_1M-SZ_4K)
+#define MSM_RAM_CONSOLE_SIZE  (SZ_1M - SZ_4K)
 #endif
 #endif /* ZTE_RAM_CONSOLE */
+
+#ifdef CONFIG_ZTE_SDLOG
+
+#define MSM_SDLOG_PHYS      0x82000000
+#define MSM_SDLOG_SIZE      (SZ_1M * 16 - SZ_4K)
+
+int sdlog_flag = 0;
+
+#endif
 
 /*
  * ZTE_PLATFORM
@@ -174,16 +183,6 @@ static struct platform_device ram_console_device = {
 };
 #endif
 #endif /* ZTE_RAM_CONSOLE */
-
-#ifdef CONFIG_ZTE_SDLOG
-
-#define MSM_SDLOG_PHYS      0x82000000
-#define MSM_SDLOG_SIZE      (SZ_1M * 16)
-
-int sdlog_flag = 0;
-
-#endif
-
 
 #if defined(CONFIG_MACH_KISKA)
 
@@ -1380,12 +1379,12 @@ static void __init msm8960_reserve(void)
 	}
 #ifdef ZTE_RAM_CONSOLE
 #ifdef CONFIG_ANDROID_RAM_CONSOLE
-	if (memblock_remove(MSM_RAM_CONSOLE_PHYS, MSM_RAM_CONSOLE_SIZE) == 0) {
+	if (memblock_remove(MSM_RAM_CONSOLE_PHYS, MSM_RAM_CONSOLE_SIZE ) == 0) {
 		ram_console_resource[0].start = MSM_RAM_CONSOLE_PHYS;
-		ram_console_resource[0].end   = MSM_RAM_CONSOLE_PHYS + MSM_RAM_CONSOLE_SIZE-1;
+		ram_console_resource[0].end   = MSM_RAM_CONSOLE_PHYS+MSM_RAM_CONSOLE_SIZE -1;
 	}
 #endif
-#endif
+#endif /* ZTE_RAM_CONSOLE */
 
 #ifdef CONFIG_KEXEC_HARDBOOT
 	memblock_remove(KEXEC_HB_PAGE_ADDR, SZ_4K);
