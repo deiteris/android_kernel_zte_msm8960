@@ -67,7 +67,7 @@ static int may_change_ptraced_domain(struct task_struct *task,
 	int error = 0;
 
 	rcu_read_lock();
-	tracer = ptrace_parent(task);
+	tracer = tracehook_tracer_task(task);
 	if (tracer) {
 		/* released below */
 		cred = get_task_cred(tracer);
