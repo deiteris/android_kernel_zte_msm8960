@@ -2,7 +2,7 @@
 #include <linux/export.h>
 #include <linux/uaccess.h>
 
-#include <asm/word-at-a-time.h>
+#include <asm-generic/word-at-a-time.h>
 
 /* Set bits in the first 'n' bytes when loaded from memory */
 #ifdef __LITTLE_ENDIAN

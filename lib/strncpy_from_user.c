@@ -4,7 +4,7 @@
 #include <linux/errno.h>
 
 #include <asm/byteorder.h>
-#include <asm/word-at-a-time.h>
+#include <asm-generic/word-at-a-time.h>
 
 #ifdef CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS
 #define IS_UNALIGNED(src, dst)	0
