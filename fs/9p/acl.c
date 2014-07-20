@@ -183,11 +183,11 @@ int v9fs_set_create_acl(struct dentry *dentry,
 	return 0;
 }
 
-int v9fs_acl_mode(struct inode *dir, umode_t *modep,
+int v9fs_acl_mode(struct inode *dir, mode_t *modep,
 		  struct posix_acl **dpacl, struct posix_acl **pacl)
 {
 	int retval = 0;
-	umode_t mode = *modep;
+	mode_t mode = *modep;
 	struct posix_acl *acl = NULL;
 
 	if (!S_ISLNK(mode)) {
