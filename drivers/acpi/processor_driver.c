@@ -442,77 +442,7 @@ static struct notifier_block acpi_cpu_notifier =
 	    .notifier_call = acpi_cpu_soft_notify,
 };
 
-<<<<<<< HEAD
 static int __cpuinit acpi_processor_add(struct acpi_device *device)
-=======
-/*
- * acpi_processor_start() is called by the cpu_hotplug_notifier func:
- * acpi_cpu_soft_notify(). Getting it __cpuinit{data} is difficult, the
- * root cause seem to be that acpi_processor_uninstall_hotplug_notify()
- * is in the module_exit (__exit) func. Allowing acpi_processor_start()
- * to not be in section, but being called from funcs
- * via __ref looks like the right thing to do here.
- */
-static __ref int acpi_processor_start(struct acpi_processor *pr)
-{
-	struct acpi_device *device = per_cpu(processor_device_array, pr->id);
-	int result = 0;
-
-#ifdef CONFIG_CPU_FREQ
-	acpi_processor_ppc_has_changed(pr, 0);
-	acpi_processor_load_module(pr);
-#endif
-	acpi_processor_get_throttling_info(pr);
-	acpi_processor_get_limit_info(pr);
-
-	if (!cpuidle_get_driver() || cpuidle_get_driver() == &acpi_idle_driver)
-		acpi_processor_power_init(pr, device);
-
-	pr->cdev = thermal_cooling_device_register("Processor", device,
-						   &processor_cooling_ops);
-	if (IS_ERR(pr->cdev)) {
-		result = PTR_ERR(pr->cdev);
-		goto err_power_exit;
-	}
-
-	dev_dbg(&device->dev, "registered as cooling_device%d\n",
-		pr->cdev->id);
-
-	result = sysfs_create_link(&device->dev.kobj,
-				   &pr->cdev->device.kobj,
-				   "thermal_cooling");
-	if (result) {
-		printk(KERN_ERR PREFIX "Create sysfs link\n");
-		goto err_thermal_unregister;
-	}
-	result = sysfs_create_link(&pr->cdev->device.kobj,
-				   &device->dev.kobj,
-				   "device");
-	if (result) {
-		printk(KERN_ERR PREFIX "Create sysfs link\n");
-		goto err_remove_sysfs_thermal;
-	}
-
-	return 0;
-
-err_remove_sysfs_thermal:
-	sysfs_remove_link(&device->dev.kobj, "thermal_cooling");
-err_thermal_unregister:
-	thermal_cooling_device_unregister(pr->cdev);
-err_power_exit:
-	acpi_processor_power_exit(pr, device);
-
-	return result;
-}
-
-/*
- * Do not put anything in here which needs the core to be online.
- * For example MSR access or setting up things which check for cpuinfo_x86
- * (cpu_data(cpu)) values, like CPU feature flags, family, model, etc.
- * Such things have to be put in and set up above in acpi_processor_start()
- */
-static int acpi_processor_add(struct acpi_device *device)
->>>>>>> 689b4c7... cpuinit: get rid of __cpuinit, first regexp
 {
 	struct acpi_processor *pr = NULL;
 	int result = 0;

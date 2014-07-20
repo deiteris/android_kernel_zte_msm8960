@@ -30,7 +30,7 @@ __setup("lpj=", lpj_setup);
 #define DELAY_CALIBRATION_TICKS			((HZ < 100) ? 1 : (HZ/100))
 #define MAX_DIRECT_CALIBRATION_RETRIES		5
 
-static unsigned long calibrate_delay_direct(void)
+static unsigned long __cpuinit calibrate_delay_direct(void)
 {
 	unsigned long pre_start, start, post_start;
 	unsigned long pre_end, end, post_end;
@@ -165,7 +165,7 @@ static unsigned long calibrate_delay_direct(void)
 	return 0;
 }
 #else
-static unsigned long calibrate_delay_direct(void) {return 0;}
+static unsigned long __cpuinit calibrate_delay_direct(void) {return 0;}
 #endif
 
 /*
@@ -179,7 +179,7 @@ static unsigned long calibrate_delay_direct(void) {return 0;}
  */
 #define LPS_PREC 8
 
-static unsigned long calibrate_delay_converge(void)
+static unsigned long __cpuinit calibrate_delay_converge(void)
 {
 	/* First stage - slowly accelerate to find initial bounds */
 	unsigned long lpj, lpj_base, ticks, loopadd, loopadd_base, chop_limit;
@@ -243,26 +243,7 @@ recalibrate:
 	return lpj;
 }
 
-<<<<<<< HEAD
 void __cpuinit calibrate_delay(void)
-=======
-static DEFINE_PER_CPU(unsigned long, cpu_loops_per_jiffy) = { 0 };
-
-/*
- * Check if cpu calibration delay is already known. For example,
- * some processors with multi-core sockets may have all cores
- * with the same calibration delay.
- *
- * Architectures should override this function if a faster calibration
- * method is available.
- */
-unsigned long __attribute__((weak)) calibrate_delay_is_known(void)
-{
-	return 0;
-}
-
-void calibrate_delay(void)
->>>>>>> 689b4c7... cpuinit: get rid of __cpuinit, first regexp
 {
 	unsigned long lpj;
 	static bool printed;
