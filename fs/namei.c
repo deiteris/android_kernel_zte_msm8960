@@ -256,26 +256,6 @@ int generic_permission(struct inode *inode, int mask, unsigned int flags,
 	return -EACCES;
 }
 
-/*
- * We _really_ want to just do "generic_permission()" without
- * even looking at the inode->i_op values. So we keep a cache
- * flag in inode->i_opflags, that says "this has not special
- * permission function, use the fast case".
- */
-static inline int do_inode_permission(struct inode *inode, int mask)
-{
-	if (unlikely(!(inode->i_opflags & IOP_FASTPERM))) {
-		if (likely(inode->i_op->permission))
-			return inode->i_op->permission(inode, mask);
-
-		/* This gets set once for the inode lifetime */
-		spin_lock(&inode->i_lock);
-		inode->i_opflags |= IOP_FASTPERM;
-		spin_unlock(&inode->i_lock);
-	}
-	return generic_permission(inode, mask);
-}
-
 /**
  * inode_permission  -  check for access rights to a given inode
  * @inode:	inode to check permission on
@@ -290,7 +270,7 @@ int inode_permission(struct inode *inode, int mask)
 {
 	int retval;
 
-	if (unlikely(mask & MAY_WRITE)) {
+	if (mask & MAY_WRITE) {
 		umode_t mode = inode->i_mode;
 
 		/*
@@ -307,7 +287,12 @@ int inode_permission(struct inode *inode, int mask)
 			return -EACCES;
 	}
 
-	retval = do_inode_permission(inode, mask);
+	if (inode->i_op->permission)
+		retval = inode->i_op->permission(inode, mask, 0);
+	else
+		retval = generic_permission(inode, mask, 0,
+				inode->i_op->check_acl);
+
 	if (retval)
 		return retval;
 
@@ -1283,26 +1268,6 @@ static void terminate_walk(struct nameidata *nd)
 	}
 }
 
-/*
- * Do we need to follow links? We _really_ want to be able
- * to do this check without having to look at inode->i_op,
- * so we keep a cache of "no, this doesn't need follow_link"
- * for the common case.
- */
-static inline int should_follow_link(struct inode *inode, int follow)
-{
-	if (unlikely(!(inode->i_opflags & IOP_NOFOLLOW))) {
-		if (likely(inode->i_op->follow_link))
-			return follow;
-
-		/* This gets set once for the inode lifetime */
-		spin_lock(&inode->i_lock);
-		inode->i_opflags |= IOP_NOFOLLOW;
-		spin_unlock(&inode->i_lock);
-	}
-	return 0;
-}
-
 static inline int walk_component(struct nameidata *nd, struct path *path,
 		struct qstr *name, int type, int follow)
 {
@@ -1325,7 +1290,7 @@ static inline int walk_component(struct nameidata *nd, struct path *path,
 		terminate_walk(nd);
 		return -ENOENT;
 	}
-	if (should_follow_link(inode, follow)) {
+	if (unlikely(inode->i_op->follow_link) && follow) {
 		if (nd->flags & LOOKUP_RCU) {
 			if (unlikely(unlazy_walk(nd, path->dentry))) {
 				terminate_walk(nd);
@@ -1376,150 +1341,6 @@ static inline int nested_symlink(struct path *path, struct nameidata *nd)
 	nd->depth--;
 	return res;
 }
-
-/*
- * We really don't want to look at inode->i_op->lookup
- * when we don't have to. So we keep a cache bit in
- * the inode ->i_opflags field that says "yes, we can
- * do lookup on this inode".
- */
-static inline int can_lookup(struct inode *inode)
-{
-	if (likely(inode->i_opflags & IOP_LOOKUP))
-		return 1;
-	if (likely(!inode->i_op->lookup))
-		return 0;
-
-	/* We do this once for the lifetime of the inode */
-	spin_lock(&inode->i_lock);
-	inode->i_opflags |= IOP_LOOKUP;
-	spin_unlock(&inode->i_lock);
-	return 1;
-}
-
-/*
- * We can do the critical dentry name comparison and hashing
- * operations one word at a time, but we are limited to:
- *
- * - Architectures with fast unaligned word accesses. We could
- *   do a "get_unaligned()" if this helps and is sufficiently
- *   fast.
- *
- * - Little-endian machines (so that we can generate the mask
- *   of low bytes efficiently). Again, we *could* do a byte
- *   swapping load on big-endian architectures if that is not
- *   expensive enough to make the optimization worthless.
- *
- * - non-CONFIG_DEBUG_PAGEALLOC configurations (so that we
- *   do not trap on the (extremely unlikely) case of a page
- *   crossing operation.
- *
- * - Furthermore, we need an efficient 64-bit compile for the
- *   64-bit case in order to generate the "number of bytes in
- *   the final mask". Again, that could be replaced with a
- *   efficient population count instruction or similar.
- */
-#ifdef CONFIG_DCACHE_WORD_ACCESS
-
-#include <asm/word-at-a-time.h>
-
-#ifdef CONFIG_64BIT
-
-static inline unsigned int fold_hash(unsigned long hash)
-{
-	hash += hash >> (8*sizeof(int));
-	return hash;
-}
-
-#else	/* 32-bit case */
-
-#define fold_hash(x) (x)
-
-#endif
-
-unsigned int full_name_hash(const unsigned char *name, unsigned int len)
-{
-	unsigned long a, mask;
-	unsigned long hash = 0;
-
-	for (;;) {
-		a = load_unaligned_zeropad(name);
-		if (len < sizeof(unsigned long))
-			break;
-		hash += a;
-		hash *= 9;
-		name += sizeof(unsigned long);
-		len -= sizeof(unsigned long);
-		if (!len)
-			goto done;
-	}
-	mask = ~(~0ul << len*8);
-	hash += mask & a;
-done:
-	return fold_hash(hash);
-}
-EXPORT_SYMBOL(full_name_hash);
-
-/*
- * Calculate the length and hash of the path component, and
- * return the length of the component;
- */
-static inline unsigned long hash_name(const char *name, unsigned int *hashp)
-{
-	unsigned long a, b, adata, bdata, mask, hash, len;
-	const struct word_at_a_time constants = WORD_AT_A_TIME_CONSTANTS;
-
-	hash = a = 0;
-	len = -sizeof(unsigned long);
-	do {
-		hash = (hash + a) * 9;
-		len += sizeof(unsigned long);
-		a = load_unaligned_zeropad(name+len);
-		b = a ^ REPEAT_BYTE('/');
-	} while (!(has_zero(a, &adata, &constants) | has_zero(b, &bdata, &constants)));
-
-	adata = prep_zero_mask(a, adata, &constants);
-	bdata = prep_zero_mask(b, bdata, &constants);
-
-	mask = create_zero_mask(adata | bdata);
-
-	hash += a & zero_bytemask(mask);
-	*hashp = fold_hash(hash);
-
-	return len + find_zero(mask);
-}
-
-#else
-
-unsigned int full_name_hash(const unsigned char *name, unsigned int len)
-{
-	unsigned long hash = init_name_hash();
-	while (len--)
-		hash = partial_name_hash(*name++, hash);
-	return end_name_hash(hash);
-}
-EXPORT_SYMBOL(full_name_hash);
-
-/*
- * We know there's a real path component here of at least
- * one character.
- */
-static inline unsigned long hash_name(const char *name, unsigned int *hashp)
-{
-	unsigned long hash = init_name_hash();
-	unsigned long len = 0, c;
-
-	c = (unsigned char)*name;
-	do {
-		len++;
-		hash = partial_name_hash(c, hash);
-		c = (unsigned char)name[len];
-	} while (c && c != '/');
-	*hashp = end_name_hash(hash);
-	return len;
-}
-
-#endif
 
 /*
  * Name resolution.
@@ -1603,10 +1424,10 @@ static int link_path_walk(const char *name, struct nameidata *nd)
 			if (err)
 				return err;
 		}
-		if (can_lookup(nd->inode))
-			continue;
 		err = -ENOTDIR; 
-		break;
+		if (!nd->inode->i_op->lookup)
+			break;
+		continue;
 		/* here ends the main loop */
 
 last_component:
