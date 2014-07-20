@@ -7075,13 +7075,7 @@ static void __init msm7x30_fixup(struct machine_desc *desc, struct tag *tags,
 }
 
 MACHINE_START(MSM7X30_SURF, "QCT MSM7X30 SURF")
-<<<<<<< HEAD
 	.boot_params = PLAT_PHYS_OFFSET + 0x100,
-=======
-	.atag_offset = 0x100,
-	.fixup = msm7x30_fixup,
-	.reserve = msm7x30_reserve,
->>>>>>> 1fdb24e... Merge branch 'devel-stable' of http://ftp.arm.linux.org.uk/pub/linux/arm/kernel/git-cur/linux-2.6-arm
 	.map_io = msm7x30_map_io,
 	.reserve = msm7x30_reserve,
 	.init_irq = msm7x30_init_irq,
@@ -7093,13 +7087,7 @@ MACHINE_START(MSM7X30_SURF, "QCT MSM7X30 SURF")
 MACHINE_END
 
 MACHINE_START(MSM7X30_FFA, "QCT MSM7X30 FFA")
-<<<<<<< HEAD
 	.boot_params = PLAT_PHYS_OFFSET + 0x100,
-=======
-	.atag_offset = 0x100,
-	.fixup = msm7x30_fixup,
-	.reserve = msm7x30_reserve,
->>>>>>> 1fdb24e... Merge branch 'devel-stable' of http://ftp.arm.linux.org.uk/pub/linux/arm/kernel/git-cur/linux-2.6-arm
 	.map_io = msm7x30_map_io,
 	.reserve = msm7x30_reserve,
 	.init_irq = msm7x30_init_irq,
@@ -7111,7 +7099,6 @@ MACHINE_START(MSM7X30_FFA, "QCT MSM7X30 FFA")
 MACHINE_END
 
 MACHINE_START(MSM7X30_FLUID, "QCT MSM7X30 FLUID")
-<<<<<<< HEAD
 	.boot_params = PLAT_PHYS_OFFSET + 0x100,
 	.map_io = msm7x30_map_io,
 	.reserve = msm7x30_reserve,
@@ -7144,9 +7131,6 @@ MACHINE_START(MSM8X55_FFA, "QCT MSM8X55 FFA")
 	.timer = &msm_timer,
 	.init_early = msm7x30_init_early,
 	.handle_irq = vic_handle_irq,
-=======
-	.atag_offset = 0x100,
->>>>>>> 1fdb24e... Merge branch 'devel-stable' of http://ftp.arm.linux.org.uk/pub/linux/arm/kernel/git-cur/linux-2.6-arm
 	.fixup = msm7x30_fixup,
 MACHINE_END
 MACHINE_START(MSM8X55_SVLTE_SURF, "QCT MSM8X55 SVLTE SURF")

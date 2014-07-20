@@ -30,11 +30,7 @@ obj-$(CONFIG_MODULES)		+= armksyms.o module.o
 obj-$(CONFIG_ARTHUR)		+= arthur.o
 obj-$(CONFIG_ISA_DMA)		+= dma-isa.o
 obj-$(CONFIG_PCI)		+= bios32.o isa.o
-<<<<<<< HEAD
 obj-$(CONFIG_PM_SLEEP)		+= sleep.o
-=======
-obj-$(CONFIG_ARM_CPU_SUSPEND)	+= sleep.o suspend.o
->>>>>>> 1fdb24e... Merge branch 'devel-stable' of http://ftp.arm.linux.org.uk/pub/linux/arm/kernel/git-cur/linux-2.6-arm
 obj-$(CONFIG_HAVE_SCHED_CLOCK)	+= sched_clock.o
 obj-$(CONFIG_SMP)		+= smp.o smp_tlb.o
 obj-$(CONFIG_HAVE_ARM_SCU)	+= smp_scu.o
@@ -43,23 +39,7 @@ obj-$(CONFIG_ARM_ARCH_TIMER)	+= arch_timer.o
 obj-$(CONFIG_DYNAMIC_FTRACE)	+= ftrace.o
 obj-$(CONFIG_FUNCTION_GRAPH_TRACER)	+= ftrace.o
 obj-$(CONFIG_KEXEC)		+= machine_kexec.o relocate_kernel.o
-<<<<<<< HEAD
 obj-$(CONFIG_KPROBES)		+= kprobes.o kprobes-decode.o
-=======
-obj-$(CONFIG_KPROBES)		+= kprobes.o kprobes-common.o
-ifdef CONFIG_THUMB2_KERNEL
-obj-$(CONFIG_KPROBES)		+= kprobes-thumb.o
-else
-obj-$(CONFIG_KPROBES)		+= kprobes-arm.o
-endif
-obj-$(CONFIG_ARM_KPROBES_TEST)	+= test-kprobes.o
-test-kprobes-objs		:= kprobes-test.o
-ifdef CONFIG_THUMB2_KERNEL
-test-kprobes-objs		+= kprobes-test-thumb.o
-else
-test-kprobes-objs		+= kprobes-test-arm.o
-endif
->>>>>>> 1fdb24e... Merge branch 'devel-stable' of http://ftp.arm.linux.org.uk/pub/linux/arm/kernel/git-cur/linux-2.6-arm
 obj-$(CONFIG_ATAGS_PROC)	+= atags.o
 obj-$(CONFIG_OABI_COMPAT)	+= sys_oabi-compat.o
 obj-$(CONFIG_ARM_THUMBEE)	+= thumbee.o

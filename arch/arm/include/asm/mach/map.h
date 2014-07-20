@@ -30,14 +30,10 @@ struct map_desc {
 #define MT_MEMORY_NONCACHED	11
 #define MT_MEMORY_DTCM		12
 #define MT_MEMORY_ITCM		13
-<<<<<<< HEAD
 #define MT_DEVICE_STRONGLY_ORDERED 14
 #define MT_MEMORY_R		15
 #define MT_MEMORY_RW		16
 #define MT_MEMORY_RX		17
-=======
-#define MT_MEMORY_SO		14
->>>>>>> 1fdb24e... Merge branch 'devel-stable' of http://ftp.arm.linux.org.uk/pub/linux/arm/kernel/git-cur/linux-2.6-arm
 
 #ifdef CONFIG_MMU
 extern void iotable_init(struct map_desc *, int);
