@@ -259,27 +259,7 @@ static int jffs2_set_acl(struct inode *inode, int type, struct posix_acl *acl)
 	return rc;
 }
 
-<<<<<<< HEAD
-int jffs2_check_acl(struct inode *inode, int mask)
-{
-	struct posix_acl *acl;
-	int rc;
-
-	acl = jffs2_get_acl(inode, ACL_TYPE_ACCESS);
-	if (IS_ERR(acl))
-		return PTR_ERR(acl);
-	if (acl) {
-		rc = posix_acl_permission(inode, acl, mask);
-		posix_acl_release(acl);
-		return rc;
-	}
-	return -EAGAIN;
-}
-
-int jffs2_init_acl_pre(struct inode *dir_i, struct inode *inode, int *i_mode)
-=======
 int jffs2_init_acl_pre(struct inode *dir_i, struct inode *inode, mode_t *i_mode)
->>>>>>> 4e34e71... fs: take the ACL checks to common code
 {
 	struct posix_acl *acl;
 	int rc;

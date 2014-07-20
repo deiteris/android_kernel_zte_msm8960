@@ -108,11 +108,7 @@ struct posix_acl *v9fs_iop_get_acl(struct inode *inode, int type)
 		 * On access = client  and acl = on mode get the acl
 		 * values from the server
 		 */
-<<<<<<< HEAD
-		return 0;
-=======
 		return NULL;
->>>>>>> 4e34e71... fs: take the ACL checks to common code
 	}
 	return v9fs_get_cached_acl(inode, type);
 
