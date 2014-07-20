@@ -307,16 +307,7 @@ int inode_permission(struct inode *inode, int mask)
 			return -EACCES;
 	}
 
-<<<<<<< HEAD
-	if (inode->i_op->permission)
-		retval = inode->i_op->permission(inode, mask, 0);
-	else
-		retval = generic_permission(inode, mask, 0,
-				inode->i_op->check_acl);
-
-=======
 	retval = do_inode_permission(inode, mask);
->>>>>>> 3ddcd05... vfs: optimize inode cache access patterns
 	if (retval)
 		return retval;
 
@@ -1298,11 +1289,7 @@ static void terminate_walk(struct nameidata *nd)
  * so we keep a cache of "no, this doesn't need follow_link"
  * for the common case.
  */
-<<<<<<< HEAD
 static inline int should_follow_link(struct inode *inode, int follow)
-=======
-static inline int do_follow_link(struct inode *inode, int follow)
->>>>>>> 3ddcd05... vfs: optimize inode cache access patterns
 {
 	if (unlikely(!(inode->i_opflags & IOP_NOFOLLOW))) {
 		if (likely(inode->i_op->follow_link))
@@ -1338,7 +1325,7 @@ static inline int walk_component(struct nameidata *nd, struct path *path,
 		terminate_walk(nd);
 		return -ENOENT;
 	}
-	if (do_follow_link(inode, follow)) {
+	if (should_follow_link(inode, follow)) {
 		if (nd->flags & LOOKUP_RCU) {
 			if (unlikely(unlazy_walk(nd, path->dentry))) {
 				terminate_walk(nd);
@@ -1411,7 +1398,6 @@ static inline int can_lookup(struct inode *inode)
 }
 
 /*
-<<<<<<< HEAD
  * We can do the critical dentry name comparison and hashing
  * operations one word at a time, but we are limited to:
  *
@@ -1536,8 +1522,6 @@ static inline unsigned long hash_name(const char *name, unsigned int *hashp)
 #endif
 
 /*
-=======
->>>>>>> 3ddcd05... vfs: optimize inode cache access patterns
  * Name resolution.
  * This is the basic name resolution function, turning a pathname into
  * the final dentry. We expect 'base' to be positive and a directory.
