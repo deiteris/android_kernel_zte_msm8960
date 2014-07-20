@@ -2008,7 +2008,11 @@ config CPU_FREQ_S3C24XX_DEBUGFS
 	help
 	  Export status information via debugfs.
 
+endif
+
 source "drivers/cpuidle/Kconfig"
+
+endmenu
 
 config CPU_FREQ_MSM
         bool
@@ -2017,8 +2021,6 @@ config CPU_FREQ_MSM
         help
           This enables the CPUFreq driver for Qualcomm CPUs.
           If in doubt, say Y.
-
-endmenu
 
 menu "Floating point emulation"
 
