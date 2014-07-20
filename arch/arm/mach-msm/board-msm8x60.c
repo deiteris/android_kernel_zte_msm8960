@@ -9774,7 +9774,6 @@ static struct msm_panel_common_pdata mdp_pdata = {
 
 static void __init reserve_mdp_memory(void)
 {
-<<<<<<< HEAD
 	mdp_pdata.ov0_wb_size = MSM_FB_OVERLAY0_WRITEBACK_SIZE;
 	mdp_pdata.ov1_wb_size = MSM_FB_OVERLAY1_WRITEBACK_SIZE;
 #if defined(CONFIG_ANDROID_PMEM) && !defined(CONFIG_MSM_MULTIMEDIA_USE_ION)
@@ -10170,10 +10169,6 @@ static int bluetooth_power(int on)
 		}
 
 		rc = bahama_bt(1);
-=======
-	gic_init(0, GIC_PPI_START, MSM_QGIC_DIST_BASE,
-		 (void *)MSM_QGIC_CPU_BASE);
->>>>>>> 292b293... ARM: gic: consolidate PPI handling
 
 		if (rc < 0)
 			goto fail_clock;
@@ -10312,7 +10307,6 @@ static void __init msm8x60_init(struct msm_board_data *board_data)
 	 * Initialize RPM first as other drivers and devices may need
 	 * it for their initialization.
 	 */
-<<<<<<< HEAD
 #ifdef CONFIG_MSM_RPM
 	BUG_ON(msm_rpm_init(&msm_rpm_data));
 #endif
@@ -10621,10 +10615,6 @@ static void __init msm8x60_charm_ffa_init(void)
 static void __init msm8x60_charm_init_early(void)
 {
 	msm8x60_allocate_memory_regions();
-=======
-	if (!machine_is_msm8x60_sim())
-		writel(0x0000FFFF, MSM_QGIC_DIST_BASE + GIC_DIST_ENABLE_SET);
->>>>>>> 292b293... ARM: gic: consolidate PPI handling
 }
 
 static void __init msm8x60_dragon_init(void)

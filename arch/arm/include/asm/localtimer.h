@@ -19,14 +19,6 @@ struct clock_event_device;
  */
 void percpu_timer_setup(void);
 
-<<<<<<< HEAD
-=======
-/*
- * Per-cpu timer IRQ handler
- */
-irqreturn_t percpu_timer_handler(int irq, void *dev_id);
-
->>>>>>> 292b293... ARM: gic: consolidate PPI handling
 #ifdef CONFIG_LOCAL_TIMERS
 
 #ifdef CONFIG_HAVE_ARM_TWD
