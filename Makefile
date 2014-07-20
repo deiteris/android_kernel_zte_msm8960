@@ -348,8 +348,9 @@ CHECK		= sparse
 CHECKFLAGS     := -D__linux__ -Dlinux -D__STDC__ -Dunix -D__unix__ \
 		  -Wbitwise -Wno-return-void $(CF)
 GRAPHITE	= -fgcse-las -fgraphite -floop-flatten -floop-parallelize-all -ftree-loop-linear -floop-interchange -floop-strip-mine -floop-block
-KERNELFLAGS	= -fgcse-lm -fgcse-sm -fsched-spec-load -fforce-addr -ffast-math -fsingle-precision-constant -marm -mtune=cortex-a8 -mfpu=neon -ftree-vectorize -fgcse-las $(GRAPHITE)
-CFLAGS_MODULE   = $(KERNELFLAGS) -fno-pic 
+MODFLAGS	= -DMODULE $(KERNELFLAGS) -fno-pic 
+KERNELFLAGS	= -DNDEBUG -fgcse-lm -fgcse-sm -fsched-spec-load -fforce-addr -ffast-math -fsingle-precision-constant -marm -mtune=cortex-a8 -mfpu=neon -ftree-vectorize -fgcse-las $(GRAPHITE)
+CFLAGS_MODULE   = $(MODFLAGS) 
 AFLAGS_MODULE   = 
 LDFLAGS_MODULE  = -T $(srctree)/scripts/module-common.lds
 CFLAGS_KERNEL   = $(KERNELFLAGS)
