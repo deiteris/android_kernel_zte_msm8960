@@ -390,21 +390,6 @@ int ocfs2_init_acl(handle_t *handle,
 				goto cleanup;
 		}
 		mode = inode->i_mode;
-<<<<<<< HEAD
-		ret = posix_acl_create_masq(clone, &mode);
-		if (ret >= 0) {
-			ret2 = ocfs2_acl_set_mode(inode, di_bh, handle, mode);
-			if (ret2) {
-				mlog_errno(ret2);
-				ret = ret2;
-				goto cleanup;
-			}
-			if (ret > 0) {
-				ret = ocfs2_set_acl(handle, inode,
-						    di_bh, ACL_TYPE_ACCESS,
-						    clone, meta_ac, data_ac);
-			}
-=======
 		ret = posix_acl_create(&acl, GFP_NOFS, &mode);
 		if (ret < 0)
 			return ret;
@@ -419,7 +404,6 @@ int ocfs2_init_acl(handle_t *handle,
 			ret = ocfs2_set_acl(handle, inode,
 					    di_bh, ACL_TYPE_ACCESS,
 					    acl, meta_ac, data_ac);
->>>>>>> 826cae2... kill boilerplates around posix_acl_create_masq()
 		}
 	}
 cleanup:

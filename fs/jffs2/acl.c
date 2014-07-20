@@ -295,17 +295,8 @@ int jffs2_init_acl_pre(struct inode *dir_i, struct inode *inode, int *i_mode)
 		if (S_ISDIR(*i_mode))
 			set_cached_acl(inode, ACL_TYPE_DEFAULT, acl);
 
-<<<<<<< HEAD
-		clone = posix_acl_clone(acl, GFP_KERNEL);
-		if (!clone)
-			return -ENOMEM;
-		rc = posix_acl_create_masq(clone, (mode_t *)i_mode);
-		if (rc < 0) {
-			posix_acl_release(clone);
-=======
 		rc = posix_acl_create(&acl, GFP_KERNEL, i_mode);
 		if (rc < 0)
->>>>>>> 826cae2... kill boilerplates around posix_acl_create_masq()
 			return rc;
 		if (rc > 0)
 			set_cached_acl(inode, ACL_TYPE_ACCESS, acl);
