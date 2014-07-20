@@ -1348,31 +1348,25 @@ static int is_atomic_open(struct nameidata *nd)
 		return 0;
 	/* Are we trying to write to a read only partition? */
 	if (__mnt_is_readonly(nd->path.mnt) &&
-	    (nd->intent.open.flags & (O_CREAT|O_TRUNC|O_ACCMODE)))
+	    (nd->intent.open.flags & (O_CREAT|O_TRUNC|FMODE_WRITE)))
 		return 0;
 	return 1;
 }
 
-static fmode_t flags_to_mode(int flags)
+static struct nfs_open_context *nameidata_to_nfs_open_context(struct dentry *dentry, struct nameidata *nd)
 {
-	fmode_t res = (__force fmode_t)flags & FMODE_EXEC;
-	if ((flags & O_ACCMODE) != O_WRONLY)
-		res |= FMODE_READ;
-	if ((flags & O_ACCMODE) != O_RDONLY)
-		res |= FMODE_WRITE;
-	return res;
-}
-
-static struct nfs_open_context *create_nfs_open_context(struct dentry *dentry, int open_flags)
-{
+	struct path path = {
+		.mnt = nd->path.mnt,
+		.dentry = dentry,
+	};
 	struct nfs_open_context *ctx;
 	struct rpc_cred *cred;
-	fmode_t fmode = flags_to_mode(open_flags);
+	fmode_t fmode = nd->intent.open.flags & (FMODE_READ | FMODE_WRITE | FMODE_EXEC);
 
 	cred = rpc_lookup_cred();
 	if (IS_ERR(cred))
 		return ERR_CAST(cred);
-	ctx = alloc_nfs_open_context(dentry, cred, fmode);
+	ctx = alloc_nfs_open_context(&path, cred, fmode);
 	put_rpccred(cred);
 	if (ctx == NULL)
 		return ERR_PTR(-ENOMEM);
@@ -1392,13 +1386,13 @@ static int nfs_intent_set_file(struct nameidata *nd, struct nfs_open_context *ct
 
 	/* If the open_intent is for execute, we have an extra check to make */
 	if (ctx->mode & FMODE_EXEC) {
-		ret = nfs_may_open(ctx->dentry->d_inode,
+		ret = nfs_may_open(ctx->path.dentry->d_inode,
 				ctx->cred,
 				nd->intent.open.flags);
 		if (ret < 0)
 			goto out;
 	}
-	filp = lookup_instantiate_filp(nd, ctx->dentry, do_open);
+	filp = lookup_instantiate_filp(nd, ctx->path.dentry, do_open);
 	if (IS_ERR(filp))
 		ret = PTR_ERR(filp);
 	else
@@ -1436,13 +1430,12 @@ static struct dentry *nfs_atomic_lookup(struct inode *dir, struct dentry *dentry
 		goto out;
 	}
 
-	open_flags = nd->intent.open.flags;
-
-	ctx = create_nfs_open_context(dentry, open_flags);
+	ctx = nameidata_to_nfs_open_context(dentry, nd);
 	res = ERR_CAST(ctx);
 	if (IS_ERR(ctx))
 		goto out;
 
+	open_flags = nd->intent.open.flags;
 	if (nd->flags & LOOKUP_CREATE) {
 		attr.ia_mode = nd->intent.open.create_mode;
 		attr.ia_valid = ATTR_MODE;
@@ -1480,8 +1473,8 @@ static struct dentry *nfs_atomic_lookup(struct inode *dir, struct dentry *dentry
 	res = d_add_unique(dentry, inode);
 	nfs_unblock_sillyrename(dentry->d_parent);
 	if (res != NULL) {
-		dput(ctx->dentry);
-		ctx->dentry = dget(res);
+		dput(ctx->path.dentry);
+		ctx->path.dentry = dget(res);
 		dentry = res;
 	}
 	err = nfs_intent_set_file(nd, ctx);
@@ -1534,7 +1527,7 @@ static int nfs_open_revalidate(struct dentry *dentry, struct nameidata *nd)
 	/* We can't create new files, or truncate existing ones here */
 	openflags &= ~(O_CREAT|O_EXCL|O_TRUNC);
 
-	ctx = create_nfs_open_context(dentry, openflags);
+	ctx = nameidata_to_nfs_open_context(dentry, nd);
 	ret = PTR_ERR(ctx);
 	if (IS_ERR(ctx))
 		goto out;
@@ -1587,7 +1580,7 @@ static int nfs_open_create(struct inode *dir, struct dentry *dentry, int mode,
 	struct nfs_open_context *ctx = NULL;
 	struct iattr attr;
 	int error;
-	int open_flags = O_CREAT|O_EXCL;
+	int open_flags = 0;
 
 	dfprintk(VFS, "NFS: create(%s/%ld), %s\n",
 			dir->i_sb->s_id, dir->i_ino, dentry->d_name.name);
@@ -1595,27 +1588,27 @@ static int nfs_open_create(struct inode *dir, struct dentry *dentry, int mode,
 	attr.ia_mode = mode;
 	attr.ia_valid = ATTR_MODE;
 
-	if (nd && (nd->flags & LOOKUP_OPEN) != 0)
+	if ((nd->flags & LOOKUP_CREATE) != 0) {
 		open_flags = nd->intent.open.flags;
 
-	ctx = create_nfs_open_context(dentry, open_flags);
-	error = PTR_ERR(ctx);
-	if (IS_ERR(ctx))
-		goto out_err_drop;
+		ctx = nameidata_to_nfs_open_context(dentry, nd);
+		error = PTR_ERR(ctx);
+		if (IS_ERR(ctx))
+			goto out_err_drop;
+	}
 
 	error = NFS_PROTO(dir)->create(dir, dentry, &attr, open_flags, ctx);
 	if (error != 0)
 		goto out_put_ctx;
-	if (nd && (nd->flags & LOOKUP_OPEN) != 0) {
+	if (ctx != NULL) {
 		error = nfs_intent_set_file(nd, ctx);
 		if (error < 0)
 			goto out_err;
-	} else {
-		put_nfs_open_context(ctx);
 	}
 	return 0;
 out_put_ctx:
-	put_nfs_open_context(ctx);
+	if (ctx != NULL)
+		put_nfs_open_context(ctx);
 out_err_drop:
 	d_drop(dentry);
 out_err:
@@ -1677,7 +1670,7 @@ static int nfs_create(struct inode *dir, struct dentry *dentry, int mode,
 {
 	struct iattr attr;
 	int error;
-	int open_flags = O_CREAT|O_EXCL;
+	int open_flags = 0;
 
 	dfprintk(VFS, "NFS: create(%s/%ld), %s\n",
 			dir->i_sb->s_id, dir->i_ino, dentry->d_name.name);
@@ -1685,7 +1678,7 @@ static int nfs_create(struct inode *dir, struct dentry *dentry, int mode,
 	attr.ia_mode = mode;
 	attr.ia_valid = ATTR_MODE;
 
-	if (nd && (nd->flags & LOOKUP_OPEN) != 0)
+	if ((nd->flags & LOOKUP_CREATE) != 0)
 		open_flags = nd->intent.open.flags;
 
 	error = NFS_PROTO(dir)->create(dir, dentry, &attr, open_flags, NULL);
@@ -2276,11 +2269,11 @@ static int nfs_open_permission_mask(int openflags)
 {
 	int mask = 0;
 
-	if ((openflags & O_ACCMODE) != O_WRONLY)
+	if (openflags & FMODE_READ)
 		mask |= MAY_READ;
-	if ((openflags & O_ACCMODE) != O_RDONLY)
+	if (openflags & FMODE_WRITE)
 		mask |= MAY_WRITE;
-	if (openflags & __FMODE_EXEC)
+	if (openflags & FMODE_EXEC)
 		mask |= MAY_EXEC;
 	return mask;
 }
@@ -2290,12 +2283,12 @@ int nfs_may_open(struct inode *inode, struct rpc_cred *cred, int openflags)
 	return nfs_do_access(inode, cred, nfs_open_permission_mask(openflags));
 }
 
-int nfs_permission(struct inode *inode, int mask)
+int nfs_permission(struct inode *inode, int mask, unsigned int flags)
 {
 	struct rpc_cred *cred;
 	int res = 0;
 
-	if (mask & MAY_NOT_BLOCK)
+	if (flags & IPERM_FLAG_RCU)
 		return -ECHILD;
 
 	nfs_inc_stats(inode, NFSIOS_VFSACCESS);
@@ -2345,7 +2338,7 @@ out:
 out_notsup:
 	res = nfs_revalidate_inode(NFS_SERVER(inode), inode);
 	if (res == 0)
-		res = generic_permission(inode, mask);
+		res = generic_permission(inode, mask, flags, NULL);
 	goto out;
 }
 

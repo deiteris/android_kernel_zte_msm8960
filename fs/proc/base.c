@@ -200,7 +200,6 @@ static int proc_root_link(struct inode *inode, struct path *path)
 	return result;
 }
 
-<<<<<<< HEAD
 static struct mm_struct *mm_access(struct task_struct *task, unsigned int mode)
 {
 	struct mm_struct *mm;
@@ -215,73 +214,14 @@ static struct mm_struct *mm_access(struct task_struct *task, unsigned int mode)
 			!ptrace_may_access(task, mode)) {
 		mmput(mm);
 		mm = ERR_PTR(-EACCES);
-=======
-static struct mm_struct *__check_mem_permission(struct task_struct *task)
-{
-	struct mm_struct *mm;
-
-	mm = get_task_mm(task);
-	if (!mm)
-		return ERR_PTR(-EINVAL);
-
-	/*
-	 * A task can always look at itself, in case it chooses
-	 * to use system calls instead of load instructions.
-	 */
-	if (task == current)
-		return mm;
-
-	/*
-	 * If current is actively ptrace'ing, and would also be
-	 * permitted to freshly attach with ptrace now, permit it.
-	 */
-	if (task_is_stopped_or_traced(task)) {
-		int match;
-		rcu_read_lock();
-		match = (tracehook_tracer_task(task) == current);
-		rcu_read_unlock();
-		if (match && ptrace_may_access(task, PTRACE_MODE_ATTACH))
-			return mm;
->>>>>>> b81a618... Merge branch 'for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/viro/vfs-2.6
 	}
 	mutex_unlock(&task->signal->cred_guard_mutex);
 
-<<<<<<< HEAD
-=======
-	/*
-	 * Noone else is allowed.
-	 */
-	mmput(mm);
-	return ERR_PTR(-EPERM);
-}
-
-/*
- * If current may access user memory in @task return a reference to the
- * corresponding mm, otherwise ERR_PTR.
- */
-static struct mm_struct *check_mem_permission(struct task_struct *task)
-{
-	struct mm_struct *mm;
-	int err;
-
-	/*
-	 * Avoid racing if task exec's as we might get a new mm but validate
-	 * against old credentials.
-	 */
-	err = mutex_lock_killable(&task->signal->cred_guard_mutex);
-	if (err)
-		return ERR_PTR(err);
-
-	mm = __check_mem_permission(task);
-	mutex_unlock(&task->signal->cred_guard_mutex);
-
->>>>>>> b81a618... Merge branch 'for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/viro/vfs-2.6
 	return mm;
 }
 
 struct mm_struct *mm_for_maps(struct task_struct *task)
 {
-<<<<<<< HEAD
 	return mm_access(task, PTRACE_MODE_READ);
 }
 
@@ -290,11 +230,6 @@ struct mm_struct *mm_for_smaps(struct task_struct *task)
 		struct mm_struct *mm;
 	int err;
 	unsigned int mode = PTRACE_MODE_READ;
-=======
-	struct mm_struct *mm;
-	int err;
-
->>>>>>> b81a618... Merge branch 'for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/viro/vfs-2.6
 	err =  mutex_lock_killable(&task->signal->cred_guard_mutex);
 	if (err)
 		return ERR_PTR(err);
@@ -713,7 +648,7 @@ static int mounts_open_common(struct inode *inode, struct file *file,
 	p->m.private = p;
 	p->ns = ns;
 	p->root = root;
-	p->m.poll_event = ns->event;
+	p->event = ns->event;
 
 	return 0;
 
@@ -883,32 +818,12 @@ static ssize_t mem_read(struct file * file, char __user * buf,
 	unsigned long src = *ppos;
 	struct mm_struct *mm = file->private_data;
 
-<<<<<<< HEAD
 	if (!mm)
 		return 0;
 
 	page = (char *)__get_free_page(GFP_TEMPORARY);
 	if (!page)
 		return -ENOMEM;
-=======
-	if (!task)
-		goto out_no_task;
-
-	ret = -ENOMEM;
-	page = (char *)__get_free_page(GFP_TEMPORARY);
-	if (!page)
-		goto out;
-
-	mm = check_mem_permission(task);
-	ret = PTR_ERR(mm);
-	if (IS_ERR(mm))
-		goto out_free;
-
-	ret = -EIO;
- 
-	if (file->private_data != (void*)((long)current->self_exec_id))
-		goto out_put;
->>>>>>> b81a618... Merge branch 'for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/viro/vfs-2.6
 
 	ret = 0;
  
@@ -945,35 +860,14 @@ static ssize_t mem_write(struct file * file, const char __user *buf,
 	int copied;
 	char *page;
 	unsigned long dst = *ppos;
-<<<<<<< HEAD
 	struct mm_struct *mm = file->private_data;
 
 	if (!mm)
 		return 0;
-=======
-	struct mm_struct *mm;
-
-	copied = -ESRCH;
-	if (!task)
-		goto out_no_task;
-
-	mm = check_mem_permission(task);
-	copied = PTR_ERR(mm);
-	if (IS_ERR(mm))
-		goto out_task;
-
-	copied = -EIO;
-	if (file->private_data != (void *)((long)current->self_exec_id))
-		goto out_mm;
->>>>>>> b81a618... Merge branch 'for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/viro/vfs-2.6
 
 	page = (char *)__get_free_page(GFP_TEMPORARY);
 	if (!page)
-<<<<<<< HEAD
 		return -ENOMEM;
-=======
-		goto out_mm;
->>>>>>> b81a618... Merge branch 'for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/viro/vfs-2.6
 
 	copied = 0;
 	while (count > 0) {
@@ -998,14 +892,6 @@ static ssize_t mem_write(struct file * file, const char __user *buf,
 	*ppos = dst;
 
 	free_page((unsigned long) page);
-<<<<<<< HEAD
-=======
-out_mm:
-	mmput(mm);
-out_task:
-	put_task_struct(task);
-out_no_task:
->>>>>>> b81a618... Merge branch 'for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/viro/vfs-2.6
 	return copied;
 }
 
@@ -2275,9 +2161,9 @@ static const struct file_operations proc_fd_operations = {
  * /proc/pid/fd needs a special permission handler so that a process can still
  * access /proc/self/fd after it has executed a setuid().
  */
-static int proc_fd_permission(struct inode *inode, int mask)
+static int proc_fd_permission(struct inode *inode, int mask, unsigned int flags)
 {
-	int rv = generic_permission(inode, mask);
+	int rv = generic_permission(inode, mask, flags, NULL);
 	if (rv == 0)
 		return 0;
 	if (task_pid(current) == proc_pid(inode))

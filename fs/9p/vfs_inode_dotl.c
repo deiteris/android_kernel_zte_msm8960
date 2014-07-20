@@ -272,7 +272,7 @@ v9fs_vfs_create_dotl(struct inode *dir, struct dentry *dentry, int omode,
 
 	v9ses = v9fs_inode2v9ses(dir);
 	if (nd && nd->flags & LOOKUP_OPEN)
-		flags = nd->intent.open.flags;
+		flags = nd->intent.open.flags - 1;
 	else {
 		/*
 		 * create call without LOOKUP_OPEN is due
@@ -977,7 +977,7 @@ const struct inode_operations v9fs_dir_inode_operations_dotl = {
 	.getxattr = generic_getxattr,
 	.removexattr = generic_removexattr,
 	.listxattr = v9fs_listxattr,
-	.get_acl = v9fs_iop_get_acl,
+	.check_acl = v9fs_check_acl,
 };
 
 const struct inode_operations v9fs_file_inode_operations_dotl = {
@@ -987,7 +987,7 @@ const struct inode_operations v9fs_file_inode_operations_dotl = {
 	.getxattr = generic_getxattr,
 	.removexattr = generic_removexattr,
 	.listxattr = v9fs_listxattr,
-	.get_acl = v9fs_iop_get_acl,
+	.check_acl = v9fs_check_acl,
 };
 
 const struct inode_operations v9fs_symlink_inode_operations_dotl = {
