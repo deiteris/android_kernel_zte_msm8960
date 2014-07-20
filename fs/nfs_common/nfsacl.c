@@ -117,10 +117,6 @@ int nfsacl_encode(struct xdr_buf *buf, unsigned int base, struct inode *inode,
 		 * invoked in contexts where a memory allocation failure is
 		 * fatal.  Fortunately this fake ACL is small enough to
 		 * construct on the stack. */
-<<<<<<< HEAD
-=======
-		memset(acl2, 0, sizeof(acl2));
->>>>>>> f61f6da... NFS: Prevent memory allocation failure in nfsacl_encode()
 		posix_acl_init(acl2, 4);
 
 		/* Insert entries in canonical order: other orders seem
