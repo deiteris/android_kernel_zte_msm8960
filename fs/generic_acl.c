@@ -132,7 +132,6 @@ generic_acl_init(struct inode *inode, struct inode *dir)
 	if (!S_ISLNK(inode->i_mode))
 		acl = get_cached_acl(dir, ACL_TYPE_DEFAULT);
 	if (acl) {
-<<<<<<< HEAD
 		struct posix_acl *clone;
 
 		if (S_ISDIR(inode->i_mode)) {
@@ -154,19 +153,10 @@ generic_acl_init(struct inode *inode, struct inode *dir)
 				set_cached_acl(inode, ACL_TYPE_ACCESS, clone);
 		}
 		posix_acl_release(clone);
-=======
-		if (S_ISDIR(inode->i_mode))
-			set_cached_acl(inode, ACL_TYPE_DEFAULT, acl);
-		error = posix_acl_create(&acl, GFP_KERNEL, &mode);
-		if (error < 0)
-			return error;
-		inode->i_mode = mode;
-		if (error > 0)
-			set_cached_acl(inode, ACL_TYPE_ACCESS, acl);
->>>>>>> 826cae2... kill boilerplates around posix_acl_create_masq()
 	}
 	error = 0;
 
+cleanup:
 	posix_acl_release(acl);
 	return error;
 }

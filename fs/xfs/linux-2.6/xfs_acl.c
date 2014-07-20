@@ -293,23 +293,29 @@ posix_acl_default_exists(struct inode *inode)
  * No need for i_mutex because the inode is not yet exposed to the VFS.
  */
 int
-xfs_inherit_acl(struct inode *inode, struct posix_acl *acl)
+xfs_inherit_acl(struct inode *inode, struct posix_acl *default_acl)
 {
-	mode_t mode = inode->i_mode;
+	struct posix_acl *clone;
+	mode_t mode;
 	int error = 0, inherit = 0;
 
 	if (S_ISDIR(inode->i_mode)) {
-		error = xfs_set_acl(inode, ACL_TYPE_DEFAULT, acl);
+		error = xfs_set_acl(inode, ACL_TYPE_DEFAULT, default_acl);
 		if (error)
-			goto out;
+			return error;
 	}
 
-	error = posix_acl_create(&acl, GFP_KERNEL, &mode);
+	clone = posix_acl_clone(default_acl, GFP_KERNEL);
+	if (!clone)
+		return -ENOMEM;
+
+	mode = inode->i_mode;
+	error = posix_acl_create_masq(clone, &mode);
 	if (error < 0)
-		return error;
+		goto out_release_clone;
 
 	/*
-	 * If posix_acl_create returns a positive value we need to
+	 * If posix_acl_create_masq returns a positive value we need to
 	 * inherit a permission that can't be represented using the Unix
 	 * mode bits and we actually need to set an ACL.
 	 */
@@ -318,13 +324,13 @@ xfs_inherit_acl(struct inode *inode, struct posix_acl *acl)
 
 	error = xfs_set_mode(inode, mode);
 	if (error)
-		goto out;
+		goto out_release_clone;
 
 	if (inherit)
-		error = xfs_set_acl(inode, ACL_TYPE_ACCESS, acl);
+		error = xfs_set_acl(inode, ACL_TYPE_ACCESS, clone);
 
-out:
-	posix_acl_release(acl);
+ out_release_clone:
+	posix_acl_release(clone);
 	return error;
 }
 
