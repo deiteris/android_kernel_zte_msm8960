@@ -28,12 +28,9 @@ EXPORT_SYMBOL(posix_acl_clone);
 EXPORT_SYMBOL(posix_acl_valid);
 EXPORT_SYMBOL(posix_acl_equiv_mode);
 EXPORT_SYMBOL(posix_acl_from_mode);
-<<<<<<< HEAD
 EXPORT_SYMBOL(posix_acl_create_masq);
 EXPORT_SYMBOL(posix_acl_chmod_masq);
 EXPORT_SYMBOL(posix_acl_permission);
-=======
->>>>>>> 4e34e71... fs: take the ACL checks to common code
 
 /*
  * Init a fresh posix_acl
