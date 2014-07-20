@@ -59,7 +59,6 @@ static struct ion_client *kgsl_ion_client;
  * @returns - 0 on success or error code on failure
  */
 
-<<<<<<< HEAD
 static int kgsl_add_event(struct kgsl_device *device, u32 ts,
 	void (*cb)(struct kgsl_device *, void *, u32), void *priv,
 	struct kgsl_device_private *owner)
@@ -68,41 +67,15 @@ static int kgsl_add_event(struct kgsl_device *device, u32 ts,
 	struct list_head *n;
 	unsigned int cur = device->ftbl->readtimestamp(device,
 		KGSL_TIMESTAMP_RETIRED);
-=======
-	ret = kgsl_driver.stats.page_alloc;
-	//printk("kgsl: kgsl_driver.stats.page_alloc = %u\n", kgsl_driver.stats.page_alloc);
-	//printk("kgsl: kgsl_driver.stats.page_alloc_kernel = %u\n", kgsl_driver.stats.page_alloc_kernel);
-	//printk("kgsl: kgsl_driver.stats.pre_alloc = %u\n", kgsl_driver.stats.pre_alloc);
-	//printk("kgsl: kgsl_driver.stats.pre_alloc_kernel = %u\n", kgsl_driver.stats.pre_alloc_kernel);
->>>>>>> 4e99fff... drivers/gpu/msm/kgsl.c: silence annoying and useless dmesg log spam
 
 	if (cb == NULL)
 		return -EINVAL;
 
 	/* Check to see if the requested timestamp has already fired */
 
-<<<<<<< HEAD
 	if (timestamp_cmp(cur, ts) >= 0) {
 		cb(device, priv, cur);
 		return 0;
-=======
-	list_for_each_entry(private, &kgsl_driver.process_list, list) {
-		if (!private)
-			continue;
-		//printk("kgsl: below is going to list all memory info of pid:%d \n", private->pid);
-		for (i = 0; i < KGSL_MEM_ENTRY_MAX; i++) {
-			switch (i) {
-			case KGSL_MEM_ENTRY_PAGE_ALLOC:
-				if (private != NULL && private->stats[KGSL_MEM_ENTRY_PAGE_ALLOC].cur != 0)
-					//printk("kgsl: page alloc %d\n", private->stats[KGSL_MEM_ENTRY_PAGE_ALLOC].cur);
-				break;
-			case KGSL_MEM_ENTRY_PRE_ALLOC:
-				if (private != NULL && private->stats[KGSL_MEM_ENTRY_PRE_ALLOC].cur != 0)
-					//printk("kgsl: pre alloc %d\n", private->stats[KGSL_MEM_ENTRY_PRE_ALLOC].cur);
-				break;
-			}
-		}
->>>>>>> 4e99fff... drivers/gpu/msm/kgsl.c: silence annoying and useless dmesg log spam
 	}
 
 	event = kzalloc(sizeof(*event), GFP_KERNEL);
