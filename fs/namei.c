@@ -1628,10 +1628,8 @@ static int path_lookupat(int dfd, const char *name,
 		}
 	}
 
-<<<<<<< HEAD
 	if (!err)
 		err = complete_walk(nd);
-=======
 	if (nd->flags & LOOKUP_RCU) {
 		/* went all way through without dropping RCU */
 		BUG_ON(err);
@@ -1644,7 +1642,6 @@ static int path_lookupat(int dfd, const char *name,
 		if (err)
 			path_put(&nd->path);
 	}
->>>>>>> b81a618... Merge branch 'for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/viro/vfs-2.6
 
 	if (!err && nd->flags & LOOKUP_DIRECTORY) {
 		if (!nd->inode->i_op->lookup) {
