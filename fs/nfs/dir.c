@@ -1348,26 +1348,12 @@ static int is_atomic_open(struct nameidata *nd)
 		return 0;
 	/* Are we trying to write to a read only partition? */
 	if (__mnt_is_readonly(nd->path.mnt) &&
-	    (nd->intent.open.flags & (O_CREAT|O_TRUNC|O_ACCMODE)))
+	    (nd->intent.open.flags & (O_CREAT|O_TRUNC|FMODE_WRITE)))
 		return 0;
 	return 1;
 }
 
-<<<<<<< HEAD
 static struct nfs_open_context *nameidata_to_nfs_open_context(struct dentry *dentry, struct nameidata *nd)
-=======
-static fmode_t flags_to_mode(int flags)
-{
-	fmode_t res = (__force fmode_t)flags & FMODE_EXEC;
-	if ((flags & O_ACCMODE) != O_WRONLY)
-		res |= FMODE_READ;
-	if ((flags & O_ACCMODE) != O_RDONLY)
-		res |= FMODE_WRITE;
-	return res;
-}
-
-static struct nfs_open_context *create_nfs_open_context(struct dentry *dentry, int open_flags)
->>>>>>> 8a5e929... don't transliterate lower bits of ->intent.open.flags to FMODE_...
 {
 	struct path path = {
 		.mnt = nd->path.mnt,
@@ -1375,11 +1361,7 @@ static struct nfs_open_context *create_nfs_open_context(struct dentry *dentry, i
 	};
 	struct nfs_open_context *ctx;
 	struct rpc_cred *cred;
-<<<<<<< HEAD
 	fmode_t fmode = nd->intent.open.flags & (FMODE_READ | FMODE_WRITE | FMODE_EXEC);
-=======
-	fmode_t fmode = flags_to_mode(open_flags);
->>>>>>> 8a5e929... don't transliterate lower bits of ->intent.open.flags to FMODE_...
 
 	cred = rpc_lookup_cred();
 	if (IS_ERR(cred))
@@ -1598,11 +1580,7 @@ static int nfs_open_create(struct inode *dir, struct dentry *dentry, int mode,
 	struct nfs_open_context *ctx = NULL;
 	struct iattr attr;
 	int error;
-<<<<<<< HEAD
 	int open_flags = 0;
-=======
-	int open_flags = O_CREAT|O_EXCL;
->>>>>>> 8a5e929... don't transliterate lower bits of ->intent.open.flags to FMODE_...
 
 	dfprintk(VFS, "NFS: create(%s/%ld), %s\n",
 			dir->i_sb->s_id, dir->i_ino, dentry->d_name.name);
@@ -1692,11 +1670,7 @@ static int nfs_create(struct inode *dir, struct dentry *dentry, int mode,
 {
 	struct iattr attr;
 	int error;
-<<<<<<< HEAD
 	int open_flags = 0;
-=======
-	int open_flags = O_CREAT|O_EXCL;
->>>>>>> 8a5e929... don't transliterate lower bits of ->intent.open.flags to FMODE_...
 
 	dfprintk(VFS, "NFS: create(%s/%ld), %s\n",
 			dir->i_sb->s_id, dir->i_ino, dentry->d_name.name);
@@ -2295,11 +2269,11 @@ static int nfs_open_permission_mask(int openflags)
 {
 	int mask = 0;
 
-	if ((openflags & O_ACCMODE) != O_WRONLY)
+	if (openflags & FMODE_READ)
 		mask |= MAY_READ;
-	if ((openflags & O_ACCMODE) != O_RDONLY)
+	if (openflags & FMODE_WRITE)
 		mask |= MAY_WRITE;
-	if (openflags & __FMODE_EXEC)
+	if (openflags & FMODE_EXEC)
 		mask |= MAY_EXEC;
 	return mask;
 }
