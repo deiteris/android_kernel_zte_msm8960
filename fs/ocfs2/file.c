@@ -1279,19 +1279,12 @@ bail:
 	return err;
 }
 
-int ocfs2_permission(struct inode *inode, int mask, unsigned int flags)
+int ocfs2_permission(struct inode *inode, int mask)
 {
 	int ret;
 
-<<<<<<< HEAD
 	if (mask & MAY_NOT_BLOCK)
 		return -ECHILD;
-=======
-	if (flags & IPERM_FLAG_RCU)
-		return -ECHILD;
-
-	mlog_entry_void();
->>>>>>> b74c79e... fs: provide rcu-walk aware permission i_ops
 
 	ret = ocfs2_inode_lock(inode, NULL, 0);
 	if (ret) {
@@ -1300,11 +1293,7 @@ int ocfs2_permission(struct inode *inode, int mask, unsigned int flags)
 		goto out;
 	}
 
-<<<<<<< HEAD
 	ret = generic_permission(inode, mask);
-=======
-	ret = generic_permission(inode, mask, flags, ocfs2_check_acl);
->>>>>>> b74c79e... fs: provide rcu-walk aware permission i_ops
 
 	ocfs2_inode_unlock(inode, 0);
 out:

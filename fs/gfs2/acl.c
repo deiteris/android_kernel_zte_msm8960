@@ -75,13 +75,10 @@ static struct posix_acl *gfs2_acl_get(struct gfs2_inode *ip, int type)
  * Returns: errno
  */
 
-int gfs2_check_acl(struct inode *inode, int mask, unsigned int flags)
+int gfs2_check_acl(struct inode *inode, int mask)
 {
 	struct posix_acl *acl;
 	int error;
-
-	if (flags & IPERM_FLAG_RCU)
-		return -ECHILD;
 
 	acl = gfs2_acl_get(GFS2_I(inode), ACL_TYPE_ACCESS);
 	if (IS_ERR(acl))

@@ -7332,9 +7332,8 @@ static int btrfs_set_page_dirty(struct page *page)
 	return __set_page_dirty_nobuffers(page);
 }
 
-static int btrfs_permission(struct inode *inode, int mask, unsigned int flags)
+static int btrfs_permission(struct inode *inode, int mask)
 {
-<<<<<<< HEAD
 	struct btrfs_root *root = BTRFS_I(inode)->root;
 
 	if (btrfs_root_readonly(root) && (mask & MAY_WRITE))
@@ -7342,14 +7341,6 @@ static int btrfs_permission(struct inode *inode, int mask, unsigned int flags)
 	if ((BTRFS_I(inode)->flags & BTRFS_INODE_READONLY) && (mask & MAY_WRITE))
 		return -EACCES;
 	return generic_permission(inode, mask);
-=======
-	if (flags & IPERM_FLAG_RCU)
-		return -ECHILD;
-
-	if ((BTRFS_I(inode)->flags & BTRFS_INODE_READONLY) && (mask & MAY_WRITE))
-		return -EACCES;
-	return generic_permission(inode, mask, flags, btrfs_check_acl);
->>>>>>> b74c79e... fs: provide rcu-walk aware permission i_ops
 }
 
 static const struct inode_operations btrfs_dir_inode_operations = {

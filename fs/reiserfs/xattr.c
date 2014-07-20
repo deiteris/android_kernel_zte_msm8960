@@ -868,16 +868,11 @@ out:
 	return err;
 }
 
-<<<<<<< HEAD
 int reiserfs_check_acl(struct inode *inode, int mask)
-=======
-static int reiserfs_check_acl(struct inode *inode, int mask, unsigned int flags)
->>>>>>> b74c79e... fs: provide rcu-walk aware permission i_ops
 {
 	struct posix_acl *acl;
 	int error = -EAGAIN; /* do regular unix permission checks by default */
 
-<<<<<<< HEAD
 	/*
 	 * Stat data v1 doesn't support ACLs.
 	 */
@@ -885,9 +880,6 @@ static int reiserfs_check_acl(struct inode *inode, int mask, unsigned int flags)
 		return -EAGAIN;
 
 	if (mask & MAY_NOT_BLOCK)
-=======
-	if (flags & IPERM_FLAG_RCU)
->>>>>>> b74c79e... fs: provide rcu-walk aware permission i_ops
 		return -ECHILD;
 
 	acl = reiserfs_get_acl(inode, ACL_TYPE_ACCESS);
@@ -966,10 +958,8 @@ static int xattr_mount_check(struct super_block *s)
 	return 0;
 }
 
-int reiserfs_permission(struct inode *inode, int mask, unsigned int flags)
+int reiserfs_permission(struct inode *inode, int mask)
 {
-	if (flags & IPERM_FLAG_RCU)
-		return -ECHILD;
 	/*
 	 * We don't do permission checks on the internal objects.
 	 * Permissions are determined by the "owning" object.
@@ -977,19 +967,7 @@ int reiserfs_permission(struct inode *inode, int mask, unsigned int flags)
 	if (IS_PRIVATE(inode))
 		return 0;
 
-<<<<<<< HEAD
 	return generic_permission(inode, mask);
-=======
-#ifdef CONFIG_REISERFS_FS_XATTR
-	/*
-	 * Stat data v1 doesn't support ACLs.
-	 */
-	if (get_inode_sd_version(inode) != STAT_DATA_V1)
-		return generic_permission(inode, mask, flags,
-					reiserfs_check_acl);
-#endif
-	return generic_permission(inode, mask, flags, NULL);
->>>>>>> b74c79e... fs: provide rcu-walk aware permission i_ops
 }
 
 static int xattr_hide_revalidate(struct dentry *dentry, struct nameidata *nd)

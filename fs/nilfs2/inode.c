@@ -799,27 +799,14 @@ out_err:
 	return err;
 }
 
-int nilfs_permission(struct inode *inode, int mask, unsigned int flags)
+int nilfs_permission(struct inode *inode, int mask)
 {
-<<<<<<< HEAD
 	struct nilfs_root *root = NILFS_I(inode)->i_root;
-=======
-	struct nilfs_root *root;
-
-	if (flags & IPERM_FLAG_RCU)
-		return -ECHILD;
-
-	root = NILFS_I(inode)->i_root;
->>>>>>> b74c79e... fs: provide rcu-walk aware permission i_ops
 	if ((mask & MAY_WRITE) && root &&
 	    root->cno != NILFS_CPTREE_CURRENT_CNO)
 		return -EROFS; /* snapshot is not writable */
 
-<<<<<<< HEAD
 	return generic_permission(inode, mask);
-=======
-	return generic_permission(inode, mask, flags, NULL);
->>>>>>> b74c79e... fs: provide rcu-walk aware permission i_ops
 }
 
 int nilfs_load_inode_block(struct inode *inode, struct buffer_head **pbh)

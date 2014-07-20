@@ -132,15 +132,11 @@ exit:
 }
 
 
-int coda_permission(struct inode *inode, int mask, unsigned int flags)
+int coda_permission(struct inode *inode, int mask)
 {
 	int error;
 
-<<<<<<< HEAD
 	if (mask & MAY_NOT_BLOCK)
-=======
-	if (flags & IPERM_FLAG_RCU)
->>>>>>> b74c79e... fs: provide rcu-walk aware permission i_ops
 		return -ECHILD;
 
 	mask &= MAY_READ | MAY_WRITE | MAY_EXEC;

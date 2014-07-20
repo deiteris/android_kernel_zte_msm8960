@@ -224,12 +224,7 @@ static int check_acl(struct inode *inode, int mask)
 /*
  * This does basic POSIX ACL permission checking
  */
-<<<<<<< HEAD
 static int acl_permission_check(struct inode *inode, int mask)
-=======
-static int acl_permission_check(struct inode *inode, int mask, unsigned int flags,
-		int (*check_acl)(struct inode *inode, int mask, unsigned int flags))
->>>>>>> b74c79e... fs: provide rcu-walk aware permission i_ops
 {
 	unsigned int mode = inode->i_mode;
 
@@ -241,13 +236,8 @@ static int acl_permission_check(struct inode *inode, int mask, unsigned int flag
 	if (current_fsuid() == inode->i_uid)
 		mode >>= 6;
 	else {
-<<<<<<< HEAD
 		if (IS_POSIXACL(inode) && (mode & S_IRWXG)) {
 			int error = check_acl(inode, mask);
-=======
-		if (IS_POSIXACL(inode) && (mode & S_IRWXG) && check_acl) {
-			int error = check_acl(inode, mask, flags);
->>>>>>> b74c79e... fs: provide rcu-walk aware permission i_ops
 			if (error != -EAGAIN)
 				return error;
 		}
@@ -269,11 +259,6 @@ other_perms:
  * generic_permission -  check for access rights on a Posix-like filesystem
  * @inode:	inode to check access rights for
  * @mask:	right to check for (%MAY_READ, %MAY_WRITE, %MAY_EXEC)
-<<<<<<< HEAD
-=======
- * @check_acl:	optional callback to check for Posix ACLs
- * @flags	IPERM_FLAG_ flags.
->>>>>>> b74c79e... fs: provide rcu-walk aware permission i_ops
  *
  * Used to check for read/write/execute permissions on a file.
  * We use "fsuid" for this, letting us set arbitrary permissions
@@ -284,23 +269,14 @@ other_perms:
  * request cannot be satisfied (eg. requires blocking or too much complexity).
  * It would then be called again in ref-walk mode.
  */
-<<<<<<< HEAD
 int generic_permission(struct inode *inode, int mask)
-=======
-int generic_permission(struct inode *inode, int mask, unsigned int flags,
-	int (*check_acl)(struct inode *inode, int mask, unsigned int flags))
->>>>>>> b74c79e... fs: provide rcu-walk aware permission i_ops
 {
 	int ret;
 
 	/*
 	 * Do the basic POSIX ACL permission checks.
 	 */
-<<<<<<< HEAD
 	ret = acl_permission_check(inode, mask);
-=======
-	ret = acl_permission_check(inode, mask, flags, check_acl);
->>>>>>> b74c79e... fs: provide rcu-walk aware permission i_ops
 	if (ret != -EACCES)
 		return ret;
 
@@ -384,16 +360,7 @@ int inode_permission(struct inode *inode, int mask)
 			return -EACCES;
 	}
 
-<<<<<<< HEAD
 	retval = do_inode_permission(inode, mask);
-=======
-	if (inode->i_op->permission)
-		retval = inode->i_op->permission(inode, mask, 0);
-	else
-		retval = generic_permission(inode, mask, 0,
-				inode->i_op->check_acl);
-
->>>>>>> b74c79e... fs: provide rcu-walk aware permission i_ops
 	if (retval)
 		return retval;
 
@@ -579,46 +546,9 @@ static int complete_walk(struct nameidata *nd)
 
 	if (!status)
 		status = -ESTALE;
-<<<<<<< HEAD
 
 	path_put(&nd->path);
 	return status;
-=======
-	}
-	return status;
-}
-
-/*
- * Short-cut version of permission(), for calling on directories
- * during pathname resolution.  Combines parts of permission()
- * and generic_permission(), and tests ONLY for MAY_EXEC permission.
- *
- * If appropriate, check DAC only.  If not appropriate, or
- * short-cut DAC fails, then call ->permission() to do more
- * complete permission check.
- */
-static inline int exec_permission(struct inode *inode, unsigned int flags)
-{
-	int ret;
-
-	if (inode->i_op->permission) {
-		ret = inode->i_op->permission(inode, MAY_EXEC, flags);
-	} else {
-		ret = acl_permission_check(inode, MAY_EXEC, flags,
-				inode->i_op->check_acl);
-	}
-	if (likely(!ret))
-		goto ok;
-	if (ret == -ECHILD)
-		return ret;
-
-	if (capable(CAP_DAC_OVERRIDE) || capable(CAP_DAC_READ_SEARCH))
-		goto ok;
-
-	return ret;
-ok:
-	return security_inode_exec_permission(inode, flags);
->>>>>>> b74c79e... fs: provide rcu-walk aware permission i_ops
 }
 
 static __always_inline void set_root(struct nameidata *nd)
@@ -1471,22 +1401,7 @@ static int link_path_walk(const char *name, struct nameidata *nd)
 		unsigned int c;
 		int type;
 
-<<<<<<< HEAD
 		err = may_lookup(nd);
-=======
-		nd->flags |= LOOKUP_CONTINUE;
-		if (nd->flags & LOOKUP_RCU) {
-			err = exec_permission(nd->inode, IPERM_FLAG_RCU);
-			if (err == -ECHILD) {
-				if (nameidata_drop_rcu(nd))
-					return -ECHILD;
-				goto exec_again;
-			}
-		} else {
-exec_again:
-			err = exec_permission(nd->inode, 0);
-		}
->>>>>>> b74c79e... fs: provide rcu-walk aware permission i_ops
  		if (err)
 			break;
 
@@ -1792,11 +1707,7 @@ static struct dentry *__lookup_hash(struct qstr *name,
 	struct dentry *dentry;
 	int err;
 
-<<<<<<< HEAD
 	err = inode_permission(inode, MAY_EXEC);
-=======
-	err = exec_permission(inode, 0);
->>>>>>> b74c79e... fs: provide rcu-walk aware permission i_ops
 	if (err)
 		return ERR_PTR(err);
 

@@ -195,17 +195,11 @@ out:
 	return ret;
 }
 
-int btrfs_check_acl(struct inode *inode, int mask, unsigned int flags)
+int btrfs_check_acl(struct inode *inode, int mask)
 {
 	int error = -EAGAIN;
 	struct posix_acl *acl;
 
-<<<<<<< HEAD
-=======
-	if (flags & IPERM_FLAG_RCU)
-		return -ECHILD;
-
->>>>>>> b74c79e... fs: provide rcu-walk aware permission i_ops
 	acl = btrfs_get_acl(inode, ACL_TYPE_ACCESS);
 	if (IS_ERR(acl))
 		return PTR_ERR(acl);

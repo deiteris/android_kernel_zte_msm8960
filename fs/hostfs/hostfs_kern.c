@@ -748,16 +748,12 @@ int hostfs_rename(struct inode *from_ino, struct dentry *from,
 	return err;
 }
 
-int hostfs_permission(struct inode *ino, int desired, unsigned int flags)
+int hostfs_permission(struct inode *ino, int desired)
 {
 	char *name;
 	int r = 0, w = 0, x = 0, err;
 
-<<<<<<< HEAD
 	if (desired & MAY_NOT_BLOCK)
-=======
-	if (flags & IPERM_FLAG_RCU)
->>>>>>> b74c79e... fs: provide rcu-walk aware permission i_ops
 		return -ECHILD;
 
 	if (desired & MAY_READ) r = 1;
@@ -774,11 +770,7 @@ int hostfs_permission(struct inode *ino, int desired, unsigned int flags)
 		err = access_file(name, r, w, x);
 	__putname(name);
 	if (!err)
-<<<<<<< HEAD
 		err = generic_permission(ino, desired);
-=======
-		err = generic_permission(ino, desired, flags, NULL);
->>>>>>> b74c79e... fs: provide rcu-walk aware permission i_ops
 	return err;
 }
 

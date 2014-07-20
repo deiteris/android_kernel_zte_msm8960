@@ -354,11 +354,7 @@ vfstest 24185492        4945    708725(2.9%) 1076136(4.4%)     0        2651
 
 What this shows is that failed rcu-walk lookups, ie. ones that are restarted
 entirely with ref-walk, are quite rare. Even the "vfstest" case which
-<<<<<<< HEAD
 specifically has concurrent renames/mkdir/rmdir/ creat/unlink/etc to exercise
-=======
-specifically has concurrent renames/mkdir/rmdir/ creat/unlink/etc to excercise
->>>>>>> b74c79e... fs: provide rcu-walk aware permission i_ops
 such races is not showing a huge amount of restarts.
 
 Dropping from rcu-walk to ref-walk mean that we have encountered a dentry where
