@@ -179,14 +179,19 @@ static int check_acl(struct inode *inode, int mask)
 #ifdef CONFIG_FS_POSIX_ACL
 	struct posix_acl *acl;
 
+	/*
+	 * Under RCU walk, we cannot even do a "get_cached_acl()",
+	 * because that involves locking and getting a refcount on
+	 * a cached ACL.
+	 *
+	 * So the only case we handle during RCU walking is the
+	 * case of a cached "no ACL at all", which needs no locks
+	 * or refcounts.
+	 */
 	if (mask & MAY_NOT_BLOCK) {
-		acl = get_cached_acl_rcu(inode, ACL_TYPE_ACCESS);
-	        if (!acl)
+	        if (negative_cached_acl(inode, ACL_TYPE_ACCESS))
 	                return -EAGAIN;
-		/* no ->get_acl() calls in RCU mode... */
-		if (acl == ACL_NOT_CACHED)
-			return -ECHILD;
-	        return posix_acl_permission(inode, acl, mask);
+	        return -ECHILD;
 	}
 
 	acl = get_cached_acl(inode, ACL_TYPE_ACCESS);
