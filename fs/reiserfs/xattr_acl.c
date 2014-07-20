@@ -354,7 +354,9 @@ reiserfs_inherit_default_acl(struct reiserfs_transaction_handle *th,
 		return PTR_ERR(acl);
 
 	if (acl) {
+		struct posix_acl *acl_copy;
 		mode_t mode = inode->i_mode;
+		int need_acl;
 
 		/* Copy the default ACL to the default ACL of a new directory */
 		if (S_ISDIR(inode->i_mode)) {
@@ -366,15 +368,29 @@ reiserfs_inherit_default_acl(struct reiserfs_transaction_handle *th,
 
 		/* Now we reconcile the new ACL and the mode,
 		   potentially modifying both */
-		err = posix_acl_create(&acl, GFP_NOFS, &mode);
-		if (err < 0)
-			return err;
+		acl_copy = posix_acl_clone(acl, GFP_NOFS);
+		if (!acl_copy) {
+			err = -ENOMEM;
+			goto cleanup;
+		}
 
-		inode->i_mode = mode;
+		need_acl = posix_acl_create_masq(acl_copy, &mode);
+		if (need_acl >= 0) {
+			if (mode != inode->i_mode) {
+				inode->i_mode = mode;
+			}
 
-		/* If we need an ACL.. */
-		if (err > 0)
-			err = reiserfs_set_acl(th, inode, ACL_TYPE_ACCESS, acl);
+			/* If we need an ACL.. */
+			if (need_acl > 0) {
+				err = reiserfs_set_acl(th, inode,
+						       ACL_TYPE_ACCESS,
+						       acl_copy);
+				if (err)
+					goto cleanup_copy;
+			}
+		}
+	      cleanup_copy:
+		posix_acl_release(acl_copy);
 	      cleanup:
 		posix_acl_release(acl);
 	} else {

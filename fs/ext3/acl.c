@@ -278,7 +278,8 @@ ext3_init_acl(handle_t *handle, struct inode *inode, struct inode *dir)
 			inode->i_mode &= ~current_umask();
 	}
 	if (test_opt(inode->i_sb, POSIX_ACL) && acl) {
-		mode_t mode = inode->i_mode;
+		struct posix_acl *clone;
+		mode_t mode;
 
 		if (S_ISDIR(inode->i_mode)) {
 			error = ext3_set_acl(handle, inode,
@@ -286,15 +287,22 @@ ext3_init_acl(handle_t *handle, struct inode *inode, struct inode *dir)
 			if (error)
 				goto cleanup;
 		}
-		error = posix_acl_create(&acl, GFP_NOFS, &mode);
-		if (error < 0)
-			return error;
+		clone = posix_acl_clone(acl, GFP_NOFS);
+		error = -ENOMEM;
+		if (!clone)
+			goto cleanup;
 
-		inode->i_mode = mode;
-		if (error > 0) {
-			/* This is an extended ACL */
-			error = ext3_set_acl(handle, inode, ACL_TYPE_ACCESS, acl);
+		mode = inode->i_mode;
+		error = posix_acl_create_masq(clone, &mode);
+		if (error >= 0) {
+			inode->i_mode = mode;
+			if (error > 0) {
+				/* This is an extended ACL */
+				error = ext3_set_acl(handle, inode,
+						     ACL_TYPE_ACCESS, clone);
+			}
 		}
+		posix_acl_release(clone);
 	}
 cleanup:
 	posix_acl_release(acl);
