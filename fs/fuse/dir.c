@@ -576,7 +576,7 @@ static int fuse_mknod(struct inode *dir, struct dentry *entry, int mode,
 static int fuse_create(struct inode *dir, struct dentry *entry, int mode,
 		       struct nameidata *nd)
 {
-	if (nd) {
+	if (nd && (nd->flags & LOOKUP_OPEN)) {
 		int err = fuse_create_open(dir, entry, mode, nd);
 		if (err != -ENOSYS)
 			return err;
@@ -1176,10 +1176,9 @@ static int fuse_dir_release(struct inode *inode, struct file *file)
 	return 0;
 }
 
-static int fuse_dir_fsync(struct file *file, loff_t start, loff_t end,
-			  int datasync)
+static int fuse_dir_fsync(struct file *file, int datasync)
 {
-	return fuse_fsync_common(file, start, end, datasync, 1);
+	return fuse_fsync_common(file, datasync, 1);
 }
 
 static bool update_mtime(unsigned ivalid)

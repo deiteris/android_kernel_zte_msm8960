@@ -226,7 +226,6 @@ static int check_acl(struct inode *inode, int mask)
  */
 static int acl_permission_check(struct inode *inode, int mask)
 {
-	int (*check_acl)(struct inode *inode, int mask);
 	unsigned int mode = inode->i_mode;
 
 	mask &= MAY_READ | MAY_WRITE | MAY_EXEC | MAY_NOT_BLOCK;
@@ -237,12 +236,7 @@ static int acl_permission_check(struct inode *inode, int mask)
 	if (current_fsuid() == inode->i_uid)
 		mode >>= 6;
 	else {
-<<<<<<< HEAD
 		if (IS_POSIXACL(inode) && (mode & S_IRWXG)) {
-=======
-		check_acl = inode->i_op->check_acl;
-		if (IS_POSIXACL(inode) && (mode & S_IRWXG) && check_acl) {
->>>>>>> bbd9d6f... Merge branch 'for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/viro/vfs-2.6
 			int error = check_acl(inode, mask);
 			if (error != -EAGAIN)
 				return error;
@@ -366,15 +360,7 @@ int inode_permission(struct inode *inode, int mask)
 			return -EACCES;
 	}
 
-<<<<<<< HEAD
 	retval = do_inode_permission(inode, mask);
-=======
-	if (inode->i_op->permission)
-		retval = inode->i_op->permission(inode, mask);
-	else
-		retval = generic_permission(inode, mask);
-
->>>>>>> bbd9d6f... Merge branch 'for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/viro/vfs-2.6
 	if (retval)
 		return retval;
 
@@ -747,7 +733,6 @@ static int follow_automount(struct path *path, unsigned flags,
 	 * set AT_SYMLINK_NOFOLLOW - unless they're stat'ing a directory and
 	 * appended a '/' to the name.
 	 */
-<<<<<<< HEAD
 	if (!(flags & LOOKUP_FOLLOW)) {
 		/* We do, however, want to mount if someone wants to open or
 		 * create a file of any type under the mountpoint, wants to
@@ -762,13 +747,6 @@ static int follow_automount(struct path *path, unsigned flags,
 		    path->dentry->d_inode)
 			return -EISDIR;
 	}
-=======
-	if (!(flags & LOOKUP_FOLLOW) &&
-	    !(flags & (LOOKUP_PARENT | LOOKUP_DIRECTORY |
-		       LOOKUP_OPEN | LOOKUP_CREATE)))
-		return -EISDIR;
-
->>>>>>> bbd9d6f... Merge branch 'for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/viro/vfs-2.6
 	current->total_link_count++;
 	if (current->total_link_count >= 40)
 		return -ELOOP;
