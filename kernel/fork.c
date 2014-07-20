@@ -37,6 +37,7 @@
 #include <linux/swap.h>
 #include <linux/syscalls.h>
 #include <linux/jiffies.h>
+#include <linux/tracehook.h>
 #include <linux/futex.h>
 #include <linux/compat.h>
 #include <linux/kthread.h>
@@ -1355,7 +1356,7 @@ static struct task_struct *copy_process(unsigned long clone_flags,
 	}
 
 	if (likely(p->pid)) {
-		ptrace_init_task(p, (clone_flags & CLONE_PTRACE) || trace);
+		tracehook_finish_clone(p, clone_flags, trace);
 
 		if (thread_group_leader(p)) {
 			if (is_child_reaper(pid))
@@ -1496,22 +1497,10 @@ long do_fork(unsigned long clone_flags,
 	}
 
 	/*
-	 * Determine whether and which event to report to ptracer.  When
-	 * called from kernel_thread or CLONE_UNTRACED is explicitly
-	 * requested, no event is reported; otherwise, report if the event
-	 * for the type of forking is enabled.
+	 * When called from kernel_thread, don't do user tracing stuff.
 	 */
-	if (likely(user_mode(regs)) && !(clone_flags & CLONE_UNTRACED)) {
-		if (clone_flags & CLONE_VFORK)
-			trace = PTRACE_EVENT_VFORK;
-		else if ((clone_flags & CSIGNAL) != SIGCHLD)
-			trace = PTRACE_EVENT_CLONE;
-		else
-			trace = PTRACE_EVENT_FORK;
-
-		if (likely(!ptrace_event_enabled(current, trace)))
-			trace = 0;
-	}
+	if (likely(user_mode(regs)))
+		trace = tracehook_prepare_clone(clone_flags);
 
 	p = copy_process(clone_flags, stack_start, regs, stack_size,
 			 child_tidptr, NULL, trace);
@@ -1535,26 +1524,26 @@ long do_fork(unsigned long clone_flags,
 		}
 
 		audit_finish_fork(p);
+		tracehook_report_clone(regs, clone_flags, nr, p);
 
 		/*
 		 * We set PF_STARTING at creation in case tracing wants to
 		 * use this to distinguish a fully live task from one that
-		 * hasn't finished SIGSTOP raising yet.  Now we clear it
-		 * and set the child going.
+		 * hasn't gotten to tracehook_report_clone() yet.  Now we
+		 * clear it and set the child going.
 		 */
 		p->flags &= ~PF_STARTING;
 
 		wake_up_new_task(p);
 
-		/* forking complete and child started to run, tell ptracer */
-		if (unlikely(trace))
-			ptrace_event(trace, nr);
+		tracehook_report_clone_complete(trace, regs,
+						clone_flags, nr, p);
 
 		if (clone_flags & CLONE_VFORK) {
 			freezer_do_not_count();
 			wait_for_completion(&vfork);
 			freezer_count();
-			ptrace_event(PTRACE_EVENT_VFORK_DONE, nr);
+			tracehook_report_vfork_done(p, nr);
 		}
 	} else {
 		nr = PTR_ERR(p);

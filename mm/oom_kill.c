@@ -341,7 +341,8 @@ static struct task_struct *select_bad_process(unsigned int *ppoints,
 				 * then wait for it to finish before killing
 				 * some other task unnecessarily.
 				 */
-				if (!(p->group_leader->ptrace & PT_TRACE_EXIT))
+				if (!(task_ptrace(p->group_leader) &
+							PT_TRACE_EXIT))
 					return ERR_PTR(-1UL);
 			}
 		}
