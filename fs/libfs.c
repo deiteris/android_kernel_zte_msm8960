@@ -16,8 +16,6 @@
 
 #include <asm/uaccess.h>
 
-#include "internal.h"
-
 static inline int simple_positive(struct dentry *dentry)
 {
 	return dentry->d_inode && !d_unhashed(dentry);
@@ -248,11 +246,13 @@ struct dentry *mount_pseudo(struct file_system_type *fs_type, char *name,
 	root->i_ino = 1;
 	root->i_mode = S_IFDIR | S_IRUSR | S_IWUSR;
 	root->i_atime = root->i_mtime = root->i_ctime = CURRENT_TIME;
-	dentry = __d_alloc(s, &d_name);
+	dentry = d_alloc(NULL, &d_name);
 	if (!dentry) {
 		iput(root);
 		goto Enomem;
 	}
+	dentry->d_sb = s;
+	dentry->d_parent = dentry;
 	d_instantiate(dentry, root);
 	s->s_root = dentry;
 	s->s_d_op = dops;
@@ -328,10 +328,8 @@ int simple_rename(struct inode *old_dir, struct dentry *old_dentry,
 
 	if (new_dentry->d_inode) {
 		simple_unlink(new_dir, new_dentry);
-		if (they_are_dirs) {
-			drop_nlink(new_dentry->d_inode);
+		if (they_are_dirs)
 			drop_nlink(old_dir);
-		}
 	} else if (they_are_dirs) {
 		drop_nlink(old_dir);
 		inc_nlink(new_dir);
