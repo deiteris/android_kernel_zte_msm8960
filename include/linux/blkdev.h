@@ -307,20 +307,14 @@ struct request_queue
 	void			*queuedata;
 
 	/*
-  	 * various queue flags, see QUEUE_* below
-  	 */
-  	unsigned long		queue_flags;
-
-	/*
-	 * ida allocated id for this queue.  Used to index queues from
-	 * ioctx.
-	 */
-	int			id;
-
-	/*
 	 * queue needs bounce pages for pages above this limit
 	 */
 	gfp_t			bounce_gfp;
+
+	/*
+	 * various queue flags, see QUEUE_* below
+	 */
+	unsigned long		queue_flags;
 
 	/*
 	 * protects queue structures from reentrancy. ->__queue_lock should
