@@ -638,8 +638,17 @@ gmidi_set_config(struct gmidi_device *dev, unsigned number, gfp_t gfp_flags)
 	if (result) {
 		gmidi_reset_config(dev);
 	} else {
+		char *speed;
+
+		switch (gadget->speed) {
+		case USB_SPEED_LOW:	speed = "low"; break;
+		case USB_SPEED_FULL:	speed = "full"; break;
+		case USB_SPEED_HIGH:	speed = "high"; break;
+		default:		speed = "?"; break;
+		}
+
 		dev->config = number;
-		INFO(dev, "%s speed\n", usb_speed_string(gadget->speed));
+		INFO(dev, "%s speed\n", speed);
 	}
 	return result;
 }
