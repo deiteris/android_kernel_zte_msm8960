@@ -4079,13 +4079,7 @@ static int btrfs_dentry_delete(const struct dentry *dentry)
 static struct dentry *btrfs_lookup(struct inode *dir, struct dentry *dentry,
 				   struct nameidata *nd)
 {
-	struct inode *inode;
-
-	inode = btrfs_lookup_dentry(dir, dentry);
-	if (IS_ERR(inode))
-		return ERR_CAST(inode);
-
-	return d_splice_alias(inode, dentry);
+	return d_splice_alias(btrfs_lookup_dentry(dir, dentry), dentry);
 }
 
 unsigned char btrfs_filetype_table[] = {
@@ -4773,11 +4767,10 @@ static int btrfs_link(struct dentry *old_dentry, struct inode *dir,
 	if (err) {
 		drop_inode = 1;
 	} else {
-		struct dentry *parent = dget_parent(dentry);
+		struct dentry *parent = dentry->d_parent;
 		err = btrfs_update_inode(trans, root, inode);
 		BUG_ON(err);
 		btrfs_log_new_name(trans, inode, NULL, parent);
-		dput(parent);
 	}
 
 	nr = trans->blocks_used;
@@ -6901,7 +6894,7 @@ static int btrfs_getattr(struct vfsmount *mnt,
 {
 	struct inode *inode = dentry->d_inode;
 	generic_fillattr(inode, stat);
-	stat->dev = BTRFS_I(inode)->root->anon_super.s_dev;
+	stat->dev = BTRFS_I(inode)->root->anon_dev;
 	stat->blksize = PAGE_CACHE_SIZE;
 	stat->blocks = (inode_get_bytes(inode) +
 			BTRFS_I(inode)->delalloc_bytes) >> 9;
@@ -7069,9 +7062,8 @@ static int btrfs_rename(struct inode *old_dir, struct dentry *old_dentry,
 	BUG_ON(ret);
 
 	if (old_ino != BTRFS_FIRST_FREE_OBJECTID) {
-		struct dentry *parent = dget_parent(new_dentry);
+		struct dentry *parent = new_dentry->d_parent;
 		btrfs_log_new_name(trans, old_inode, old_dir, parent);
-		dput(parent);
 		btrfs_end_log_trans(root);
 	}
 out_fail:
