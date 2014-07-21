@@ -96,7 +96,7 @@ static struct posix_acl *v9fs_get_cached_acl(struct inode *inode, int type)
 	return acl;
 }
 
-int v9fs_check_acl(struct inode *inode, int mask)
+int v9fs_check_acl(struct inode *inode, int mask, unsigned int flags)
 {
 	struct posix_acl *acl;
 	struct v9fs_session_info *v9ses;
