@@ -1367,10 +1367,8 @@ static bool should_fail_request(struct hd_struct *part, unsigned int bytes)
 
 static int __init fail_make_request_debugfs(void)
 {
-	struct dentry *dir = fault_create_debugfs_attr("fail_make_request",
-						NULL, &fail_make_request);
-
-	return IS_ERR(dir) ? PTR_ERR(dir) : 0;
+	return init_fault_attr_dentries(&fail_make_request,
+					"fail_make_request");
 }
 
 late_initcall(fail_make_request_debugfs);
