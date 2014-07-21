@@ -1439,7 +1439,7 @@ static int pxa_ep_enable(struct usb_ep *_ep,
 		return -EINVAL;
 	}
 
-	if (ep->fifo_size < usb_endpoint_maxp(desc)) {
+	if (ep->fifo_size < le16_to_cpu(desc->wMaxPacketSize)) {
 		ep_err(ep, "bad maxpacket\n");
 		return -ERANGE;
 	}
