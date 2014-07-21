@@ -1293,7 +1293,7 @@ int ocfs2_permission(struct inode *inode, int mask, unsigned int flags)
 		goto out;
 	}
 
-	ret = generic_permission(inode, mask);
+	ret = generic_permission(inode, mask, flags);
 
 	ocfs2_inode_unlock(inode, 0);
 out:
