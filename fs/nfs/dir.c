@@ -1011,14 +1011,12 @@ static int nfs_check_verifier(struct inode *dir, struct dentry *dentry)
  * Return the intent data that applies to this particular path component
  *
  * Note that the current set of intents only apply to the very last
- * component of the path.
- * We check for this using LOOKUP_CONTINUE and LOOKUP_PARENT.
+ * component of the path and none of them is set before that last
+ * component.
  */
 static inline unsigned int nfs_lookup_check_intent(struct nameidata *nd,
 						unsigned int mask)
 {
-	if (nd->flags & (LOOKUP_CONTINUE|LOOKUP_PARENT))
-		return 0;
 	return nd->flags & mask;
 }
 
@@ -1599,7 +1597,11 @@ static int nfs_open_create(struct inode *dir, struct dentry *dentry, int mode,
 	attr.ia_mode = mode;
 	attr.ia_valid = ATTR_MODE;
 
+<<<<<<< HEAD
 	if (nd && (nd->flags & LOOKUP_OPEN) != 0)
+=======
+	if (nd)
+>>>>>>> bbd9d6f... Merge branch 'for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/viro/vfs-2.6
 		open_flags = nd->intent.open.flags;
 
 	ctx = create_nfs_open_context(dentry, open_flags);
@@ -1610,7 +1612,11 @@ static int nfs_open_create(struct inode *dir, struct dentry *dentry, int mode,
 	error = NFS_PROTO(dir)->create(dir, dentry, &attr, open_flags, ctx);
 	if (error != 0)
 		goto out_put_ctx;
+<<<<<<< HEAD
 	if (nd && (nd->flags & LOOKUP_OPEN) != 0) {
+=======
+	if (nd) {
+>>>>>>> bbd9d6f... Merge branch 'for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/viro/vfs-2.6
 		error = nfs_intent_set_file(nd, ctx);
 		if (error < 0)
 			goto out_err;
@@ -1689,7 +1695,11 @@ static int nfs_create(struct inode *dir, struct dentry *dentry, int mode,
 	attr.ia_mode = mode;
 	attr.ia_valid = ATTR_MODE;
 
+<<<<<<< HEAD
 	if (nd && (nd->flags & LOOKUP_OPEN) != 0)
+=======
+	if (nd)
+>>>>>>> bbd9d6f... Merge branch 'for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/viro/vfs-2.6
 		open_flags = nd->intent.open.flags;
 
 	error = NFS_PROTO(dir)->create(dir, dentry, &attr, open_flags, NULL);

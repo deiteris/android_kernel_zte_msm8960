@@ -2665,7 +2665,11 @@ static int selinux_inode_permission(struct inode *inode, int mask)
 	struct common_audit_data ad;
 	u32 perms;
 	bool from_access;
+<<<<<<< HEAD
 	unsigned __flags = mask & MAY_NOT_BLOCK ? IPERM_FLAG_RCU : 0;
+=======
+	unsigned flags = mask & MAY_NOT_BLOCK;
+>>>>>>> bbd9d6f... Merge branch 'for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/viro/vfs-2.6
 
 	from_access = mask & MAY_ACCESS;
 	mask &= (MAY_READ|MAY_WRITE|MAY_EXEC|MAY_APPEND);
