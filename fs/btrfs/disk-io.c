@@ -1479,7 +1479,9 @@ static int cleaner_kthread(void *arg)
 			btrfs_run_defrag_inodes(root->fs_info);
 		}
 
-		if (!try_to_freeze()) {
+		if (freezing(current)) {
+			refrigerator();
+		} else {
 			set_current_state(TASK_INTERRUPTIBLE);
 			if (!kthread_should_stop())
 				schedule();
@@ -1533,7 +1535,9 @@ sleep:
 		wake_up_process(root->fs_info->cleaner_kthread);
 		mutex_unlock(&root->fs_info->transaction_kthread_mutex);
 
-		if (!try_to_freeze()) {
+		if (freezing(current)) {
+			refrigerator();
+		} else {
 			set_current_state(TASK_INTERRUPTIBLE);
 			if (!kthread_should_stop() &&
 			    !btrfs_transaction_blocked(root->fs_info))
