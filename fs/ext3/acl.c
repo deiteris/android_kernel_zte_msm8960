@@ -240,7 +240,7 @@ ext3_set_acl(handle_t *handle, struct inode *inode, int type,
 }
 
 int
-ext3_check_acl(struct inode *inode, int mask)
+ext3_check_acl(struct inode *inode, int mask, unsigned int flags)
 {
 	struct posix_acl *acl;
 

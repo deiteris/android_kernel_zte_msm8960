@@ -75,7 +75,7 @@ static struct posix_acl *gfs2_acl_get(struct gfs2_inode *ip, int type)
  * Returns: errno
  */
 
-int gfs2_check_acl(struct inode *inode, int mask)
+int gfs2_check_acl(struct inode *inode, int mask, unsigned int flags)
 {
 	struct posix_acl *acl;
 	int error;
