@@ -671,7 +671,6 @@ static int follow_automount(struct path *path, unsigned flags,
 	 * set AT_SYMLINK_NOFOLLOW - unless they're stat'ing a directory and
 	 * appended a '/' to the name.
 	 */
-<<<<<<< HEAD
 	if (!(flags & LOOKUP_FOLLOW)) {
 		/* We do, however, want to mount if someone wants to open or
 		 * create a file of any type under the mountpoint, wants to
@@ -686,13 +685,6 @@ static int follow_automount(struct path *path, unsigned flags,
 		    path->dentry->d_inode)
 			return -EISDIR;
 	}
-=======
-	if (!(flags & LOOKUP_FOLLOW) &&
-	    !(flags & (LOOKUP_PARENT | LOOKUP_DIRECTORY |
-		       LOOKUP_OPEN | LOOKUP_CREATE)))
-		return -EISDIR;
-
->>>>>>> bbd9d6f... Merge branch 'for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/viro/vfs-2.6
 	current->total_link_count++;
 	if (current->total_link_count >= 40)
 		return -ELOOP;
