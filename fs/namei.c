@@ -489,43 +489,6 @@ static int complete_walk(struct nameidata *nd)
 	return status;
 }
 
-<<<<<<< HEAD
-=======
-/*
- * Short-cut version of permission(), for calling on directories
- * during pathname resolution.  Combines parts of permission()
- * and generic_permission(), and tests ONLY for MAY_EXEC permission.
- *
- * If appropriate, check DAC only.  If not appropriate, or
- * short-cut DAC fails, then call ->permission() to do more
- * complete permission check.
- */
-static inline int exec_permission(struct inode *inode, unsigned int flags)
-{
-	int ret;
-	struct user_namespace *ns = inode_userns(inode);
-
-	if (inode->i_op->permission) {
-		ret = inode->i_op->permission(inode, MAY_EXEC, flags);
-		if (likely(!ret))
-			goto ok;
-	} else {
-		ret = acl_permission_check(inode, MAY_EXEC, flags,
-				inode->i_op->check_acl);
-		if (likely(!ret))
-			goto ok;
-		if (ret != -EACCES)
-			return ret;
-		if (ns_capable(ns, CAP_DAC_OVERRIDE) ||
-				ns_capable(ns, CAP_DAC_READ_SEARCH))
-			goto ok;
-	}
-	return ret;
-ok:
-	return security_inode_exec_permission(inode, flags);
-}
-
->>>>>>> 4cf2714... make exec_permission(dir) really equivalent to inode_permission(dir, MAY_EXEC)
 static __always_inline void set_root(struct nameidata *nd)
 {
 	if (!nd->root.mnt)
