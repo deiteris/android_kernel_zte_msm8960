@@ -49,7 +49,13 @@ asynchronous and synchronous parts of the kernel.
 */
 
 #include <linux/async.h>
+<<<<<<< HEAD
 #include <linux/module.h>
+=======
+#include <linux/atomic.h>
+#include <linux/ktime.h>
+#include <linux/export.h>
+>>>>>>> 9984de1... kernel: Map most files to use export.h instead of module.h
 #include <linux/wait.h>
 #include <linux/sched.h>
 #include <linux/slab.h>
