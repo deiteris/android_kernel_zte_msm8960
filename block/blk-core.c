@@ -1264,8 +1264,13 @@ void blk_queue_bio(struct request_queue *q, struct bio *bio)
 	 * Check if we can merge with the plugged list before grabbing
 	 * any locks.
 	 */
+<<<<<<< HEAD
+	if (attempt_plug_merge(current, q, bio, &request_count))
+		goto out;
+=======
 	if (attempt_plug_merge(current, q, bio))
 		return;
+>>>>>>> 5a7bbad... block: remove support for bio remapping from ->make_request
 
 	spin_lock_irq(q->queue_lock);
 
