@@ -873,17 +873,7 @@ static int reiserfs_check_acl(struct inode *inode, int mask, unsigned int flags)
 	struct posix_acl *acl;
 	int error = -EAGAIN; /* do regular unix permission checks by default */
 
-<<<<<<< HEAD
 	if (flags & IPERM_FLAG_RCU)
-=======
-	/*
-	 * Stat data v1 doesn't support ACLs.
-	 */
-	if (get_inode_sd_version(inode) == STAT_DATA_V1)
-		return -EAGAIN;
-
-	if (mask & MAY_NOT_BLOCK)
->>>>>>> 9c2c703... ->permission() sanitizing: pass MAY_NOT_BLOCK to ->check_acl()
 		return -ECHILD;
 
 	acl = reiserfs_get_acl(inode, ACL_TYPE_ACCESS);
