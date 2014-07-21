@@ -156,7 +156,7 @@ static void *jffs2_acl_to_medium(const struct posix_acl *acl, size_t *size)
 	return ERR_PTR(-EINVAL);
 }
 
-static struct posix_acl *jffs2_get_acl(struct inode *inode, int type)
+struct posix_acl *jffs2_get_acl(struct inode *inode, int type)
 {
 	struct posix_acl *acl;
 	char *value = NULL;
@@ -259,6 +259,7 @@ static int jffs2_set_acl(struct inode *inode, int type, struct posix_acl *acl)
 	return rc;
 }
 
+<<<<<<< HEAD
 int jffs2_check_acl(struct inode *inode, int mask)
 {
 	struct posix_acl *acl;
@@ -276,6 +277,9 @@ int jffs2_check_acl(struct inode *inode, int mask)
 }
 
 int jffs2_init_acl_pre(struct inode *dir_i, struct inode *inode, int *i_mode)
+=======
+int jffs2_init_acl_pre(struct inode *dir_i, struct inode *inode, mode_t *i_mode)
+>>>>>>> 4e34e71... fs: take the ACL checks to common code
 {
 	struct posix_acl *acl, *clone;
 	int rc;
