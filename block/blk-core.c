@@ -541,7 +541,7 @@ blk_init_allocated_queue_node(struct request_queue *q, request_fn_proc *rfn,
 	/*
 	 * This also sets hw/phys segments, boundary and size
 	 */
-	blk_queue_make_request(q, blk_queue_bio);
+	blk_queue_make_request(q, __make_request);
 
 	q->sg_reserved_size = INT_MAX;
 
@@ -1215,11 +1215,7 @@ void init_request_from_bio(struct request *req, struct bio *bio)
 	blk_rq_bio_prep(req->q, req, bio);
 }
 
-<<<<<<< HEAD
 static int __make_request(struct request_queue *q, struct bio *bio)
-=======
-int blk_queue_bio(struct request_queue *q, struct bio *bio)
->>>>>>> c20e8de... block: rename __make_request() to blk_queue_bio()
 {
 	const bool sync = !!(bio->bi_rw & REQ_SYNC);
 	struct blk_plug *plug;
@@ -1323,10 +1319,6 @@ out_unlock:
 out:
 	return 0;
 }
-<<<<<<< HEAD
-=======
-EXPORT_SYMBOL_GPL(blk_queue_bio);	/* for device mapper only */
->>>>>>> c20e8de... block: rename __make_request() to blk_queue_bio()
 
 /*
  * If bio->bi_dev is a partition, remap the location
