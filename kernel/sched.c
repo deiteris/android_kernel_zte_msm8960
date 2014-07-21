@@ -8994,7 +8994,6 @@ cpu_cgroup_destroy(struct cgroup_subsys *ss, struct cgroup *cgrp)
 	sched_destroy_group(tg);
 }
 
-<<<<<<< HEAD
 static int
 cpu_cgroup_allow_attach(struct cgroup *cgrp, struct task_struct *tsk)
 {
@@ -9021,33 +9020,21 @@ cpu_cgroup_can_attach_task(struct cgroup *cgrp, struct task_struct *tsk)
 			return -EPERM;
 	}
 
-=======
-static int cpu_cgroup_can_attach(struct cgroup_subsys *ss, struct cgroup *cgrp,
-				 struct cgroup_taskset *tset)
-{
-	struct task_struct *task;
-
-	cgroup_taskset_for_each(task, cgrp, tset) {
->>>>>>> bb9d97b... cgroup: don't use subsys->can_attach_task() or ->attach_task()
 #ifdef CONFIG_RT_GROUP_SCHED
-		if (!sched_rt_can_attach(cgroup_tg(cgrp), task))
-			return -EINVAL;
+	if (!sched_rt_can_attach(cgroup_tg(cgrp), tsk))
+		return -EINVAL;
 #else
-		/* We don't support RT-tasks being in separate groups */
-		if (task->sched_class != &fair_sched_class)
-			return -EINVAL;
+	/* We don't support RT-tasks being in separate groups */
+	if (tsk->sched_class != &fair_sched_class)
+		return -EINVAL;
 #endif
-	}
 	return 0;
 }
 
-static void cpu_cgroup_attach(struct cgroup_subsys *ss, struct cgroup *cgrp,
-			      struct cgroup_taskset *tset)
+static void
+cpu_cgroup_attach_task(struct cgroup *cgrp, struct task_struct *tsk)
 {
-	struct task_struct *task;
-
-	cgroup_taskset_for_each(task, cgrp, tset)
-		sched_move_task(task);
+	sched_move_task(tsk);
 }
 
 static void
@@ -9135,14 +9122,9 @@ struct cgroup_subsys cpu_cgroup_subsys = {
 	.name		= "cpu",
 	.create		= cpu_cgroup_create,
 	.destroy	= cpu_cgroup_destroy,
-<<<<<<< HEAD
 	.allow_attach	= cpu_cgroup_allow_attach,
 	.can_attach_task = cpu_cgroup_can_attach_task,
 	.attach_task	= cpu_cgroup_attach_task,
-=======
-	.can_attach	= cpu_cgroup_can_attach,
-	.attach		= cpu_cgroup_attach,
->>>>>>> bb9d97b... cgroup: don't use subsys->can_attach_task() or ->attach_task()
 	.exit		= cpu_cgroup_exit,
 	.populate	= cpu_cgroup_populate,
 	.subsys_id	= cpu_cgroup_subsys_id,
