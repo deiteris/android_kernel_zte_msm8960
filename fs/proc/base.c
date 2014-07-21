@@ -648,7 +648,7 @@ static int mounts_open_common(struct inode *inode, struct file *file,
 	p->m.private = p;
 	p->ns = ns;
 	p->root = root;
-	p->m.poll_event = ns->event;
+	p->event = ns->event;
 
 	return 0;
 
