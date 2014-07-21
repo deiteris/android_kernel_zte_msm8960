@@ -1077,7 +1077,12 @@ static int __setup_root(u32 nodesize, u32 leafsize, u32 sectorsize,
 	init_completion(&root->kobj_unregister);
 	root->defrag_running = 0;
 	root->root_key.objectid = objectid;
-	root->anon_dev = 0;
+	root->anon_super.s_root = NULL;
+	root->anon_super.s_dev = 0;
+	INIT_LIST_HEAD(&root->anon_super.s_list);
+	INIT_LIST_HEAD(&root->anon_super.s_instances);
+	init_rwsem(&root->anon_super.s_umount);
+
 	return 0;
 }
 
@@ -1306,7 +1311,7 @@ again:
 	spin_lock_init(&root->cache_lock);
 	init_waitqueue_head(&root->cache_wait);
 
-	ret = get_anon_bdev(&root->anon_dev);
+	ret = set_anon_super(&root->anon_super, NULL);
 	if (ret)
 		goto fail;
 
@@ -2388,8 +2393,10 @@ static void free_fs_root(struct btrfs_root *root)
 {
 	iput(root->cache_inode);
 	WARN_ON(!RB_EMPTY_ROOT(&root->inode_tree));
-	if (root->anon_dev)
-		free_anon_bdev(root->anon_dev);
+	if (root->anon_super.s_dev) {
+		down_write(&root->anon_super.s_umount);
+		kill_anon_super(&root->anon_super);
+	}
 	free_extent_buffer(root->node);
 	free_extent_buffer(root->commit_root);
 	kfree(root->free_ino_ctl);
