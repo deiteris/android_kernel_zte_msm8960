@@ -867,7 +867,6 @@ ar6k_cfg80211_scanComplete_event(struct ar6_softc *ar, int status)
 
     AR_DEBUG_PRINTF(ATH_DEBUG_INFO, ("%s: status %d\n", __func__, status));
 
-<<<<<<< HEAD
     if (!ar->scan_request)
 	    return;
 
@@ -878,13 +877,6 @@ ar6k_cfg80211_scanComplete_event(struct ar6_softc *ar, int status)
 
     /* Translate data to cfg80211 mgmt format */
     wmi_iterate_nodes(ar->arWmi, ar6k_cfg80211_scan_node, ar->wdev->wiphy);
-=======
-    if(ar->scan_request)
-    {
-        /* Translate data to cfg80211 mgmt format */
-	if (ar->arWmi)
-		wmi_iterate_nodes(ar->arWmi, ar6k_cfg80211_scan_node, ar->wdev->wiphy);
->>>>>>> 04bf786... Merge branch 'for-linus' into for-3.1/core
 
     cfg80211_scan_done(ar->scan_request, false);
 

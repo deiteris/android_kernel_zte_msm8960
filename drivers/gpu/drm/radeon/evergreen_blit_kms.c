@@ -531,14 +531,11 @@ set_default_state(struct radeon_device *rdev)
 		radeon_ring_write(rdev, (SQ_DYN_GPR_CNTL_PS_FLUSH_REQ - PACKET3_SET_CONFIG_REG_START) >> 2);
 		radeon_ring_write(rdev, 0);
 
-<<<<<<< HEAD
 		/* setup LDS */
 		radeon_ring_write(rdev, PACKET3(PACKET3_SET_CONFIG_REG, 1));
 		radeon_ring_write(rdev, (SQ_LDS_RESOURCE_MGMT - PACKET3_SET_CONFIG_REG_START) >> 2);
 		radeon_ring_write(rdev, 0x10001000);
 
-=======
->>>>>>> 04bf786... Merge branch 'for-linus' into for-3.1/core
 		/* SQ config */
 		radeon_ring_write(rdev, PACKET3(PACKET3_SET_CONFIG_REG, 11));
 		radeon_ring_write(rdev, (SQ_CONFIG - PACKET3_SET_CONFIG_REG_START) >> 2);

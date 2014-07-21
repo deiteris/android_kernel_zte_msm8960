@@ -2103,11 +2103,7 @@ static unsigned long do_try_to_free_pages(struct zonelist *zonelist,
 		sc->nr_scanned = 0;
 		if (!priority)
 			disable_swap_token(sc->mem_cgroup);
-<<<<<<< HEAD
 		shrink_zones(priority, zonelist, sc);
-=======
-		total_scanned += shrink_zones(priority, zonelist, sc);
->>>>>>> 04bf786... Merge branch 'for-linus' into for-3.1/core
 		/*
 		 * Don't shrink slabs when reclaiming memory from
 		 * over limit cgroups

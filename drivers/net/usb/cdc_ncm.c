@@ -54,11 +54,7 @@
 #include <linux/usb/usbnet.h>
 #include <linux/usb/cdc.h>
 
-<<<<<<< HEAD
 #define	DRIVER_VERSION				"04-Aug-2011"
-=======
-#define	DRIVER_VERSION				"01-June-2011"
->>>>>>> 04bf786... Merge branch 'for-linus' into for-3.1/core
 
 /* CDC NCM subclass 3.2.1 */
 #define USB_CDC_NCM_NDP16_LENGTH_MIN		0x10

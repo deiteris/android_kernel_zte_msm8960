@@ -21,7 +21,6 @@ fi
 # older versions of depmod require the version string to start with three
 # numbers, so we cheat with a symlink here
 depmod_hack_needed=true
-<<<<<<< HEAD
 tmp_dir=$(mktemp -d ${TMPDIR:-/tmp}/depmod.XXXXXX)
 mkdir -p "$tmp_dir/lib/modules/$KERNELRELEASE"
 if "$DEPMOD" -b "$tmp_dir" $KERNELRELEASE 2>/dev/null; then
@@ -31,15 +30,6 @@ if "$DEPMOD" -b "$tmp_dir" $KERNELRELEASE 2>/dev/null; then
 	fi
 fi
 rm -rf "$tmp_dir"
-=======
-mkdir -p .tmp_depmod/lib/modules/$KERNELRELEASE
-if "$DEPMOD" -b .tmp_depmod $KERNELRELEASE 2>/dev/null; then
-	if test -e .tmp_depmod/lib/modules/$KERNELRELEASE/modules.dep -o \
-		-e .tmp_depmod/lib/modules/$KERNELRELEASE/modules.dep.bin; then
-		depmod_hack_needed=false
-	fi
-fi
->>>>>>> 04bf786... Merge branch 'for-linus' into for-3.1/core
 if $depmod_hack_needed; then
 	symlink="$INSTALL_MOD_PATH/lib/modules/99.98.$KERNELRELEASE"
 	ln -s "$KERNELRELEASE" "$symlink"

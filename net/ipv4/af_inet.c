@@ -482,15 +482,10 @@ int inet_bind(struct socket *sock, struct sockaddr *uaddr, int addr_len)
 	if (addr_len < sizeof(struct sockaddr_in))
 		goto out;
 
-<<<<<<< HEAD
 	if (addr->sin_family != AF_INET) {
 		err = -EAFNOSUPPORT;
 		goto out;
 	}
-=======
-	if (addr->sin_family != AF_INET)
-		goto out;
->>>>>>> 04bf786... Merge branch 'for-linus' into for-3.1/core
 
 	chk_addr_ret = inet_addr_type(sock_net(sk), addr->sin_addr.s_addr);
 

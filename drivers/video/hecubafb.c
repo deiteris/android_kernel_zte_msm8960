@@ -233,11 +233,7 @@ static int __devinit hecubafb_probe(struct platform_device *dev)
 
 	videomemory = vzalloc(videomemorysize);
 	if (!videomemory)
-<<<<<<< HEAD
 		goto err_videomem_alloc;
-=======
-		return retval;
->>>>>>> 04bf786... Merge branch 'for-linus' into for-3.1/core
 
 	info = framebuffer_alloc(sizeof(struct hecubafb_par), &dev->dev);
 	if (!info)

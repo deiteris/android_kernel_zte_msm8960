@@ -499,7 +499,6 @@ static int magicmouse_probe(struct hid_device *hdev,
 	}
 	report->size = 6;
 
-<<<<<<< HEAD
 	/*
 	 * Some devices repond with 'invalid report id' when feature
 	 * report switching it into multitouch mode is sent to it.
@@ -511,11 +510,6 @@ static int magicmouse_probe(struct hid_device *hdev,
 	ret = hdev->hid_output_raw_report(hdev, feature, sizeof(feature),
 			HID_FEATURE_REPORT);
 	if (ret != -EIO && ret != sizeof(feature)) {
-=======
-	ret = hdev->hid_output_raw_report(hdev, feature, sizeof(feature),
-			HID_FEATURE_REPORT);
-	if (ret != sizeof(feature)) {
->>>>>>> 04bf786... Merge branch 'for-linus' into for-3.1/core
 		hid_err(hdev, "unable to request touch data (%d)\n", ret);
 		goto err_stop_hw;
 	}

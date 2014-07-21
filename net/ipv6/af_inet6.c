@@ -291,11 +291,7 @@ int inet6_bind(struct socket *sock, struct sockaddr *uaddr, int addr_len)
 		return -EINVAL;
 
 	if (addr->sin6_family != AF_INET6)
-<<<<<<< HEAD
 		return -EAFNOSUPPORT;
-=======
-		return -EINVAL;
->>>>>>> 04bf786... Merge branch 'for-linus' into for-3.1/core
 
 	addr_type = ipv6_addr_type(&addr->sin6_addr);
 	if ((addr_type & IPV6_ADDR_MULTICAST) && sock->type == SOCK_STREAM)

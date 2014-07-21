@@ -77,11 +77,7 @@ Throttling/Upper Limit policy
 - Specify a bandwidth rate on particular device for root group. The format
   for policy is "<major>:<minor>  <byes_per_second>".
 
-<<<<<<< HEAD
         echo "8:16  1048576" > /sys/fs/cgroup/blkio/blkio.throttle.read_bps_device
-=======
-        echo "8:16  1048576" > /sys/fs/cgroup/blkio/blkio.read_bps_device
->>>>>>> 04bf786... Merge branch 'for-linus' into for-3.1/core
 
   Above will put a limit of 1MB/second on reads happening for root group
   on device having major/minor number 8:16.

@@ -499,7 +499,6 @@ static void hci_setup_event_mask(struct hci_dev *hdev)
 	 * command otherwise */
 	u8 events[8] = { 0xff, 0xff, 0xfb, 0xff, 0x00, 0x00, 0x00, 0x00 };
 
-<<<<<<< HEAD
 	BT_DBG("");
 
 	/* Events for 1.2 and newer controllers */
@@ -510,18 +509,6 @@ static void hci_setup_event_mask(struct hci_dev *hdev)
 		events[5] |= 0x08; /* Synchronous Connection Complete */
 		events[5] |= 0x10; /* Synchronous Connection Changed */
 	}
-=======
-	/* CSR 1.1 dongles does not accept any bitfield so don't try to set
-	 * any event mask for pre 1.2 devices */
-	if (hdev->lmp_ver <= 1)
-		return;
-
-	events[4] |= 0x01; /* Flow Specification Complete */
-	events[4] |= 0x02; /* Inquiry Result with RSSI */
-	events[4] |= 0x04; /* Read Remote Extended Features Complete */
-	events[5] |= 0x08; /* Synchronous Connection Complete */
-	events[5] |= 0x10; /* Synchronous Connection Changed */
->>>>>>> 04bf786... Merge branch 'for-linus' into for-3.1/core
 
 	if (hdev->features[3] & LMP_RSSI_INQ)
 		events[4] |= 0x04; /* Inquiry Result with RSSI */

@@ -1133,7 +1133,6 @@ config RTC_DRV_PUV3
 	  This drive can also be built as a module. If so, the module
 	  will be called rtc-puv3.
 
-<<<<<<< HEAD
 config RTC_DRV_PM8XXX
 	tristate "Qualcomm PMIC8XXX RTC"
 	depends on MFD_PM8XXX
@@ -1143,6 +1142,4 @@ config RTC_DRV_PM8XXX
 	  To compile this driver as a module, choose M here: the
 	  module will be called rtc-pm8xxx.
 
-=======
->>>>>>> 04bf786... Merge branch 'for-linus' into for-3.1/core
 endif # RTC_CLASS

@@ -382,16 +382,11 @@ static int get_port_status(struct usb_device *hdev, int port1,
 {
 	int i, status = -ETIMEDOUT;
 
-<<<<<<< HEAD
 	/* ISP1763A HUB sometimes returns 2 bytes instead of 4 bytes, retry
 	 * if this happens
 	 */
 	for (i = 0; i < USB_STS_RETRIES &&
 			(status == -ETIMEDOUT || status == -EPIPE || status == 2); i++) {
-=======
-	for (i = 0; i < USB_STS_RETRIES &&
-			(status == -ETIMEDOUT || status == -EPIPE); i++) {
->>>>>>> 04bf786... Merge branch 'for-linus' into for-3.1/core
 		status = usb_control_msg(hdev, usb_rcvctrlpipe(hdev, 0),
 			USB_REQ_GET_STATUS, USB_DIR_IN | USB_RT_PORT, 0, port1,
 			data, sizeof(*data), USB_STS_TIMEOUT);

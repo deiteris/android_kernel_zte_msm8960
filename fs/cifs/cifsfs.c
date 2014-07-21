@@ -562,7 +562,6 @@ cifs_get_root(struct smb_vol *vol, struct super_block *sb)
 	dentry = dget(sb->s_root);
 	p = s = full_path;
 
-<<<<<<< HEAD
 	do {
 		struct inode *dir = dentry->d_inode;
 		struct dentry *child;
@@ -571,51 +570,6 @@ cifs_get_root(struct smb_vol *vol, struct super_block *sb)
 			dput(dentry);
 			dentry = ERR_PTR(-ENOENT);
 			break;
-=======
-		full_path[i] = 0;
-		cFYI(1, "get dentry for %s", pstart);
-
-		name.name = pstart;
-		name.len = len;
-		name.hash = full_name_hash(pstart, len);
-		dchild = d_lookup(dparent, &name);
-		if (dchild == NULL) {
-			cFYI(1, "not exists");
-			dchild = d_alloc(dparent, &name);
-			if (dchild == NULL) {
-				dput(dparent);
-				dparent = ERR_PTR(-ENOMEM);
-				goto out;
-			}
-		}
-
-		cFYI(1, "get inode");
-		if (dchild->d_inode == NULL) {
-			cFYI(1, "not exists");
-			inode = NULL;
-			if (cifs_sb_master_tcon(CIFS_SB(sb))->unix_ext)
-				rc = cifs_get_inode_info_unix(&inode, full_path,
-							      sb, xid);
-			else
-				rc = cifs_get_inode_info(&inode, full_path,
-							 NULL, sb, xid, NULL);
-			if (rc) {
-				dput(dchild);
-				dput(dparent);
-				dparent = ERR_PTR(rc);
-				goto out;
-			}
-			alias = d_materialise_unique(dchild, inode);
-			if (alias != NULL) {
-				dput(dchild);
-				if (IS_ERR(alias)) {
-					dput(dparent);
-					dparent = ERR_PTR(-EINVAL); /* XXX */
-					goto out;
-				}
-				dchild = alias;
-			}
->>>>>>> 04bf786... Merge branch 'for-linus' into for-3.1/core
 		}
 
 		/* skip separators */
@@ -637,13 +591,6 @@ cifs_get_root(struct smb_vol *vol, struct super_block *sb)
 	_FreeXid(xid);
 	kfree(full_path);
 	return dentry;
-}
-
-static int cifs_set_super(struct super_block *sb, void *data)
-{
-	struct cifs_mnt_data *mnt_data = data;
-	sb->s_fs_info = mnt_data->cifs_sb;
-	return set_anon_super(sb, NULL);
 }
 
 static int cifs_set_super(struct super_block *sb, void *data)
@@ -730,11 +677,7 @@ cifs_do_mount(struct file_system_type *fs_type,
 out_super:
 	deactivate_locked_super(sb);
 out:
-<<<<<<< HEAD
 	cifs_cleanup_volume_info(volume_info);
-=======
-	cifs_cleanup_volume_info(&volume_info);
->>>>>>> 04bf786... Merge branch 'for-linus' into for-3.1/core
 	return root;
 
 out_mountdata:

@@ -354,11 +354,7 @@ more:
 				left = inode->i_size - pos;
 
 			dout("zero tail %d\n", left);
-<<<<<<< HEAD
 			ceph_zero_page_vector_range(page_align + read, left,
-=======
-			ceph_zero_page_vector_range(page_off + read, left,
->>>>>>> 04bf786... Merge branch 'for-linus' into for-3.1/core
 						    pages);
 			read += left;
 		}
