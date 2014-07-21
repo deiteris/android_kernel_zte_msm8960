@@ -438,10 +438,6 @@ static int oom_kill_task(struct task_struct *p, struct mem_cgroup *mem)
 		    !(q->flags & PF_KTHREAD)) {
 			if (q->signal->oom_score_adj == OOM_SCORE_ADJ_MIN)
 				continue;
-<<<<<<< HEAD
-=======
-
->>>>>>> c9f0124... oom: remove oom_disable_count
 			task_lock(q);	/* Protect ->comm from prctl() */
 			pr_err("Kill process %d (%s) sharing same memory\n",
 				task_pid_nr(q), q->comm);
