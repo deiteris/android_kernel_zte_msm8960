@@ -101,12 +101,9 @@ int v9fs_check_acl(struct inode *inode, int mask, unsigned int flags)
 	struct posix_acl *acl;
 	struct v9fs_session_info *v9ses;
 
-<<<<<<< HEAD
 	if (flags & IPERM_FLAG_RCU)
 		return -ECHILD;
 
-=======
->>>>>>> e77819e... vfs: move ACL cache lookup into generic code
 	v9ses = v9fs_inode2v9ses(inode);
 	if (((v9ses->flags & V9FS_ACCESS_MASK) != V9FS_ACCESS_CLIENT) ||
 			((v9ses->flags & V9FS_ACL_MASK) != V9FS_POSIX_ACL)) {

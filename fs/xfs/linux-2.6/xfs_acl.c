@@ -231,21 +231,16 @@ xfs_check_acl(struct inode *inode, int mask, unsigned int flags)
 	/*
 	 * If there is no attribute fork no ACL exists on this inode and
 	 * we can skip the whole exercise.
-	 *
-	 * FIXME! Fill the cache! Locking?
 	 */
 	if (!XFS_IFORK_Q(ip))
 		return -EAGAIN;
 
-<<<<<<< HEAD
 	if (flags & IPERM_FLAG_RCU) {
 		if (!negative_cached_acl(inode, ACL_TYPE_ACCESS))
 			return -ECHILD;
 		return -EAGAIN;
 	}
 
-=======
->>>>>>> e77819e... vfs: move ACL cache lookup into generic code
 	acl = xfs_get_acl(inode, ACL_TYPE_ACCESS);
 	if (IS_ERR(acl))
 		return PTR_ERR(acl);
