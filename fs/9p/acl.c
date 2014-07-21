@@ -101,6 +101,12 @@ int v9fs_check_acl(struct inode *inode, int mask)
 	struct posix_acl *acl;
 	struct v9fs_session_info *v9ses;
 
+<<<<<<< HEAD
+=======
+	if (mask & MAY_NOT_BLOCK)
+		return -ECHILD;
+
+>>>>>>> bbd9d6f... Merge branch 'for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/viro/vfs-2.6
 	v9ses = v9fs_inode2v9ses(inode);
 	if (((v9ses->flags & V9FS_ACCESS_MASK) != V9FS_ACCESS_CLIENT) ||
 			((v9ses->flags & V9FS_ACL_MASK) != V9FS_POSIX_ACL)) {
