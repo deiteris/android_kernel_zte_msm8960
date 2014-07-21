@@ -29,6 +29,7 @@ void refrigerator(void)
 	   processes around? */
 	long save;
 
+<<<<<<< HEAD
 	task_lock(current);
 	if (freezing(current)) {
 		frozen_process();
@@ -37,6 +38,23 @@ void refrigerator(void)
 		task_unlock(current);
 		return;
 	}
+=======
+	/*
+	 * Enter FROZEN.  If NOFREEZE, schedule immediate thawing by
+	 * clearing freezing.
+	 */
+	spin_lock_irq(&freezer_lock);
+repeat:
+	if (!freezing(current)) {
+		spin_unlock_irq(&freezer_lock);
+		return was_frozen;
+	}
+	if (current->flags & PF_NOFREEZE)
+		clear_freeze_flag(current);
+	current->flags |= PF_FROZEN;
+	spin_unlock_irq(&freezer_lock);
+
+>>>>>>> 6907483... freezer: make freezing indicate freeze condition in effect
 	save = current->state;
 	pr_debug("%s entered refrigerator\n", current->comm);
 
@@ -49,13 +67,25 @@ void refrigerator(void)
 
 	for (;;) {
 		set_current_state(TASK_UNINTERRUPTIBLE);
+<<<<<<< HEAD
 		if (!frozen(current))
+=======
+		if (!freezing(current) ||
+		    (check_kthr_stop && kthread_should_stop()))
+>>>>>>> 6907483... freezer: make freezing indicate freeze condition in effect
 			break;
 		schedule();
 	}
 
 	/* Remove the accounting blocker */
 	current->flags &= ~PF_FREEZING;
+
+	/* leave FROZEN */
+	spin_lock_irq(&freezer_lock);
+	if (freezing(current))
+		goto repeat;
+	current->flags &= ~PF_FROZEN;
+	spin_unlock_irq(&freezer_lock);
 
 	pr_debug("%s left refrigerator\n", current->comm);
 	__set_current_state(save);
@@ -133,19 +163,11 @@ void cancel_freezing(struct task_struct *p)
 	}
 }
 
-/*
- * Wake up a frozen task
- *
- * task_lock() is needed to prevent the race with refrigerator() which may
- * occur if the freezing of tasks fails.  Namely, without the lock, if the
- * freezing of tasks failed, thaw_tasks() might have run before a task in
- * refrigerator() could call frozen_process(), in which case the task would be
- * frozen and no one would thaw it.
- */
 void __thaw_task(struct task_struct *p)
 {
 	bool was_frozen;
 
+<<<<<<< HEAD
 	task_lock(p);
 	was_frozen = frozen(p);
 	if (was_frozen)
@@ -156,4 +178,17 @@ void __thaw_task(struct task_struct *p)
 
 	if (was_frozen)
 		wake_up_process(p);
+=======
+	/*
+	 * Clear freezing and kick @p if FROZEN.  Clearing is guaranteed to
+	 * be visible to @p as waking up implies wmb.  Waking up inside
+	 * freezer_lock also prevents wakeups from leaking outside
+	 * refrigerator.
+	 */
+	spin_lock_irqsave(&freezer_lock, flags);
+	clear_freeze_flag(p);
+	if (frozen(p))
+		wake_up_process(p);
+	spin_unlock_irqrestore(&freezer_lock, flags);
+>>>>>>> 6907483... freezer: make freezing indicate freeze condition in effect
 }
