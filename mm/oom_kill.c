@@ -301,7 +301,13 @@ static struct task_struct *select_bad_process(unsigned int *ppoints,
 		 * blocked waiting for another task which itself is waiting
 		 * for memory. Is there a better alternative?
 		 */
+<<<<<<< HEAD
 		if (test_tsk_thread_flag(p, TIF_MEMDIE))
+=======
+		if (test_tsk_thread_flag(p, TIF_MEMDIE)) {
+			if (unlikely(frozen(p)))
+				__thaw_task(p);
+>>>>>>> a5be2d0... freezer: rename thaw_process() to __thaw_task() and simplify the implementation
 			return ERR_PTR(-1UL);
 		if (!p->mm)
 			continue;
