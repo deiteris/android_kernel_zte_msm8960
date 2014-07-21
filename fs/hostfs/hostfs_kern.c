@@ -362,20 +362,9 @@ retry:
 	return 0;
 }
 
-int hostfs_fsync(struct file *file, loff_t start, loff_t end, int datasync)
+int hostfs_fsync(struct file *file, int datasync)
 {
-	struct inode *inode = file->f_mapping->host;
-	int ret;
-
-	ret = filemap_write_and_wait_range(inode->i_mapping, start, end);
-	if (ret)
-		return ret;
-
-	mutex_lock(&inode->i_mutex);
-	ret = fsync_file(HOSTFS_I(inode)->fd, datasync);
-	mutex_unlock(&inode->i_mutex);
-
-	return ret;
+	return fsync_file(HOSTFS_I(file->f_mapping->host)->fd, datasync);
 }
 
 static const struct file_operations hostfs_file_fops = {
@@ -759,12 +748,12 @@ int hostfs_rename(struct inode *from_ino, struct dentry *from,
 	return err;
 }
 
-int hostfs_permission(struct inode *ino, int desired)
+int hostfs_permission(struct inode *ino, int desired, unsigned int flags)
 {
 	char *name;
 	int r = 0, w = 0, x = 0, err;
 
-	if (desired & MAY_NOT_BLOCK)
+	if (flags & IPERM_FLAG_RCU)
 		return -ECHILD;
 
 	if (desired & MAY_READ) r = 1;
@@ -781,7 +770,7 @@ int hostfs_permission(struct inode *ino, int desired)
 		err = access_file(name, r, w, x);
 	__putname(name);
 	if (!err)
-		err = generic_permission(ino, desired);
+		err = generic_permission(ino, desired, flags, NULL);
 	return err;
 }
 

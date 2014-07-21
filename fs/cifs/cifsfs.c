@@ -224,7 +224,7 @@ cifs_statfs(struct dentry *dentry, struct kstatfs *buf)
 	return 0;
 }
 
-static int cifs_permission(struct inode *inode, int mask)
+static int cifs_permission(struct inode *inode, int mask, unsigned int flags)
 {
 	struct cifs_sb_info *cifs_sb;
 
@@ -239,7 +239,7 @@ static int cifs_permission(struct inode *inode, int mask)
 		on the client (above and beyond ACL on servers) for
 		servers which do not support setting and viewing mode bits,
 		so allowing client to check permissions is useful */
-		return generic_permission(inode, mask);
+		return generic_permission(inode, mask, flags, NULL);
 }
 
 static struct kmem_cache *cifs_inode_cachep;
@@ -710,11 +710,8 @@ static ssize_t cifs_file_aio_write(struct kiocb *iocb, const struct iovec *iov,
 
 static loff_t cifs_llseek(struct file *file, loff_t offset, int origin)
 {
-	/*
-	 * origin == SEEK_END || SEEK_DATA || SEEK_HOLE => we must revalidate
-	 * the cached file length
-	 */
-	if (origin != SEEK_SET || origin != SEEK_CUR) {
+	/* origin == SEEK_END => we must revalidate the cached file length */
+	if (origin == SEEK_END) {
 		int rc;
 		struct inode *inode = file->f_path.dentry->d_inode;
 

@@ -219,7 +219,7 @@ xfs_set_acl(struct inode *inode, int type, struct posix_acl *acl)
 }
 
 int
-xfs_check_acl(struct inode *inode, int mask)
+xfs_check_acl(struct inode *inode, int mask, unsigned int flags)
 {
 	struct xfs_inode *ip;
 	struct posix_acl *acl;
@@ -235,7 +235,7 @@ xfs_check_acl(struct inode *inode, int mask)
 	if (!XFS_IFORK_Q(ip))
 		return -EAGAIN;
 
-	if (mask & MAY_NOT_BLOCK) {
+	if (flags & IPERM_FLAG_RCU) {
 		if (!negative_cached_acl(inode, ACL_TYPE_ACCESS))
 			return -ECHILD;
 		return -EAGAIN;

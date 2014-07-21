@@ -648,7 +648,7 @@ static int mounts_open_common(struct inode *inode, struct file *file,
 	p->m.private = p;
 	p->ns = ns;
 	p->root = root;
-	p->m.poll_event = ns->event;
+	p->event = ns->event;
 
 	return 0;
 
@@ -2148,9 +2148,9 @@ static const struct file_operations proc_fd_operations = {
  * /proc/pid/fd needs a special permission handler so that a process can still
  * access /proc/self/fd after it has executed a setuid().
  */
-static int proc_fd_permission(struct inode *inode, int mask)
+static int proc_fd_permission(struct inode *inode, int mask, unsigned int flags)
 {
-	int rv = generic_permission(inode, mask);
+	int rv = generic_permission(inode, mask, flags, NULL);
 	if (rv == 0)
 		return 0;
 	if (task_pid(current) == proc_pid(inode))
