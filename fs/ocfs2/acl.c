@@ -297,12 +297,6 @@ int ocfs2_check_acl(struct inode *inode, int mask)
 	struct posix_acl *acl;
 	int ret = -EAGAIN;
 
-<<<<<<< HEAD
-=======
-	if (mask & MAY_NOT_BLOCK)
-		return -ECHILD;
-
->>>>>>> bbd9d6f... Merge branch 'for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/viro/vfs-2.6
 	osb = OCFS2_SB(inode->i_sb);
 	if (!(osb->s_mount_opt & OCFS2_MOUNT_POSIX_ACL))
 		return ret;
