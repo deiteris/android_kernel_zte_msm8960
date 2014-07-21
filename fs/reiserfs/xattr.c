@@ -868,7 +868,6 @@ out:
 	return err;
 }
 
-<<<<<<< HEAD
 int reiserfs_check_acl(struct inode *inode, int mask)
 {
 	struct posix_acl *acl;
@@ -896,8 +895,6 @@ int reiserfs_check_acl(struct inode *inode, int mask)
 	return error;
 }
 
-=======
->>>>>>> 4e34e71... fs: take the ACL checks to common code
 static int create_privroot(struct dentry *dentry)
 {
 	int err;

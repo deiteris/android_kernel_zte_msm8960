@@ -114,8 +114,6 @@ xfs_get_acl(struct inode *inode, int type)
 	if (acl != ACL_NOT_CACHED)
 		return acl;
 
-	trace_xfs_get_acl(ip);
-
 	switch (type) {
 	case ACL_TYPE_ACCESS:
 		ea_name = SGI_ACL_FILE;
@@ -220,7 +218,6 @@ xfs_set_acl(struct inode *inode, int type, struct posix_acl *acl)
 	return error;
 }
 
-<<<<<<< HEAD
 int
 xfs_check_acl(struct inode *inode, int mask)
 {
@@ -251,8 +248,6 @@ xfs_check_acl(struct inode *inode, int mask)
 	return error;
 }
 
-=======
->>>>>>> 4e34e71... fs: take the ACL checks to common code
 static int
 xfs_set_mode(struct inode *inode, mode_t mode)
 {
