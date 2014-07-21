@@ -2804,8 +2804,7 @@ static int enable_endpoint(struct fsg_common *common, struct usb_ep *ep,
 	int	rc;
 
 	ep->driver_data = common;
-	ep->desc = (struct usb_endpoint_descriptor *)d;
-	rc = usb_ep_enable(ep);
+	rc = usb_ep_enable(ep, d);
 	if (rc)
 		ERROR(common, "can't enable %s, result %d\n", ep->name, rc);
 	return rc;

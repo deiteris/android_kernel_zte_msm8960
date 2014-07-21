@@ -497,15 +497,7 @@ static int gser_set_alt(struct usb_function *f, unsigned intf, unsigned alt)
 		DBG(cdev, "reset generic data ttyGS%d\n", gser->port_num);
 		gport_disconnect(gser);
 	} else {
-<<<<<<< HEAD
 		DBG(cdev, "activate generic data ttyGS%d\n", gser->port_num);
-=======
-		DBG(cdev, "activate generic ttyGS%d\n", gser->port_num);
-		gser->port.in->desc = ep_choose(cdev->gadget,
-				gser->hs.in, gser->fs.in);
-		gser->port.out->desc = ep_choose(cdev->gadget,
-				gser->hs.out, gser->fs.out);
->>>>>>> 72c973d... usb: gadget: add usb_endpoint_descriptor to struct usb_ep
 	}
 	gser->port.in_desc = ep_choose(cdev->gadget,
 			gser->hs.in, gser->fs.in);

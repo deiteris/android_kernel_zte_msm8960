@@ -537,16 +537,14 @@ static int set_gmidi_config(struct gmidi_device *dev, gfp_t gfp_flags)
 	struct usb_ep *ep;
 	unsigned i;
 
-	dev->in_ep->desc = &bulk_in_desc;
-	err = usb_ep_enable(dev->in_ep);
+	err = usb_ep_enable(dev->in_ep, &bulk_in_desc);
 	if (err) {
 		ERROR(dev, "can't start %s: %d\n", dev->in_ep->name, err);
 		goto fail;
 	}
 	dev->in_ep->driver_data = dev;
 
-	dev->out_ep->desc = &bulk_out_desc;
-	err = usb_ep_enable(dev->out_ep);
+	err = usb_ep_enable(dev->out_ep, &bulk_out_desc);
 	if (err) {
 		ERROR(dev, "can't start %s: %d\n", dev->out_ep->name, err);
 		goto fail;
@@ -640,8 +638,17 @@ gmidi_set_config(struct gmidi_device *dev, unsigned number, gfp_t gfp_flags)
 	if (result) {
 		gmidi_reset_config(dev);
 	} else {
+		char *speed;
+
+		switch (gadget->speed) {
+		case USB_SPEED_LOW:	speed = "low"; break;
+		case USB_SPEED_FULL:	speed = "full"; break;
+		case USB_SPEED_HIGH:	speed = "high"; break;
+		default:		speed = "?"; break;
+		}
+
 		dev->config = number;
-		INFO(dev, "%s speed\n", usb_speed_string(gadget->speed));
+		INFO(dev, "%s speed\n", speed);
 	}
 	return result;
 }

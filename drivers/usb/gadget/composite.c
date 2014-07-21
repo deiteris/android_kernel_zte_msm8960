@@ -407,9 +407,14 @@ static int set_config(struct usb_composite_dev *cdev,
 	} else
 		result = 0;
 
-	INFO(cdev, "%s config #%d: %s\n",
-	     usb_speed_string(gadget->speed),
-	     number, c ? c->label : "unconfigured");
+	INFO(cdev, "%s speed config #%d: %s\n",
+		({ char *speed;
+		switch (gadget->speed) {
+		case USB_SPEED_LOW:	speed = "low"; break;
+		case USB_SPEED_FULL:	speed = "full"; break;
+		case USB_SPEED_HIGH:	speed = "high"; break;
+		default:		speed = "?"; break;
+		} ; speed; }), number, c ? c->label : "unconfigured");
 
 	if (!c)
 		goto done;
@@ -1314,8 +1319,6 @@ int usb_composite_probe(struct usb_composite_driver *driver,
 		driver->iProduct = driver->name;
 	composite_driver.function =  (char *) driver->name;
 	composite_driver.driver.name = driver->name;
-	composite_driver.speed = min((u8)composite_driver.speed,
-				     (u8)driver->max_speed);
 	composite = driver;
 	composite_gadget_bind = bind;
 

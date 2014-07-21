@@ -243,9 +243,9 @@ static int geth_set_alt(struct usb_function *f, unsigned intf, unsigned alt)
 	}
 
 	DBG(cdev, "init + activate cdc subset\n");
-	geth->port.in_ep->desc = ep_choose(cdev->gadget,
+	geth->port.in = ep_choose(cdev->gadget,
 			geth->hs.in, geth->fs.in);
-	geth->port.out_ep->desc = ep_choose(cdev->gadget,
+	geth->port.out = ep_choose(cdev->gadget,
 			geth->hs.out, geth->fs.out);
 
 	net = gether_connect(&geth->port);
@@ -334,9 +334,9 @@ geth_bind(struct usb_configuration *c, struct usb_function *f)
 
 fail:
 	/* we might as well release our claims on endpoints */
-	if (geth->port.out_ep->desc)
+	if (geth->port.out)
 		geth->port.out_ep->driver_data = NULL;
-	if (geth->port.in_ep->desc)
+	if (geth->port.in)
 		geth->port.in_ep->driver_data = NULL;
 
 	ERROR(cdev, "%s: can't bind, err %d\n", f->name, status);

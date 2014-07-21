@@ -3012,8 +3012,13 @@ __acquires(dev->lock)
 
 		/* link up all endpoints */
 		udc_setup_endpoints(dev);
-		dev_info(&dev->pdev->dev, "Connect: %s\n",
-			 usb_speed_string(dev->gadget.speed));
+		if (dev->gadget.speed == USB_SPEED_HIGH) {
+			dev_info(&dev->pdev->dev, "Connect: speed = %s\n",
+				"high");
+		} else if (dev->gadget.speed == USB_SPEED_FULL) {
+			dev_info(&dev->pdev->dev, "Connect: speed = %s\n",
+				"full");
+		}
 
 		/* init ep 0 */
 		activate_control_endpoints(dev);

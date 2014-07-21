@@ -2713,8 +2713,7 @@ static int enable_endpoint(struct fsg_dev *fsg, struct usb_ep *ep,
 	int	rc;
 
 	ep->driver_data = fsg;
-	ep->desc = d;
-	rc = usb_ep_enable(ep);
+	rc = usb_ep_enable(ep, d);
 	if (rc)
 		ERROR(fsg, "can't enable %s, result %d\n", ep->name, rc);
 	return rc;
@@ -2856,10 +2855,17 @@ static int do_set_config(struct fsg_dev *fsg, u8 new_config)
 		fsg->config = new_config;
 		if ((rc = do_set_interface(fsg, 0)) != 0)
 			fsg->config = 0;	// Reset on errors
-		else
-			INFO(fsg, "%s config #%d\n",
-			     usb_speed_string(fsg->gadget->speed),
-			     fsg->config);
+		else {
+			char *speed;
+
+			switch (fsg->gadget->speed) {
+			case USB_SPEED_LOW:	speed = "low";	break;
+			case USB_SPEED_FULL:	speed = "full";	break;
+			case USB_SPEED_HIGH:	speed = "high";	break;
+			default: 		speed = "?";	break;
+			}
+			INFO(fsg, "%s speed config #%d\n", speed, fsg->config);
+		}
 	}
 	return rc;
 }

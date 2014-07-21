@@ -95,6 +95,7 @@ struct f_rndis {
 	struct rndis_ep_descs		hs;
 
 	struct usb_ep			*notify;
+	struct usb_endpoint_descriptor	*notify_desc;
 	struct usb_request		*notify_req;
 	atomic_t			notify_count;
 };
@@ -513,19 +514,11 @@ static int rndis_set_alt(struct usb_function *f, unsigned intf, unsigned alt)
 			usb_ep_disable(rndis->notify);
 		} else {
 			VDBG(cdev, "init rndis ctrl %d\n", intf);
-<<<<<<< HEAD
 		}
 		rndis->notify_desc = ep_choose(cdev->gadget,
 				rndis->hs.notify,
 				rndis->fs.notify);
 		usb_ep_enable(rndis->notify, rndis->notify_desc);
-=======
-			rndis->notify->desc = ep_choose(cdev->gadget,
-					rndis->hs.notify,
-					rndis->fs.notify);
-		}
-		usb_ep_enable(rndis->notify);
->>>>>>> 72c973d... usb: gadget: add usb_endpoint_descriptor to struct usb_ep
 		rndis->notify->driver_data = rndis;
 
 	} else if (intf == rndis->data_id) {
@@ -536,15 +529,8 @@ static int rndis_set_alt(struct usb_function *f, unsigned intf, unsigned alt)
 			gether_disconnect(&rndis->port);
 		}
 
-		if (!rndis->port.in_ep->desc) {
+		if (!rndis->port.in) {
 			DBG(cdev, "init rndis\n");
-<<<<<<< HEAD
-=======
-			rndis->port.in_ep->desc = ep_choose(cdev->gadget,
-					rndis->hs.in, rndis->fs.in);
-			rndis->port.out_ep->desc = ep_choose(cdev->gadget,
-					rndis->hs.out, rndis->fs.out);
->>>>>>> 72c973d... usb: gadget: add usb_endpoint_descriptor to struct usb_ep
 		}
 		rndis->port.in = ep_choose(cdev->gadget,
 				rndis->hs.in, rndis->fs.in);
@@ -777,9 +763,9 @@ fail:
 	/* we might as well release our claims on endpoints */
 	if (rndis->notify)
 		rndis->notify->driver_data = NULL;
-	if (rndis->port.out_ep->desc)
+	if (rndis->port.out)
 		rndis->port.out_ep->driver_data = NULL;
-	if (rndis->port.in_ep->desc)
+	if (rndis->port.in)
 		rndis->port.in_ep->driver_data = NULL;
 
 	ERROR(cdev, "%s: can't bind, err %d\n", f->name, status);
