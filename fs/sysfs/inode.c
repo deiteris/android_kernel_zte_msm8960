@@ -362,9 +362,5 @@ int sysfs_permission(struct inode *inode, int mask)
 	sysfs_refresh_inode(sd, inode);
 	mutex_unlock(&sysfs_mutex);
 
-<<<<<<< HEAD
 	return generic_permission(inode, mask);
-=======
-	return generic_permission(inode, mask, flags);
->>>>>>> 178ea735... kill check_acl callback of generic_permission()
 }

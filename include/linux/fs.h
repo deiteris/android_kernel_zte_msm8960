@@ -2205,11 +2205,7 @@ extern sector_t bmap(struct inode *, sector_t);
 #endif
 extern int notify_change(struct dentry *, struct iattr *);
 extern int inode_permission(struct inode *, int);
-<<<<<<< HEAD
 extern int generic_permission(struct inode *, int);
-=======
-extern int generic_permission(struct inode *, int, unsigned int);
->>>>>>> 178ea735... kill check_acl callback of generic_permission()
 
 static inline bool execute_ok(struct inode *inode)
 {

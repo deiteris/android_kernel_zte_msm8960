@@ -398,11 +398,7 @@ again:
 			hpfs_unlock(dir->i_sb);
 			return -ENOSPC;
 		}
-<<<<<<< HEAD
 		if (generic_permission(inode, MAY_WRITE) ||
-=======
-		if (generic_permission(inode, MAY_WRITE, 0) ||
->>>>>>> 178ea735... kill check_acl callback of generic_permission()
 		    !S_ISREG(inode->i_mode) ||
 		    get_write_access(inode)) {
 			d_rehash(dentry);

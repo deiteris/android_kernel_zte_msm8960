@@ -1018,11 +1018,7 @@ static int fuse_permission(struct inode *inode, int mask)
 	}
 
 	if (fc->flags & FUSE_DEFAULT_PERMISSIONS) {
-<<<<<<< HEAD
 		err = generic_permission(inode, mask);
-=======
-		err = generic_permission(inode, mask, flags);
->>>>>>> 178ea735... kill check_acl callback of generic_permission()
 
 		/* If permission is denied, try to refresh file
 		   attributes.  This is also needed, because the root
@@ -1030,12 +1026,7 @@ static int fuse_permission(struct inode *inode, int mask)
 		if (err == -EACCES && !refreshed) {
 			err = fuse_perm_getattr(inode, mask);
 			if (!err)
-<<<<<<< HEAD
 				err = generic_permission(inode, mask);
-=======
-				err = generic_permission(inode, mask,
-							flags);
->>>>>>> 178ea735... kill check_acl callback of generic_permission()
 		}
 
 		/* Note: the opposite of the above test does not

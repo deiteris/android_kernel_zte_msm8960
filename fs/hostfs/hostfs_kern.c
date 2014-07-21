@@ -781,11 +781,7 @@ int hostfs_permission(struct inode *ino, int desired)
 		err = access_file(name, r, w, x);
 	__putname(name);
 	if (!err)
-<<<<<<< HEAD
 		err = generic_permission(ino, desired);
-=======
-		err = generic_permission(ino, desired, flags);
->>>>>>> 178ea735... kill check_acl callback of generic_permission()
 	return err;
 }
 
