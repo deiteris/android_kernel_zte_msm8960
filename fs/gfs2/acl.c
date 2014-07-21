@@ -80,12 +80,15 @@ int gfs2_check_acl(struct inode *inode, int mask, unsigned int flags)
 	struct posix_acl *acl;
 	int error;
 
+<<<<<<< HEAD
 	if (flags & IPERM_FLAG_RCU) {
 		if (!negative_cached_acl(inode, ACL_TYPE_ACCESS))
 			return -ECHILD;
 		return -EAGAIN;
 	}
 
+=======
+>>>>>>> e77819e... vfs: move ACL cache lookup into generic code
 	acl = gfs2_acl_get(GFS2_I(inode), ACL_TYPE_ACCESS);
 	if (IS_ERR(acl))
 		return PTR_ERR(acl);

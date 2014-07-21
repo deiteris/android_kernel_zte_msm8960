@@ -244,12 +244,15 @@ ext3_check_acl(struct inode *inode, int mask, unsigned int flags)
 {
 	struct posix_acl *acl;
 
+<<<<<<< HEAD
 	if (flags & IPERM_FLAG_RCU) {
 		if (!negative_cached_acl(inode, ACL_TYPE_ACCESS))
 			return -ECHILD;
 		return -EAGAIN;
 	}
 
+=======
+>>>>>>> e77819e... vfs: move ACL cache lookup into generic code
 	acl = ext3_get_acl(inode, ACL_TYPE_ACCESS);
 	if (IS_ERR(acl))
 		return PTR_ERR(acl);
