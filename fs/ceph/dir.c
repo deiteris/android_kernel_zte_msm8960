@@ -252,7 +252,7 @@ static int ceph_readdir(struct file *filp, void *dirent, filldir_t filldir)
 		off = 1;
 	}
 	if (filp->f_pos == 1) {
-		ino_t ino = filp->f_dentry->d_parent->d_inode->i_ino;
+		ino_t ino = parent_ino(filp->f_dentry);
 		dout("readdir off 1 -> '..'\n");
 		if (filldir(dirent, "..", 2, ceph_make_fpos(0, 1),
 			    ceph_translate_ino(inode->i_sb, ino),
@@ -446,14 +446,19 @@ static loff_t ceph_dir_llseek(struct file *file, loff_t offset, int origin)
 	loff_t retval;
 
 	mutex_lock(&inode->i_mutex);
+	retval = -EINVAL;
 	switch (origin) {
 	case SEEK_END:
 		offset += inode->i_size + 2;   /* FIXME */
 		break;
 	case SEEK_CUR:
 		offset += file->f_pos;
+	case SEEK_SET:
+		break;
+	default:
+		goto out;
 	}
-	retval = -EINVAL;
+
 	if (offset >= 0 && offset <= inode->i_sb->s_maxbytes) {
 		if (offset != file->f_pos) {
 			file->f_pos = offset;
@@ -477,6 +482,7 @@ static loff_t ceph_dir_llseek(struct file *file, loff_t offset, int origin)
 		if (offset > old_offset)
 			fi->dir_release_count--;
 	}
+out:
 	mutex_unlock(&inode->i_mutex);
 	return retval;
 }
@@ -566,7 +572,6 @@ static struct dentry *ceph_lookup(struct inode *dir, struct dentry *dentry,
 	/* open (but not create!) intent? */
 	if (nd &&
 	    (nd->flags & LOOKUP_OPEN) &&
-	    (nd->flags & LOOKUP_CONTINUE) == 0 && /* only open last component */
 	    !(nd->intent.open.flags & O_CREAT)) {
 		int mode = nd->intent.open.create_mode & ~current->fs->umask;
 		return ceph_lookup_open(dir, dentry, nd, mode, 1);

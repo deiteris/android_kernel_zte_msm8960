@@ -200,12 +200,27 @@ int btrfs_check_acl(struct inode *inode, int mask)
 	int error = -EAGAIN;
 	struct posix_acl *acl;
 
+<<<<<<< HEAD
 	acl = btrfs_get_acl(inode, ACL_TYPE_ACCESS);
 	if (IS_ERR(acl))
 		return PTR_ERR(acl);
 	if (acl) {
 		error = posix_acl_permission(inode, acl, mask);
 		posix_acl_release(acl);
+=======
+	if (mask & MAY_NOT_BLOCK) {
+		if (!negative_cached_acl(inode, ACL_TYPE_ACCESS))
+			error = -ECHILD;
+	} else {
+		struct posix_acl *acl;
+		acl = btrfs_get_acl(inode, ACL_TYPE_ACCESS);
+		if (IS_ERR(acl))
+			return PTR_ERR(acl);
+		if (acl) {
+			error = posix_acl_permission(inode, acl, mask);
+			posix_acl_release(acl);
+		}
+>>>>>>> bbd9d6f... Merge branch 'for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/viro/vfs-2.6
 	}
 
 	return error;
