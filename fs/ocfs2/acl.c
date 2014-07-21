@@ -297,12 +297,9 @@ int ocfs2_check_acl(struct inode *inode, int mask, unsigned int flags)
 	struct posix_acl *acl;
 	int ret = -EAGAIN;
 
-<<<<<<< HEAD
 	if (flags & IPERM_FLAG_RCU)
 		return -ECHILD;
 
-=======
->>>>>>> e77819e... vfs: move ACL cache lookup into generic code
 	osb = OCFS2_SB(inode->i_sb);
 	if (!(osb->s_mount_opt & OCFS2_MOUNT_POSIX_ACL))
 		return ret;

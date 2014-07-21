@@ -118,12 +118,9 @@ int jfs_check_acl(struct inode *inode, int mask, unsigned int flags)
 {
 	struct posix_acl *acl;
 
-<<<<<<< HEAD
 	if (flags & IPERM_FLAG_RCU)
 		return -ECHILD;
 
-=======
->>>>>>> e77819e... vfs: move ACL cache lookup into generic code
 	acl = jfs_get_acl(inode, ACL_TYPE_ACCESS);
 	if (IS_ERR(acl))
 		return PTR_ERR(acl);

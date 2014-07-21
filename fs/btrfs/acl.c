@@ -198,9 +198,7 @@ out:
 int btrfs_check_acl(struct inode *inode, int mask, unsigned int flags)
 {
 	int error = -EAGAIN;
-	struct posix_acl *acl;
 
-<<<<<<< HEAD
 	if (flags & IPERM_FLAG_RCU) {
 		if (!negative_cached_acl(inode, ACL_TYPE_ACCESS))
 			error = -ECHILD;
@@ -214,14 +212,6 @@ int btrfs_check_acl(struct inode *inode, int mask, unsigned int flags)
 			error = posix_acl_permission(inode, acl, mask);
 			posix_acl_release(acl);
 		}
-=======
-	acl = btrfs_get_acl(inode, ACL_TYPE_ACCESS);
-	if (IS_ERR(acl))
-		return PTR_ERR(acl);
-	if (acl) {
-		error = posix_acl_permission(inode, acl, mask);
-		posix_acl_release(acl);
->>>>>>> e77819e... vfs: move ACL cache lookup into generic code
 	}
 
 	return error;
