@@ -192,6 +192,7 @@ generic_acl_chmod(struct inode *inode)
 int
 generic_check_acl(struct inode *inode, int mask, unsigned int flags)
 {
+<<<<<<< HEAD
 	if (flags & IPERM_FLAG_RCU) {
 		if (!negative_cached_acl(inode, ACL_TYPE_ACCESS))
 			return -ECHILD;
@@ -204,6 +205,15 @@ generic_check_acl(struct inode *inode, int mask, unsigned int flags)
 			posix_acl_release(acl);
 			return error;
 		}
+=======
+	struct posix_acl *acl;
+
+	acl = get_cached_acl(inode, ACL_TYPE_ACCESS);
+	if (acl) {
+		int error = posix_acl_permission(inode, acl, mask);
+		posix_acl_release(acl);
+		return error;
+>>>>>>> e77819e... vfs: move ACL cache lookup into generic code
 	}
 	return -EAGAIN;
 }
