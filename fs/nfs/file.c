@@ -187,11 +187,8 @@ static loff_t nfs_file_llseek(struct file *filp, loff_t offset, int origin)
 			filp->f_path.dentry->d_name.name,
 			offset, origin);
 
-	/*
-	 * origin == SEEK_END || SEEK_DATA || SEEK_HOLE => we must revalidate
-	 * the cached file length
-	 */
-	if (origin != SEEK_SET || origin != SEEK_CUR) {
+	/* origin == SEEK_END => we must revalidate the cached file length */
+	if (origin == SEEK_END) {
 		struct inode *inode = filp->f_mapping->host;
 
 		int retval = nfs_revalidate_file_size(inode, filp);

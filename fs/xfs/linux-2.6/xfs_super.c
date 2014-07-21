@@ -1025,6 +1025,11 @@ xfs_fs_put_super(
 {
 	struct xfs_mount	*mp = XFS_M(sb);
 
+	/*
+	 * Unregister the memory shrinker before we tear down the mount
+	 * structure so we don't have memory reclaim racing with us here.
+	 */
+	xfs_inode_shrinker_unregister(mp);
 	xfs_syncd_stop(mp);
 
 	/*
@@ -1407,6 +1412,8 @@ xfs_fs_fill_super(
 	sb->s_time_gran = 1;
 	set_posix_acl_flag(sb);
 
+	xfs_inode_shrinker_register(mp);
+
 	error = xfs_mountfs(mp);
 	if (error)
 		goto out_filestream_unmount;
@@ -1433,6 +1440,7 @@ xfs_fs_fill_super(
 	return 0;
 
  out_filestream_unmount:
+	xfs_inode_shrinker_unregister(mp);
 	xfs_filestream_unmount(mp);
  out_free_sb:
 	xfs_freesb(mp);
@@ -1451,6 +1459,8 @@ xfs_fs_fill_super(
  out_syncd_stop:
 	xfs_syncd_stop(mp);
  out_unmount:
+	xfs_inode_shrinker_unregister(mp);
+
 	/*
 	 * Blow away any referenced inode in the filestreams cache.
 	 * This can and will cause log traffic as inodes go inactive
@@ -1474,21 +1484,6 @@ xfs_fs_mount(
 	return mount_bdev(fs_type, flags, dev_name, data, xfs_fs_fill_super);
 }
 
-static int
-xfs_fs_nr_cached_objects(
-	struct super_block	*sb)
-{
-	return xfs_reclaim_inodes_count(XFS_M(sb));
-}
-
-static void
-xfs_fs_free_cached_objects(
-	struct super_block	*sb,
-	int			nr_to_scan)
-{
-	xfs_reclaim_inodes_nr(XFS_M(sb), nr_to_scan);
-}
-
 static const struct super_operations xfs_super_operations = {
 	.alloc_inode		= xfs_fs_alloc_inode,
 	.destroy_inode		= xfs_fs_destroy_inode,
@@ -1502,8 +1497,6 @@ static const struct super_operations xfs_super_operations = {
 	.statfs			= xfs_fs_statfs,
 	.remount_fs		= xfs_fs_remount,
 	.show_options		= xfs_fs_show_options,
-	.nr_cached_objects	= xfs_fs_nr_cached_objects,
-	.free_cached_objects	= xfs_fs_free_cached_objects,
 };
 
 static struct file_system_type xfs_fs_type = {
