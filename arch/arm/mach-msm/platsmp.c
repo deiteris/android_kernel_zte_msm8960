@@ -146,7 +146,6 @@ static int cold_boot_flags[] = {
 */
 int __cpuinit boot_secondary(unsigned int cpu, struct task_struct *idle)
 {
-<<<<<<< HEAD
 	int cnt = 0;
 	int ret;
 	int flag = 0;
@@ -206,6 +205,4 @@ void __cpuinit platform_secondary_init(unsigned int cpu)
 	trace_hardirqs_off();
 
 	gic_secondary_init(0);
-=======
->>>>>>> 7fa22bd... ARM: 6993/1: platsmp: Allow secondary cpu hotplug with maxcpus=1
 }
