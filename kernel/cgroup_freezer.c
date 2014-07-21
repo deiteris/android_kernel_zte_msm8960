@@ -163,7 +163,6 @@ static int freezer_can_attach(struct cgroup_subsys *ss,
 			      struct task_struct *task)
 {
 	struct freezer *freezer;
-	struct task_struct *task;
 
 	if ((current != task) && (!capable(CAP_SYS_ADMIN))) {
 		const struct cred *cred = current_cred(), *tcred;
@@ -176,9 +175,6 @@ static int freezer_can_attach(struct cgroup_subsys *ss,
 	/*
 	 * Anything frozen can't move or be moved to/from.
 	 */
-	cgroup_taskset_for_each(task, new_cgroup, tset)
-		if (cgroup_freezing(task))
-			return -EBUSY;
 
 	freezer = cgroup_freezer(new_cgroup);
 	if (freezer->state != CGROUP_THAWED)
@@ -187,7 +183,6 @@ static int freezer_can_attach(struct cgroup_subsys *ss,
 	return 0;
 }
 
-<<<<<<< HEAD
 static int freezer_can_attach_task(struct cgroup *cgrp, struct task_struct *tsk)
 {
 	rcu_read_lock();
@@ -199,8 +194,6 @@ static int freezer_can_attach_task(struct cgroup *cgrp, struct task_struct *tsk)
 	return 0;
 }
 
-=======
->>>>>>> bb9d97b... cgroup: don't use subsys->can_attach_task() or ->attach_task()
 static void freezer_fork(struct cgroup_subsys *ss, struct task_struct *task)
 {
 	struct freezer *freezer;
@@ -396,5 +389,10 @@ struct cgroup_subsys freezer_subsys = {
 	.populate	= freezer_populate,
 	.subsys_id	= freezer_subsys_id,
 	.can_attach	= freezer_can_attach,
+	.can_attach_task = freezer_can_attach_task,
+	.pre_attach	= NULL,
+	.attach_task	= NULL,
+	.attach		= NULL,
 	.fork		= freezer_fork,
+	.exit		= NULL,
 };
