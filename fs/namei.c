@@ -287,7 +287,7 @@ int inode_permission(struct inode *inode, int mask)
 	}
 
 	if (inode->i_op->permission)
-		retval = inode->i_op->permission(inode, mask);
+		retval = inode->i_op->permission(inode, mask, 0);
 	else
 		retval = generic_permission(inode, mask);
 
@@ -323,7 +323,7 @@ static inline int exec_permission(struct inode *inode, unsigned int flags)
 		mask |= MAY_NOT_BLOCK;
 
 	if (inode->i_op->permission) {
-		ret = inode->i_op->permission(inode, mask);
+		ret = inode->i_op->permission(inode, mask, flags);
 		if (likely(!ret))
 			goto ok;
 	} else {
