@@ -236,15 +236,6 @@ ext2_check_acl(struct inode *inode, int mask)
 {
 	struct posix_acl *acl;
 
-<<<<<<< HEAD
-=======
-	if (mask & MAY_NOT_BLOCK) {
-		if (!negative_cached_acl(inode, ACL_TYPE_ACCESS))
-			return -ECHILD;
-		return -EAGAIN;
-	}
-
->>>>>>> bbd9d6f... Merge branch 'for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/viro/vfs-2.6
 	acl = ext2_get_acl(inode, ACL_TYPE_ACCESS);
 	if (IS_ERR(acl))
 		return PTR_ERR(acl);
