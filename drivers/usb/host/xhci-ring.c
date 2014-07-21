@@ -3258,14 +3258,10 @@ static int xhci_queue_isoc_tx(struct xhci_hcd *xhci, gfp_t mem_flags,
 		td_len = urb->iso_frame_desc[i].length;
 		td_remain_len = td_len;
 		total_packet_count = roundup(td_len,
-<<<<<<< HEAD
-				le16_to_cpu(urb->ep->desc.wMaxPacketSize));
+				usb_endpoint_maxp(&urb->ep->desc));
 		/* A zero-length transfer still involves at least one packet. */
 		if (total_packet_count == 0)
 			total_packet_count++;
-=======
-				usb_endpoint_maxp(&urb->ep->desc));
->>>>>>> 29cc889... USB: use usb_endpoint_maxp() instead of le16_to_cpu()
 		burst_count = xhci_get_burst_count(xhci, urb->dev, urb,
 				total_packet_count);
 		residue = xhci_get_last_burst_packet_count(xhci,
