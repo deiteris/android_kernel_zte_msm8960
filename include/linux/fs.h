@@ -395,6 +395,10 @@ struct inodes_stat_t {
 #include <linux/semaphore.h>
 #include <linux/fiemap.h>
 #include <linux/rculist_bl.h>
+<<<<<<< HEAD
+=======
+#include <linux/shrinker.h>
+>>>>>>> bbd9d6f... Merge branch 'for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/viro/vfs-2.6
 #include <linux/atomic.h>
 
 #include <asm/byteorder.h>
@@ -780,7 +784,7 @@ struct inode {
 	struct timespec		i_ctime;
 	blkcnt_t		i_blocks;
 	unsigned short          i_bytes;
-	struct rw_semaphore	i_alloc_sem;
+	atomic_t		i_dio_count;
 	const struct file_operations	*i_fop;	/* former ->i_op->default_file_ops */
 	struct file_lock	*i_flock;
 	struct address_space	*i_mapping;
@@ -1399,6 +1403,11 @@ struct super_block {
 	struct list_head	s_dentry_lru;	/* unused dentry lru */
 	int			s_nr_dentry_unused;	/* # of dentry on lru */
 
+	/* s_inode_lru_lock protects s_inode_lru and s_nr_inodes_unused */
+	spinlock_t		s_inode_lru_lock ____cacheline_aligned_in_smp;
+	struct list_head	s_inode_lru;		/* unused inode lru */
+	int			s_nr_inodes_unused;	/* # of inodes on lru */
+
 	struct block_device	*s_bdev;
 	struct backing_dev_info *s_bdi;
 	struct mtd_info		*s_mtd;
@@ -1441,7 +1450,13 @@ struct super_block {
 	 * Saved pool identifier for cleancache (-1 means none)
 	 */
 	int cleancache_poolid;
+
+	struct shrinker s_shrink;	/* per-sb shrinker handle */
 };
+
+/* superblock cache pruning functions */
+extern void prune_icache_sb(struct super_block *sb, int nr_to_scan);
+extern void prune_dcache_sb(struct super_block *sb, int nr_to_scan);
 
 extern struct timespec current_fs_time(struct super_block *sb);
 
@@ -1540,11 +1555,6 @@ struct block_device_operations;
 #define HAVE_COMPAT_IOCTL 1
 #define HAVE_UNLOCKED_IOCTL 1
 
-/*
- * NOTE:
- * all file operations except setlease can be called without
- * the big kernel lock held in all filesystems.
- */
 struct file_operations {
 	struct module *owner;
 	loff_t (*llseek) (struct file *, loff_t, int);
@@ -1574,8 +1584,6 @@ struct file_operations {
 	long (*fallocate)(struct file *file, int mode, loff_t offset,
 			  loff_t len);
 };
-
-#define IPERM_FLAG_RCU	0x0001
 
 struct inode_operations {
 	struct dentry * (*lookup) (struct inode *,struct dentry *, struct nameidata *);
@@ -1647,6 +1655,8 @@ struct super_operations {
 	ssize_t (*quota_write)(struct super_block *, int, const char *, size_t, loff_t);
 #endif
 	int (*bdev_try_to_free_page)(struct super_block*, struct page*, gfp_t);
+	int (*nr_cached_objects)(struct super_block *);
+	void (*free_cached_objects)(struct super_block *, int);
 };
 
 /*
@@ -1695,6 +1705,10 @@ struct super_operations {
  *			set during data writeback, and cleared with a wakeup
  *			on the bit address once it is done.
  *
+ * I_REFERENCED		Marks the inode as recently references on the LRU list.
+ *
+ * I_DIO_WAKEUP		Never set.  Only used as a key for wait_on_bit().
+ *
  * Q: What is the difference between I_WILL_FREE and I_FREEING?
  */
 #define I_DIRTY_SYNC		(1 << 0)
@@ -1708,6 +1722,8 @@ struct super_operations {
 #define __I_SYNC		7
 #define I_SYNC			(1 << __I_SYNC)
 #define I_REFERENCED		(1 << 8)
+#define __I_DIO_WAKEUP		9
+#define I_DIO_WAKEUP		(1 << I_DIO_WAKEUP)
 
 #define I_DIRTY (I_DIRTY_SYNC | I_DIRTY_DATASYNC | I_DIRTY_PAGES)
 
@@ -1818,7 +1834,6 @@ struct file_system_type {
 	struct lock_class_key i_lock_key;
 	struct lock_class_key i_mutex_key;
 	struct lock_class_key i_mutex_dir_key;
-	struct lock_class_key i_alloc_sem_key;
 };
 
 extern struct dentry *mount_ns(struct file_system_type *fs_type, int flags,
@@ -1839,6 +1854,8 @@ void kill_litter_super(struct super_block *sb);
 void deactivate_super(struct super_block *sb);
 void deactivate_locked_super(struct super_block *sb);
 int set_anon_super(struct super_block *s, void *data);
+int get_anon_bdev(dev_t *);
+void free_anon_bdev(dev_t);
 struct super_block *sget(struct file_system_type *type,
 			int (*test)(struct super_block *,void *),
 			int (*set)(struct super_block *,void *),
@@ -2395,6 +2412,8 @@ enum {
 };
 
 void dio_end_io(struct bio *bio, int error);
+void inode_dio_wait(struct inode *inode);
+void inode_dio_done(struct inode *inode);
 
 ssize_t __blockdev_direct_IO(int rw, struct kiocb *iocb, struct inode *inode,
 	struct block_device *bdev, const struct iovec *iov, loff_t offset,
@@ -2402,13 +2421,16 @@ ssize_t __blockdev_direct_IO(int rw, struct kiocb *iocb, struct inode *inode,
 	dio_submit_t submit_io,	int flags);
 
 static inline ssize_t blockdev_direct_IO(int rw, struct kiocb *iocb,
-	struct inode *inode, struct block_device *bdev, const struct iovec *iov,
-	loff_t offset, unsigned long nr_segs, get_block_t get_block,
-	dio_iodone_t end_io)
+		struct inode *inode, const struct iovec *iov, loff_t offset,
+		unsigned long nr_segs, get_block_t get_block)
 {
-	return __blockdev_direct_IO(rw, iocb, inode, bdev, iov, offset,
-				    nr_segs, get_block, end_io, NULL,
+	return __blockdev_direct_IO(rw, iocb, inode, inode->i_sb->s_bdev, iov,
+				    offset, nr_segs, get_block, NULL, NULL,
 				    DIO_LOCKING | DIO_SKIP_HOLES);
+}
+#else
+static inline void inode_dio_wait(struct inode *inode)
+{
 }
 #endif
 
@@ -2459,6 +2481,8 @@ extern struct super_block *get_active_super(struct block_device *bdev);
 extern struct super_block *user_get_super(dev_t);
 extern void drop_super(struct super_block *sb);
 extern void iterate_supers(void (*)(struct super_block *, void *), void *);
+extern void iterate_supers_type(struct file_system_type *,
+			        void (*)(struct super_block *, void *), void *);
 
 extern int dcache_dir_open(struct inode *, struct file *);
 extern int dcache_dir_close(struct inode *, struct file *);
