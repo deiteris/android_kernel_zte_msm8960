@@ -349,7 +349,7 @@ CHECKFLAGS     := -D__linux__ -Dlinux -D__STDC__ -Dunix -D__unix__ \
 		  -Wbitwise -Wno-return-void $(CF)
 GRAPHITE	= -fgcse-las -fgraphite -floop-flatten -floop-parallelize-all -ftree-loop-linear -floop-interchange -floop-strip-mine -floop-block
 MODFLAGS	= -DMODULE $(KERNELFLAGS) -fno-pic 
-KERNELFLAGS	= -DNDEBUG -fgcse-lm -fgcse-sm -fsched-spec-load -fforce-addr -ffast-math -fsingle-precision-constant -marm -mtune=cortex-a8 -mfpu=neon -ftree-vectorize -fgcse-las $(GRAPHITE)
+KERNELFLAGS	= -DNDEBUG -fgcse-lm -fgcse-sm -fsched-spec-load -fforce-addr -ffast-math -fsingle-precision-constant -marm -mtune=cortex-a15 -mfpu=neon-vfpv4 -ftree-vectorize -fgcse-las $(GRAPHITE)
 CFLAGS_MODULE   = $(MODFLAGS) 
 AFLAGS_MODULE   = 
 LDFLAGS_MODULE  = -T $(srctree)/scripts/module-common.lds

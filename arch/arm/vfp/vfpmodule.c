@@ -41,6 +41,35 @@ void (*vfp_vector)(void) = vfp_null_entry;
 union vfp_state *vfp_current_hw_state[NR_CPUS];
 
 /*
+ * Is 'thread's most up to date state stored in this CPUs hardware?
+ * Must be called from non-preemptible context.
+ */
+static bool vfp_state_in_hw(unsigned int cpu, struct thread_info *thread)
+{
+#ifdef CONFIG_SMP
+	if (thread->vfpstate.hard.cpu != cpu)
+		return false;
+#endif
+	return vfp_current_hw_state[cpu] == &thread->vfpstate;
+}
+
+/*
+ * Force a reload of the VFP context from the thread structure.  We do
+ * this by ensuring that access to the VFP hardware is disabled, and
+ * clear vfp_current_hw_state.  Must be called from non-preemptible context.
+ */
+static void vfp_force_reload(unsigned int cpu, struct thread_info *thread)
+{
+	if (vfp_state_in_hw(cpu, thread)) {
+		fmxr(FPEXC, fmrx(FPEXC) & ~FPEXC_EN);
+		vfp_current_hw_state[cpu] = NULL;
+	}
+#ifdef CONFIG_SMP
+	thread->vfpstate.hard.cpu = NR_CPUS;
+#endif
+}
+
+/*
  * Dual-use variable.
  * Used in startup: set to non-zero if VFP checks fail
  * After startup, holds VFP architecture
@@ -408,7 +437,6 @@ int vfp_flush_context(void)
 	struct thread_info *ti;
 	u32 fpexc;
 	u32 cpu;
-	int saved = 0;
 
 	local_irq_save(flags);
 
@@ -431,13 +459,18 @@ int vfp_flush_context(void)
 
 		/* disable, just in case */
 		fmxr(FPEXC, fmrx(FPEXC) & ~FPEXC_EN);
-		saved = 1;
+	} else if (vfp_current_hw_state[ti->cpu]) {
+		fmxr(FPEXC, fpexc | FPEXC_EN);
+		vfp_save_state(vfp_current_hw_state[ti->cpu], fpexc);
+		fmxr(FPEXC, fpexc);
 	}
+
+	/* clear any information we had about last context state */
 	vfp_current_hw_state[cpu] = NULL;
 
 	local_irq_restore(flags);
 
-	return saved;
+	return 0;
 }
 
 void vfp_reinit(void)
@@ -533,6 +566,26 @@ void vfp_flush_hwstate(struct thread_info *thread)
 	put_cpu();
 }
 
+void vfp_kmode_exception(void)
+{
+	/*
+	 * If we reach this point, a floating point exception has been raised
+	 * while running in kernel mode. If the NEON/VFP unit was enabled at the
+	 * time, it means a VFP instruction has been issued that requires
+	 * software assistance to complete, something which is not currently
+	 * supported in kernel mode.
+	 * If the NEON/VFP unit was disabled, and the location pointed to below
+	 * is properly preceded by a call to kernel_neon_begin(), something has
+	 * caused the task to be scheduled out and back in again. In this case,
+	 * rebuilding and running with CONFIG_DEBUG_ATOMIC_SLEEP enabled should
+	 * be helpful in localizing the problem.
+	 */
+	if (fmrx(FPEXC) & FPEXC_EN)
+		pr_crit("BUG: unsupported FP instruction in kernel mode\n");
+	else
+		pr_crit("BUG: FP instruction issued in kernel mode with FP unit disabled\n");
+}
+
 /*
  * VFP hardware can lose all context when a CPU goes offline.
  * As we will be running in SMP mode with CPU hotplug, we will save the
@@ -548,12 +601,56 @@ static int vfp_hotplug(struct notifier_block *b, unsigned long action,
 	void *hcpu)
 {
 	if (action == CPU_DYING || action == CPU_DYING_FROZEN) {
-		unsigned int cpu = (long)hcpu;
-		vfp_current_hw_state[cpu] = NULL;
+		vfp_force_reload((long)hcpu, current_thread_info());
 	} else if (action == CPU_STARTING || action == CPU_STARTING_FROZEN)
 		vfp_enable(NULL);
 	return NOTIFY_OK;
 }
+
+#ifdef CONFIG_KERNEL_MODE_NEON
+
+/*
+ * Kernel-side NEON support functions
+ */
+void kernel_neon_begin(void)
+{
+	struct thread_info *thread = current_thread_info();
+	unsigned int cpu;
+	u32 fpexc;
+
+	/*
+	 * Kernel mode NEON is only allowed outside of interrupt context
+	 * with preemption disabled. This will make sure that the kernel
+	 * mode NEON register contents never need to be preserved.
+	 */
+	cpu = get_cpu();
+
+	fpexc = fmrx(FPEXC) | FPEXC_EN;
+	fmxr(FPEXC, fpexc);
+
+	/*
+	 * Save the userland NEON/VFP state. Under UP,
+	 * the owner could be a task other than 'current'
+	 */
+	if (vfp_state_in_hw(cpu, thread))
+		vfp_save_state(&thread->vfpstate, fpexc);
+#ifndef CONFIG_SMP
+	else if (vfp_current_hw_state[cpu] != NULL)
+		vfp_save_state(vfp_current_hw_state[cpu], fpexc);
+#endif
+	vfp_current_hw_state[cpu] = NULL;
+}
+EXPORT_SYMBOL(kernel_neon_begin);
+
+void kernel_neon_end(void)
+{
+	/* Disable the NEON/VFP unit. */
+	fmxr(FPEXC, fmrx(FPEXC) & ~FPEXC_EN);
+	put_cpu();
+}
+EXPORT_SYMBOL(kernel_neon_end);
+
+#endif /* CONFIG_KERNEL_MODE_NEON */
 
 /*
  * VFP support code initialisation.
@@ -637,4 +734,4 @@ static int __init vfp_init(void)
 	return 0;
 }
 
-late_initcall(vfp_init);
+core_initcall(vfp_init);
