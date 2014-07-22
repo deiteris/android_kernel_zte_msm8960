@@ -395,9 +395,12 @@ void led_blink_set(struct led_classdev *led_cdev,
 {
          #if defined CONFIG_LED_PWM_CTRL//modified by zhang.yu_1 for led blink 
 	if (led_cdev->blink_set &&
-	    !led_cdev->blink_set(led_cdev, delay_on, delay_off))
+	    !led_cdev->blink_set(led_cdev, delay_on, delay_off)) {
+		led_cdev->blink_delay_on = *delay_on;
+		led_cdev->blink_delay_off = *delay_off;
 		return;
 	#endif
+	}
 
 	/* blink with 1 Hz as default if nothing specified */
 	if (!*delay_on && !*delay_off)
