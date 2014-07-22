@@ -456,6 +456,7 @@ CDEFINES  := -DANI_PRODUCT_TYPE_CLIENT=1 \
 		-DFEATURE_WLAN_UAPSD_FW_TRG_FRAMES \
 		-DWLAN_SOFTAP_FEATURE \
 		-Wall\
+		-DWLAN_DEBUG \
 		-D__linux__ \
 		-DMSM_PLATFORM \
 		-DFEATURE_WLAN_INTEGRATED_SOC \
@@ -471,11 +472,10 @@ CDEFINES  := -DANI_PRODUCT_TYPE_CLIENT=1 \
 		-DFEATURE_WLAN_SCAN_PNO \
 		-DWLAN_FEATURE_PACKET_FILTERING \
 		-DWLAN_FEATURE_VOWIFI
+#		-DTRACE_RECORD \
 #		-DPE_DEBUG_LOGW \
 #		-DPE_DEBUG_LOGE \
 #		-DDEBUG \
-#		-DTRACE_RECORD \
-#		-DWLAN_DEBUG \
 
 # there are still pieces of code which are conditional upon these
 # need to investigate all of them to see which should also be
