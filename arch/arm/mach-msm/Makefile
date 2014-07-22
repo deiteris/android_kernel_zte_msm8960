@@ -50,7 +50,7 @@ obj-$(CONFIG_MSM_AVS_HW) += avs_hw.o
 obj-$(CONFIG_CPU_V6) += idle-v6.o
 obj-$(CONFIG_CPU_V7) += idle-v7.o
 obj-$(CONFIG_MSM_JTAG) += jtag.o
-obj-$(CONFIG_ZTE_ACPU_OVERCLOCK) += zte_krait_oc.o
+obj-$(CONFIG_ZTE_ACPU_OVERCLOCK)		+= zte_krait_oc.o
 
 msm-etm-objs := etm.o
 obj-$(CONFIG_MSM_ETM) += msm-etm.o
@@ -330,4 +330,3 @@ obj-$(CONFIG_MSM_CACHE_DUMP) += msm_cache_dump.o
 
 obj-$(CONFIG_FORCE_FAST_CHARGE) += fastchg.o
 obj-$(CONFIG_HAS_MACH_MEMUTILS) += memutils/
-obj-$(CONFIG_MSM_SLEEPER) += msm-sleeper.o
