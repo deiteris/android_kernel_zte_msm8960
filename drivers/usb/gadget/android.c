@@ -1412,14 +1412,8 @@ static ssize_t enable_store(struct device *pdev, struct device_attribute *attr,
 		usb_gadget_connect(cdev->gadget);
 		dev->enabled = true;
 	} else if (!enabled && dev->enabled) {
-<<<<<<< HEAD
 		printk(KERN_ERR"usb:%s,enabled=%d\n",__FUNCTION__,enabled);
 		usb_gadget_disconnect(cdev->gadget);		
-=======
-		usb_gadget_disconnect(cdev->gadget);
-		/* Cancel pending control requests */
-		usb_ep_dequeue(cdev->gadget->ep0, cdev->req);
->>>>>>> e0de0a5... usb: gadget: android: Cancel pending ctrlrequest before disabling
 		usb_remove_config(cdev, &android_config_driver);
 		dev->enabled = false;
 	} else {
