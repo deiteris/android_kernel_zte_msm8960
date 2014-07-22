@@ -497,7 +497,6 @@ static void do_ps(struct fiq_debugger_state *state)
 	read_unlock(&tasklist_lock);
 }
 
-<<<<<<< HEAD
 #ifdef CONFIG_FIQ_DEBUGGER_CONSOLE
 static void begin_syslog_dump(struct fiq_debugger_state *state)
 {
@@ -516,20 +515,11 @@ static void begin_syslog_dump(struct fiq_debugger_state *state)
 }
 
 static void end_syslog_dump(struct fiq_debugger_state *state)
-=======
-extern int do_syslog(int type, char __user *bug, int count);
-static void do_sysrq(struct fiq_debugger_state *state, char rq)
->>>>>>> b11ab5b... ARM: common: fiq_debugger: add irq context debug functions
 {
 	char buf[128];
 	int ret;
 	int idx = 0;
-<<<<<<< HEAD
 
-=======
-	do_syslog(5 /* clear */, NULL, 0);
-	handle_sysrq(rq);
->>>>>>> b11ab5b... ARM: common: fiq_debugger: add irq context debug functions
 	while (1) {
 		ret = log_buf_copy(buf, idx, sizeof(buf) - 1);
 		if (ret <= 0)
@@ -539,7 +529,6 @@ static void do_sysrq(struct fiq_debugger_state *state, char rq)
 		idx += ret;
 	}
 }
-<<<<<<< HEAD
 #endif
 
 static void do_sysrq(struct fiq_debugger_state *state, char rq)
@@ -548,8 +537,6 @@ static void do_sysrq(struct fiq_debugger_state *state, char rq)
 	handle_sysrq(rq);
 	end_syslog_dump(state);
 }
-=======
->>>>>>> b11ab5b... ARM: common: fiq_debugger: add irq context debug functions
 
 /* This function CANNOT be called in FIQ context */
 static void debug_irq_exec(struct fiq_debugger_state *state, char *cmd)
