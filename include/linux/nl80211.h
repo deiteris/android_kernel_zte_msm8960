@@ -1009,6 +1009,7 @@ enum nl80211_commands {
  *	are managed in software: interfaces of these types aren't subject to
  *	any restrictions in their number or combinations.
  *
+<<<<<<< HEAD
  * @%NL80211_ATTR_REKEY_DATA: nested attribute containing the information
  *	necessary for GTK rekeying in the device, see &enum nl80211_rekey_data.
  *
@@ -1018,6 +1019,8 @@ enum nl80211_commands {
  *	7.3.2.2 but without the length restriction
  *	(at most %NL80211_MAX_SUPP_RATES).
  *
+=======
+>>>>>>> 51e0d25... nl80211/cfg80211: Add crypto settings into NEW_BEACON
  * @NL80211_ATTR_HIDDEN_SSID: indicates whether SSID is to be hidden from Beacon
  *	and Probe Response (when response to wildcard Probe Request); see
  *	&enum nl80211_hidden_ssid, represented as a u32
@@ -1031,6 +1034,7 @@ enum nl80211_commands {
  *	%NL80211_CMD_SET_BEACON to provide extra IEs (e.g., WPS/P2P IE) into
  *	(Re)Association Response frames when the driver (or firmware) replies to
  *	(Re)Association Request frames.
+<<<<<<< HEAD
  * @NL80211_ATTR_STA_WME: Nested attribute containing the wme configuration
  *      of the station, see &enum nl80211_sta_wme_attr.
  * @NL80211_ATTR_SUPPORT_AP_UAPSD: the device supports uapsd when working
@@ -1080,6 +1084,8 @@ enum nl80211_commands {
  *      requests while operating in AP-mode.
  *      This attribute holds a bitmap of the supported protocols for
  *      offloading (see &enum nl80211_probe_resp_offload_support_attr).
+=======
+>>>>>>> 51e0d25... nl80211/cfg80211: Add crypto settings into NEW_BEACON
  *
  * @NL80211_ATTR_MAX: highest attribute number currently defined
  * @__NL80211_ATTR_AFTER_LAST: internal use
@@ -1279,6 +1285,7 @@ enum nl80211_attrs {
 	NL80211_ATTR_INTERFACE_COMBINATIONS,
 	NL80211_ATTR_SOFTWARE_IFTYPES,
 
+<<<<<<< HEAD
 	NL80211_ATTR_REKEY_DATA,
 
 	NL80211_ATTR_MAX_NUM_SCHED_SCAN_SSIDS,
@@ -1286,11 +1293,14 @@ enum nl80211_attrs {
 
 	NL80211_ATTR_SCAN_SUPP_RATES,
 
+=======
+>>>>>>> 51e0d25... nl80211/cfg80211: Add crypto settings into NEW_BEACON
 	NL80211_ATTR_HIDDEN_SSID,
 
 	NL80211_ATTR_IE_PROBE_RESP,
 	NL80211_ATTR_IE_ASSOC_RESP,
 
+<<<<<<< HEAD
 	NL80211_ATTR_STA_WME,
 	NL80211_ATTR_SUPPORT_AP_UAPSD,
 
@@ -1316,6 +1326,8 @@ enum nl80211_attrs {
 
 	NL80211_ATTR_PROBE_RESP_OFFLOAD,
 
+=======
+>>>>>>> 51e0d25... nl80211/cfg80211: Add crypto settings into NEW_BEACON
 	/* add attributes here, update the policy in nl80211.c */
 
 	__NL80211_ATTR_AFTER_LAST,
@@ -2498,6 +2510,7 @@ enum nl80211_hidden_ssid {
 	NL80211_HIDDEN_SSID_ZERO_CONTENTS
 };
 
+<<<<<<< HEAD
 /*
  * enum nl80211_ap_sme_features - device-integrated AP features
  * Reserved for future use, no bits are defined in
@@ -2529,4 +2542,6 @@ enum nl80211_probe_resp_offload_support_attr {
 };
 
 
+=======
+>>>>>>> 51e0d25... nl80211/cfg80211: Add crypto settings into NEW_BEACON
 #endif /* __LINUX_NL80211_H */
