@@ -3981,22 +3981,6 @@ static bool nl80211_valid_wpa_versions(u32 wpa_versions)
 				  NL80211_WPA_VERSION_2));
 }
 
-static bool nl80211_valid_akm_suite(u32 akm)
-{
-	return akm == WLAN_AKM_SUITE_8021X ||
-		akm == WLAN_AKM_SUITE_PSK;
-}
-
-static bool nl80211_valid_cipher_suite(u32 cipher)
-{
-	return cipher == WLAN_CIPHER_SUITE_WEP40 ||
-		cipher == WLAN_CIPHER_SUITE_WEP104 ||
-		cipher == WLAN_CIPHER_SUITE_TKIP ||
-		cipher == WLAN_CIPHER_SUITE_CCMP ||
-		cipher == WLAN_CIPHER_SUITE_AES_CMAC ||
-		cipher == WLAN_CIPHER_SUITE_SMS4;
-}
-
 static int nl80211_authenticate(struct sk_buff *skb, struct genl_info *info)
 {
 	struct cfg80211_registered_device *rdev = info->user_ptr[0];
