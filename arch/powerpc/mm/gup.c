@@ -16,7 +16,6 @@
 
 #ifdef __HAVE_ARCH_PTE_SPECIAL
 
-<<<<<<< HEAD
 static inline void get_huge_page_tail(struct page *page)
 {
 	/*
@@ -28,8 +27,6 @@ static inline void get_huge_page_tail(struct page *page)
 	atomic_inc(&page->_mapcount);
 }
 
-=======
->>>>>>> 94225ab... Merge linux-stable 3.0.28 into android-3.0
 /*
  * The performance critical leaf functions are made noinline otherwise gcc
  * inlines everything into a single function which results in too much
@@ -61,6 +58,8 @@ static noinline int gup_pte_range(pmd_t pmd, unsigned long addr,
 			put_page(page);
 			return 0;
 		}
+		if (PageTail(page))
+			get_huge_page_tail(page);
 		pages[*nr] = page;
 		(*nr)++;
 

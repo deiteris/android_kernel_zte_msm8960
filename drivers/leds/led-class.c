@@ -393,12 +393,7 @@ void led_blink_set(struct led_classdev *led_cdev,
 		   unsigned long *delay_on,
 		   unsigned long *delay_off)
 {
-<<<<<<< HEAD
          #if defined CONFIG_LED_PWM_CTRL//modified by zhang.yu_1 for led blink 
-=======
-	del_timer_sync(&led_cdev->blink_timer);
-
->>>>>>> 94225ab... Merge linux-stable 3.0.28 into android-3.0
 	if (led_cdev->blink_set &&
 	    !led_cdev->blink_set(led_cdev, delay_on, delay_off))
 		return;

@@ -1015,10 +1015,7 @@ static void kgdbts_run_tests(void)
 		v1printk("kgdbts:RUN access write breakpoint test\n");
 		run_hw_break_test(0);
 	}
-<<<<<<< HEAD
 	test_debug_rodata();
-=======
->>>>>>> 94225ab... Merge linux-stable 3.0.28 into android-3.0
 
 	/* required internal KGDB tests */
 	v1printk("kgdbts:RUN plant and detach test\n");

@@ -1077,16 +1077,10 @@ static void kcryptd_crypt_write_convert(struct dm_crypt_io *io)
 		sector += bio_sectors(clone);
 
 		crypt_inc_pending(io);
-
 		r = crypt_convert(cc, &io->ctx);
 		if (r < 0)
 			io->error = -EIO;
-<<<<<<< HEAD
 		crypt_finished = atomic_dec_and_test(&io->ctx.cc_pending);
-=======
-
-		crypt_finished = atomic_dec_and_test(&io->ctx.pending);
->>>>>>> 94225ab... Merge linux-stable 3.0.28 into android-3.0
 
 		/* Encryption was already finished, submit io now */
 		if (crypt_finished) {
@@ -1157,17 +1151,11 @@ static void kcryptd_crypt_read_convert(struct dm_crypt_io *io)
 			   io->sector);
 
 	r = crypt_convert(cc, &io->ctx);
-	if (r < 0)
-		io->error = -EIO;
 
-<<<<<<< HEAD
 	if (r < 0)
 		io->error = -EIO;
 
 	if (atomic_dec_and_test(&io->ctx.cc_pending))
-=======
-	if (atomic_dec_and_test(&io->ctx.pending))
->>>>>>> 94225ab... Merge linux-stable 3.0.28 into android-3.0
 		kcryptd_crypt_read_done(io);
 
 	crypt_dec_pending(io);

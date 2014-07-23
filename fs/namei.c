@@ -136,7 +136,7 @@ static int do_getname(const char __user *filename, char *page)
 	return retval;
 }
 
-static char *getname_flags(const char __user *filename, int flags, int *empty)
+static char *getname_flags(const char __user * filename, int flags)
 {
 	char *tmp, *result;
 
@@ -147,8 +147,6 @@ static char *getname_flags(const char __user *filename, int flags, int *empty)
 
 		result = tmp;
 		if (retval < 0) {
-			if (retval == -ENOENT && empty)
-				*empty = 1;
 			if (retval != -ENOENT || !(flags & LOOKUP_EMPTY)) {
 				__putname(tmp);
 				result = ERR_PTR(retval);
@@ -161,7 +159,7 @@ static char *getname_flags(const char __user *filename, int flags, int *empty)
 
 char *getname(const char __user * filename)
 {
-	return getname_flags(filename, 0, 0);
+	return getname_flags(filename, 0);
 }
 
 #ifdef CONFIG_AUDITSYSCALL
@@ -1804,11 +1802,11 @@ struct dentry *lookup_one_len(const char *name, struct dentry *base, int len)
 	return __lookup_hash(&this, base, NULL);
 }
 
-int user_path_at_empty(int dfd, const char __user *name, unsigned flags,
-		 struct path *path, int *empty)
+int user_path_at(int dfd, const char __user *name, unsigned flags,
+		 struct path *path)
 {
 	struct nameidata nd;
-	char *tmp = getname_flags(name, flags, empty);
+	char *tmp = getname_flags(name, flags);
 	int err = PTR_ERR(tmp);
 	if (!IS_ERR(tmp)) {
 
@@ -1820,12 +1818,6 @@ int user_path_at_empty(int dfd, const char __user *name, unsigned flags,
 			*path = nd.path;
 	}
 	return err;
-}
-
-int user_path_at(int dfd, const char __user *name, unsigned flags,
-		 struct path *path)
-{
-	return user_path_at_empty(dfd, name, flags, path, 0);
 }
 
 static int user_path_parent(int dfd, const char __user *path,

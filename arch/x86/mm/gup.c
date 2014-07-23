@@ -108,7 +108,6 @@ static inline void get_head_page_multiple(struct page *page, int nr)
 	SetPageReferenced(page);
 }
 
-<<<<<<< HEAD
 static inline void get_huge_page_tail(struct page *page)
 {
 	/*
@@ -120,8 +119,6 @@ static inline void get_huge_page_tail(struct page *page)
 	atomic_inc(&page->_mapcount);
 }
 
-=======
->>>>>>> 94225ab... Merge linux-stable 3.0.28 into android-3.0
 static noinline int gup_huge_pmd(pmd_t pmd, unsigned long addr,
 		unsigned long end, int write, struct page **pages, int *nr)
 {
@@ -215,8 +212,6 @@ static noinline int gup_huge_pud(pud_t pud, unsigned long addr,
 	do {
 		VM_BUG_ON(compound_head(page) != head);
 		pages[*nr] = page;
-		if (PageTail(page))
-			get_huge_page_tail(page);
 		(*nr)++;
 		page++;
 		refs++;

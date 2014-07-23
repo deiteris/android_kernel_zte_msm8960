@@ -1289,25 +1289,6 @@ static int ehci_hub_control (
 #endif
 			else
 				goto error;
-<<<<<<< HEAD
-=======
-			ehci_quiesce(ehci);
-
-			/* Put all enabled ports into suspend */
-			while (ports--) {
-				u32 __iomem *sreg =
-						&ehci->regs->port_status[ports];
-
-				temp = ehci_readl(ehci, sreg) & ~PORT_RWC_BITS;
-				if (temp & PORT_PE)
-					ehci_writel(ehci, temp | PORT_SUSPEND,
-							sreg);
-			}
-			ehci_halt(ehci);
-			temp = ehci_readl(ehci, status_reg);
-			temp |= selector << 16;
-			ehci_writel(ehci, temp, status_reg);
->>>>>>> 94225ab... Merge linux-stable 3.0.28 into android-3.0
 			break;
 
 		default:

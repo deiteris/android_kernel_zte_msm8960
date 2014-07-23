@@ -508,16 +508,6 @@ static int pcie_aspm_sanity_check(struct pci_dev *pdev)
 		pos = pci_pcie_cap(child);
 		if (!pos)
 			return -EINVAL;
-
-		/*
-		 * If ASPM is disabled then we're not going to change
-		 * the BIOS state. It's safe to continue even if it's a
-		 * pre-1.1 device
-		 */
-
-		if (aspm_disabled)
-			continue;
-
 		/*
 		 * Disable ASPM for pre-1.1 PCIe device, we follow MS to use
 		 * RBER bit to determine if a function is 1.1 version device
@@ -744,19 +734,11 @@ static void __pci_disable_link_state(struct pci_dev *pdev, int state, bool sem,
 	struct pcie_link_state *link;
 
 	if (aspm_disabled && !force)
-<<<<<<< HEAD
 		return;
 
 	if (!pci_is_pcie(pdev))
 		return;
 
-=======
-		return;
-
-	if (!pci_is_pcie(pdev))
-		return;
-
->>>>>>> 94225ab... Merge linux-stable 3.0.28 into android-3.0
 	if (pdev->pcie_type == PCI_EXP_TYPE_ROOT_PORT ||
 	    pdev->pcie_type == PCI_EXP_TYPE_DOWNSTREAM)
 		parent = pdev;

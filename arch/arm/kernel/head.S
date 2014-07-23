@@ -348,13 +348,7 @@ __secondary_data:
  *  r13 = *virtual* address to jump to upon completion
  */
 __enable_mmu:
-<<<<<<< HEAD
 #ifdef CONFIG_ALLOW_CPU_ALIGNMENT
-=======
-#if defined(CONFIG_ALIGNMENT_TRAP) && __LINUX_ARM_ARCH__ < 6
-	orr	r0, r0, #CR_A
-#else
->>>>>>> 94225ab... Merge linux-stable 3.0.28 into android-3.0
 	bic	r0, r0, #CR_A
 #else
 	orr	r0, r0, #CR_A
