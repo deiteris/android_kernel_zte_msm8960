@@ -201,7 +201,6 @@ static int proc_root_link(struct inode *inode, struct path *path)
 }
 
 static struct mm_struct *mm_access(struct task_struct *task, unsigned int mode)
-<<<<<<< HEAD
 {
 	struct mm_struct *mm;
 	int err;
@@ -237,7 +236,8 @@ struct mm_struct *mm_for_smaps(struct task_struct *task)
 
 	mm = get_task_mm(task);
 	if (mm && mm != current->mm &&
-			!ptrace_may_access(task, mode)) {
+			!ptrace_may_access(task, mode) &&
+	                !capable(CAP_SYS_RESOURCE)) {
 		mmput(mm);
 		mm = ERR_PTR(-EACCES);
 	}
@@ -246,10 +246,6 @@ struct mm_struct *mm_for_smaps(struct task_struct *task)
 	return mm;
 }
 
-struct mm_struct *mm_for_maps(struct task_struct *task)
-{
-	return mm_access(task, PTRACE_MODE_READ);
-}
 
 static int proc_pid_cmdline(struct task_struct *task, char * buffer)
 {
