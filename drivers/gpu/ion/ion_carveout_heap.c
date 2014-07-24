@@ -111,25 +111,25 @@ static void ion_carveout_heap_free(struct ion_buffer *buffer)
 struct scatterlist *ion_carveout_heap_map_dma(struct ion_heap *heap,
 					      struct ion_buffer *buffer)
 {
-	struct sg_table *table;
+	struct scatterlist *sglist;
 
-	table = vmalloc(sizeof(struct scatterlist));
-	if (!table)
+	sglist = vmalloc(sizeof(struct scatterlist));
+	if (!sglist)
 		return ERR_PTR(-ENOMEM);
 
-	sg_init_table(table, 1);
-	table->length = buffer->size;
-	table->offset = 0;
-	table>dma_address = buffer->priv_phys;
+	sg_init_table(sglist, 1);
+	sglist->length = buffer->size;
+	sglist->offset = 0;
+	sglist->dma_address = buffer->priv_phys;
 
-	return table;
+	return sglist;
 }
 
 void ion_carveout_heap_unmap_dma(struct ion_heap *heap,
 				 struct ion_buffer *buffer)
 {
-	if (buffer->table)
-		vfree(buffer->table);
+	if (buffer->sglist)
+		vfree(buffer->sglist);
 }
 
 static int ion_carveout_request_region(struct ion_carveout_heap *carveout_heap)
@@ -282,7 +282,7 @@ int ion_carveout_heap_map_iommu(struct ion_buffer *buffer,
 	struct iommu_domain *domain;
 	int ret = 0;
 	unsigned long extra;
-	struct sg_table *table = 0;
+	struct scatterlist *sglist = 0;
 	int prot = IOMMU_WRITE | IOMMU_READ;
 	prot |= ION_IS_CACHED(flags) ? IOMMU_CACHE : 0;
 
@@ -310,16 +310,16 @@ int ion_carveout_heap_map_iommu(struct ion_buffer *buffer,
 		goto out1;
 	}
 
-	table = vmalloc(sizeof(*table));
-	if (!table)
+	sglist = vmalloc(sizeof(*sglist));
+	if (!sglist)
 		goto out1;
 
-	sg_init_table(table, 1);
-	table->length = buffer->size;
-	table->offset = 0;
-	table->dma_address = buffer->priv_phys;
+	sg_init_table(sglist, 1);
+	sglist->length = buffer->size;
+	sglist->offset = 0;
+	sglist->dma_address = buffer->priv_phys;
 
-	ret = iommu_map_range(domain, data->iova_addr, table,
+	ret = iommu_map_range(domain, data->iova_addr, sglist,
 			      buffer->size, prot);
 	if (ret) {
 		pr_err("%s: could not map %lx in domain %p\n",
@@ -334,13 +334,13 @@ int ion_carveout_heap_map_iommu(struct ion_buffer *buffer,
 		if (ret)
 			goto out2;
 	}
-	vfree(table);
+	vfree(sglist);
 	return ret;
 
 out2:
 	iommu_unmap_range(domain, data->iova_addr, buffer->size);
 out1:
-	vfree(table);
+	vfree(sglist);
 	msm_free_iova_address(data->iova_addr, domain_num, partition_num,
 				data->mapped_size);
 
