@@ -344,14 +344,5 @@ config REGULATOR_PM8058_XO
 	  chip. It is only supposed to be used when Linux on application
 	  processor is the master in control of XO buffers.
 
-config REGULATOR_QPNP
-	depends on OF_SPMI
-	depends on MSM_QPNP
-	tristate "Qualcomm QPNP regulator support"
-	help
-	  This driver supports voltage regulators in Qualcomm PMIC chips which
-	  comply with QPNP.  QPNP is a SPMI based PMIC implementation.  These
-	  chips provide several different varieties of LDO and switching
-	  regulators.  They also provide voltage switches and boost regulators.
 endif
 
