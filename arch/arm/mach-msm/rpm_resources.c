@@ -37,7 +37,6 @@
 enum {
 	MSM_RPMRS_DEBUG_OUTPUT = BIT(0),
 	MSM_RPMRS_DEBUG_BUFFER = BIT(1),
-	MSM_RPMRS_DEBUG_ZTE = BIT(2),
 };
 
 static int msm_rpmrs_debug_mask;
@@ -882,17 +881,10 @@ struct msm_rpmrs_limits *msm_rpmrs_lowest_limits(
 		irqs_detectable = msm_mpm_irqs_detectable(from_idle);
 		gpio_detectable = msm_mpm_gpio_irqs_detectable(from_idle);
 	}
-	if (!from_idle && (MSM_RPMRS_DEBUG_ZTE & msm_rpmrs_debug_mask))
-                pr_info("[ZTE-DBG]%s: %d irq_det=%d gpio_det=%d\n", 
-			__func__, __LINE__,irqs_detectable,gpio_detectable);
 
 	for (i = 0; i < msm_rpmrs_level_count; i++) {
 		struct msm_rpmrs_level *level = &msm_rpmrs_levels[i];
 		uint32_t power;
-		
-		if (!from_idle && (MSM_RPMRS_DEBUG_ZTE & msm_rpmrs_debug_mask))
-                        pr_info(" [%02d]level=%d avail=%d\n", i, level->sleep_mode,
-					level->available);
 		
 		if (!level->available)
 			continue;
@@ -900,20 +892,15 @@ struct msm_rpmrs_limits *msm_rpmrs_lowest_limits(
 		if (sleep_mode != level->sleep_mode)
 			continue;
 
-		
-                if (!from_idle && (MSM_RPMRS_DEBUG_ZTE & msm_rpmrs_debug_mask))
-                        pr_info("[ZTE-DBG]%s: %d \n", __func__, __LINE__);
 		if (latency_us < level->latency_us)
 			continue;
 		
-                if (!from_idle && (MSM_RPMRS_DEBUG_ZTE & msm_rpmrs_debug_mask))
-                        pr_info("[ZTE-DBG]%s: %d \n", __func__, __LINE__);
+		if (sleep_us <= level->time_overhead_us)
+			continue;
+
 		if (!msm_rpmrs_irqs_detectable(&level->rs_limits,
 					irqs_detectable, gpio_detectable))
 			continue;
-		
-                if (!from_idle && (MSM_RPMRS_DEBUG_ZTE & msm_rpmrs_debug_mask))
-                        pr_info("[ZTE-DBG]%s: %d \n", __func__, __LINE__);
 
 		if (sleep_us <= 1) {
 			power = level->energy_overhead;
