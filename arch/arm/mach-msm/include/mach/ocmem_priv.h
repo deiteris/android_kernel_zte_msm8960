@@ -74,6 +74,4 @@ struct ocmem_handle {
 };
 
 struct ocmem_zone *get_zone(unsigned);
-unsigned long allocate_head(struct ocmem_zone *, unsigned long);
-int free_head(struct ocmem_zone *, unsigned long, unsigned long);
 #endif
