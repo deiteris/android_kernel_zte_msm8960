@@ -67,7 +67,7 @@ static int set_cpu_freq(struct cpufreq_policy *policy, unsigned int new_freq)
 }
 
 #ifdef CONFIG_SMP
-static int msm_cpufreq_cpu_callback(struct notifier_block *nfb,
+static int __cpuinit msm_cpufreq_cpu_callback(struct notifier_block *nfb,
 					unsigned long action, void *hcpu)
 {
 	unsigned int cpu = (unsigned long)hcpu;
@@ -186,7 +186,7 @@ static int msm_cpufreq_verify(struct cpufreq_policy *policy)
 	return 0;
 }
 
-static int msm_cpufreq_init(struct cpufreq_policy *policy)
+static int __cpuinit msm_cpufreq_init(struct cpufreq_policy *policy)
 {
 	int cur_freq;
 	int index;

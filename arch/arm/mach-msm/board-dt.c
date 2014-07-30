@@ -50,7 +50,7 @@ static struct sys_timer msm_dt_timer = {
 	.init = msm_dt_timer_init
 };
 
-int local_timer_setup(struct clock_event_device *evt)
+int __cpuinit local_timer_setup(struct clock_event_device *evt)
 {
 	return 0;
 }
