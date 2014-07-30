@@ -37,10 +37,6 @@ obj-$(CONFIG_ARCH_MSM_SCORPION) += msm_fault_handlers.o
 endif
 
 obj-$(CONFIG_MSM_VIC) += irq-vic.o
-<<<<<<< HEAD
-=======
-obj-$(CONFIG_MSM_IOMMU) += devices-iommu.o
->>>>>>> b10f127... msm: iommu: move to drivers/iommu/
 
 ifdef CONFIG_ARCH_QSD8X50
 	obj-$(CONFIG_MSM_SOC_REV_NONE) += acpuclock-8x50.o

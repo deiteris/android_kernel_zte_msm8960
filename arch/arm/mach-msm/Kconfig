@@ -788,7 +788,6 @@ config MACH_FSM9XXX_SURF
 
 endmenu
 
-<<<<<<< HEAD
 config MSM_STACKED_MEMORY
 	bool "Stacked Memory"
 	default y
@@ -890,6 +889,7 @@ choice
 		  Say Y here if you want the debug print routines to direct
 		  their output to the first serial port on MSM devices.
 
+<<<<<<< HEAD
 	config DEBUG_MSM_UART2
 		bool "Kernel low-level debugging messages via MSM UART2"
 		depends on ARCH_MSM7X00A || ARCH_MSM7X30 || ARCH_QSD8X50
@@ -1870,6 +1870,31 @@ config MSM_RPM_STATS_LOG
 	  memory location. These messages provide statistical information about
 	  the low power modes that RPM enters. The drivers outputs the message
 	  via a debugfs node.
+
+config MSM_IOMMU
+	bool "MSM IOMMU Support"
+	depends on ARCH_MSM8X60 || ARCH_MSM8960 || ARCH_APQ8064
+	select IOMMU_API
+	default n
+	help
+	  Support for the IOMMUs found on certain Qualcomm SOCs.
+	  These IOMMUs allow virtualization of the address space used by most
+	  cores within the multimedia subsystem.
+
+	  If unsure, say N here.
+
+config IOMMU_PGTABLES_L2
+	bool "Allow SMMU page tables in the L2 cache (Experimental)"
+	depends on MSM_IOMMU=y
+	depends on MMU
+	depends on CPU_DCACHE_DISABLE=n
+	depends on SMP
+	default y
+	help
+	 Improves TLB miss latency at the expense of potential L2 pollution.
+	 However, with large multimedia buffers, the TLB should mostly contain
+	 section mappings and TLB misses should be quite infrequent.
+	 Most people can probably say Y here.
 
 config MSM_DIRECT_SCLK_ACCESS
 	bool "Direct access to the SCLK timer"
