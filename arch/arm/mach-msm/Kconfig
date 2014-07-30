@@ -788,6 +788,7 @@ config MACH_FSM9XXX_SURF
 
 endmenu
 
+<<<<<<< HEAD
 config MSM_STACKED_MEMORY
 	bool "Stacked Memory"
 	default y
