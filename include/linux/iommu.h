@@ -27,7 +27,6 @@
 #define IOMMU_WRITE	(2)
 #define IOMMU_CACHE	(4) /* DMA cache coherency */
 
-struct iommu_ops;
 struct bus_type;
 struct device;
 struct iommu_domain;
@@ -40,7 +39,6 @@ typedef int (*iommu_fault_handler_t)(struct iommu_domain *,
 				struct device *, unsigned long, int);
 
 struct iommu_domain {
-	struct iommu_ops *ops;
 	void *priv;
 	iommu_fault_handler_t handler;
 };
@@ -49,7 +47,7 @@ struct iommu_domain {
 #define IOMMU_CAP_INTR_REMAP		0x2	/* isolates device intrs */
 
 struct iommu_ops {
-	int (*domain_init)(struct iommu_domain *domain);
+	int (*domain_init)(struct iommu_domain *domain, int flags);
 	void (*domain_destroy)(struct iommu_domain *domain);
 	int (*attach_dev)(struct iommu_domain *domain, struct device *dev);
 	void (*detach_dev)(struct iommu_domain *domain, struct device *dev);
@@ -72,8 +70,8 @@ struct iommu_ops {
 
 extern void register_iommu(struct iommu_ops *ops);
 extern int bus_set_iommu(struct bus_type *bus, struct iommu_ops *ops);
-extern bool iommu_present(struct bus_type *bus);
-extern struct iommu_domain *iommu_domain_alloc(struct bus_type *bus);
+extern bool iommu_found(void);
+extern struct iommu_domain *iommu_domain_alloc(int flags);
 extern void iommu_domain_free(struct iommu_domain *domain);
 extern int iommu_attach_device(struct iommu_domain *domain,
 			       struct device *dev);
@@ -140,16 +138,12 @@ static inline void register_iommu(struct iommu_ops *ops)
 {
 }
 
-static inline bool iommu_present(struct bus_type *bus)
+static inline bool iommu_found(void)
 {
 	return false;
 }
 
-<<<<<<< HEAD
 static inline struct iommu_domain *iommu_domain_alloc(int flags)
-=======
-static inline struct iommu_domain *iommu_domain_alloc(struct bus_type *bus)
->>>>>>> 905d66c... iommu/core: Add bus_type parameter to iommu_domain_alloc
 {
 	return NULL;
 }
