@@ -198,7 +198,7 @@ tcpmss_tg4(struct sk_buff *skb, const struct xt_action_param *par)
 	return XT_CONTINUE;
 }
 
-#if defined(CONFIG_IP6_NF_IPTABLES) || defined(CONFIG_IP6_NF_IPTABLES_MODULE)
+#if IS_ENABLED(CONFIG_IP6_NF_IPTABLES)
 static unsigned int
 tcpmss_tg6(struct sk_buff *skb, const struct xt_action_param *par)
 {
@@ -259,7 +259,7 @@ static int tcpmss_tg4_check(const struct xt_tgchk_param *par)
 	return -EINVAL;
 }
 
-#if defined(CONFIG_IP6_NF_IPTABLES) || defined(CONFIG_IP6_NF_IPTABLES_MODULE)
+#if IS_ENABLED(CONFIG_IP6_NF_IPTABLES)
 static int tcpmss_tg6_check(const struct xt_tgchk_param *par)
 {
 	const struct xt_tcpmss_info *info = par->targinfo;
@@ -292,7 +292,7 @@ static struct xt_target tcpmss_tg_reg[] __read_mostly = {
 		.proto		= IPPROTO_TCP,
 		.me		= THIS_MODULE,
 	},
-#if defined(CONFIG_IP6_NF_IPTABLES) || defined(CONFIG_IP6_NF_IPTABLES_MODULE)
+#if IS_ENABLED(CONFIG_IP6_NF_IPTABLES)
 	{
 		.family		= NFPROTO_IPV6,
 		.name		= "TCPMSS",
