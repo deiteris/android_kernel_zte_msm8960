@@ -115,7 +115,7 @@ find_config;
 # Get the build source and top level Kconfig file (passed in)
 my $ksource = $ARGV[0];
 my $kconfig = $ARGV[1];
-my $lsmod_file = $ENV{'LSMOD'};
+my $lsmod_file = $ARGV[2];
 
 my @makefiles = `find $ksource -name Makefile 2>/dev/null`;
 chomp @makefiles;
@@ -324,11 +324,7 @@ my %modules;
 
 if (defined($lsmod_file)) {
     if ( ! -f $lsmod_file) {
-	if ( -f $ENV{'objtree'}."/".$lsmod_file) {
-	    $lsmod_file = $ENV{'objtree'}."/".$lsmod_file;
-	} else {
-		die "$lsmod_file not found";
-	}
+	die "$lsmod_file not found";
     }
     if ( -x $lsmod_file) {
 	# the file is executable, run it
