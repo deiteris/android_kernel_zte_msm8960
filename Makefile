@@ -247,8 +247,8 @@ CONFIG_SHELL := $(shell if [ -x "$$BASH" ]; then echo $$BASH; \
 
 HOSTCC       = gcc
 HOSTCXX      = g++
-HOSTCFLAGS   = -Wall -Wno-return-type -Wno-implicit-int -Wmissing-prototypes -Wstrict-prototypes -Wenum-compare -O3 -fomit-frame-pointer -fgcse-las $(GRAPHITE)
-HOSTCXXFLAGS = -O3
+HOSTCFLAGS   = -Wall -Wno-return-type -Wno-implicit-int -Wmissing-prototypes -Wstrict-prototypes -Wenum-compare -Ofast -fomit-frame-pointer -fgcse-las $(GRAPHITE)
+HOSTCXXFLAGS = -Ofast
 
 # Decide whether to build built-in, modular, or both.
 # Normally, just do built-in.
@@ -573,9 +573,6 @@ KBUILD_CFLAGS	+= -O2
 endif
 ifdef CONFIG_CC_OPTIMIZE_MORE
 KBUILD_CFLAGS	+= -O3
-endif
-ifdef CONFIG_CC_OPTIMIZE_FAST
-KBUILD_CFLAGS	+= -OFast
 endif
 
 include $(srctree)/arch/$(SRCARCH)/Makefile
