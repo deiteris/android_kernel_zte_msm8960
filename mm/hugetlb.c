@@ -2452,14 +2452,7 @@ retry_avoidcopy:
 			if (unmap_ref_private(mm, vma, old_page, address)) {
 				BUG_ON(huge_pte_none(pte));
 				spin_lock(&mm->page_table_lock);
-				ptep = huge_pte_offset(mm, address & huge_page_mask(h));
-				if (likely(pte_same(huge_ptep_get(ptep), pte)))
-					goto retry_avoidcopy;
-				/*
-				 * race occurs while re-acquiring page_table_lock, and
-				 * our job is done.
-				 */
-				return 0;
+				goto retry_avoidcopy;
 			}
 			WARN_ON_ONCE(1);
 		}
