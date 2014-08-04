@@ -1,0 +1,504 @@
+#
+# Modified for FTM mode by ZTE_BOOT_JIA_20120316 jia.jia
+# ZTE_PLATFORM & ZTE_BOOT_MODE
+#
+on boot-pause
+    chmod 777 /system/bin/battery_charging
+    exec /system/bin/battery_charging
+    
+on early-init
+    # Set init and its forked children's oom_adj.
+    write /proc/1/oom_adj -16
+
+    start ueventd
+
+# create mountpoints
+    mkdir /mnt 0775 root system
+
+on init
+    sysclktz 0
+
+    loglevel 3
+
+    export PATH /sbin:/vendor/bin:/system/sbin:/system/bin:/system/xbin
+    export LD_LIBRARY_PATH /vendor/lib:/system/lib
+    export ANDROID_BOOTLOGO 0
+    export ANDROID_ROOT /system
+    export ANDROID_ASSETS /system/app
+    export ANDROID_DATA /data
+    export EXTERNAL_STORAGE /sdcard
+
+    export ASEC_MOUNTPOINT /mnt/asec
+    export LOOP_MOUNTPOINT /mnt/obb
+    export BOOTCLASSPATH /system/framework/core.jar:/system/framework/core-junit.jar:/system/framework/bouncycastle.jar:/system/framework/ext.jar:/system/framework/framework.jar:/system/framework/android.policy.jar:/system/framework/services.jar:/system/framework/apache-xml.jar:/system/framework/filterfw.jar:/system/framework/ZteDrmClient.jar:/system/framework/qcnvitems.jar:/system/framework/qcrilhook.jar
+
+# Backward compatibility
+    symlink /system/etc /etc
+    symlink /sys/kernel/debug /d
+
+# Right now vendor lives on the same filesystem as system,
+# but someday that may change.
+    symlink /system/vendor /vendor
+
+# create mountpoints
+    mkdir /mnt 0775 root system
+
+    mkdir /mnt/sdcard 0000 system system
+# Create cgroup mount point for cpu accounting
+    mkdir /acct
+    mount cgroup none /acct cpuacct
+    mkdir /acct/uid
+
+# Backwards Compat - XXX: Going away in G*
+    symlink /mnt/sdcard /sdcard
+
+    mkdir /system
+    mkdir /data 0771 system system
+    mkdir /cache 0770 system cache
+    mkdir /config 0500 root root
+
+    # Directory for putting things only root should see.
+    mkdir /mnt/secure 0700 root root
+
+    # Directory for staging bindmounts
+    mkdir /mnt/secure/staging 0700 root root
+
+    # Directory-target for where the secure container
+    # imagefile directory will be bind-mounted
+    mkdir /mnt/secure/asec  0700 root root
+
+    # Secure container public mount points.
+    mkdir /mnt/asec  0700 root system
+    mount tmpfs tmpfs /mnt/asec mode=0755,gid=1000
+
+    # Filesystem image public mount points.
+    mkdir /mnt/obb 0700 root system
+    mount tmpfs tmpfs /mnt/obb mode=0755,gid=1000
+
+    write /proc/sys/kernel/panic_on_oops 1
+    write /proc/sys/kernel/hung_task_timeout_secs 0
+    write /proc/cpu/alignment 4
+    write /proc/sys/kernel/sched_latency_ns 10000000
+    write /proc/sys/kernel/sched_wakeup_granularity_ns 2000000
+    write /proc/sys/kernel/sched_compat_yield 1
+    write /proc/sys/kernel/sched_child_runs_first 0
+    write /proc/sys/kernel/randomize_va_space 2
+
+# Create cgroup mount points for process groups
+    mkdir /dev/cpuctl
+    mount cgroup none /dev/cpuctl cpu
+    chown system system /dev/cpuctl
+    chown system system /dev/cpuctl/tasks
+    chmod 0777 /dev/cpuctl/tasks
+    write /dev/cpuctl/cpu.shares 1024
+
+    mkdir /dev/cpuctl/fg_boost
+    chown system system /dev/cpuctl/fg_boost/tasks
+    chmod 0777 /dev/cpuctl/fg_boost/tasks
+    write /dev/cpuctl/fg_boost/cpu.shares 1024
+
+    mkdir /dev/cpuctl/bg_non_interactive
+    chown system system /dev/cpuctl/bg_non_interactive/tasks
+    chmod 0777 /dev/cpuctl/bg_non_interactive/tasks
+    # 5.0 %
+    write /dev/cpuctl/bg_non_interactive/cpu.shares 52
+
+# Allow everybody to read the xt_qtaguid resource tracking misc dev.
+# This is needed by any process that uses socket tagging.
+    chmod 0644 /dev/xt_qtaguid
+
+on fs
+# mount mtd partitions
+    # Mount /system rw first to give the filesystem a chance to save a checkpoint
+    mount yaffs2 mtd@system /system
+    mount yaffs2 mtd@system /system ro remount
+    mount yaffs2 mtd@userdata /data nosuid nodev
+    mount yaffs2 mtd@persist /persist nosuid nodev
+    mount yaffs2 mtd@cache /cache nosuid nodev
+    mount yaffs2 mtd@persist /persist nosuid nodev
+
+on emmc-fs
+# mount mmc partitions
+
+# ZTE_BOOT_JIA_20111228 jia.jia --->
+#    wait /dev/block/mmcblk0p12
+#    mount ext4 /dev/block/mmcblk0p12 /system rw barrier=1
+#    wait /dev/block/mmcblk0p13
+#    exec /system/bin/e2fsck -p /dev/block/mmcblk0p13
+#    mount ext4 /dev/block/mmcblk0p13 /data nosuid nodev barrier=1 noauto_da_alloc
+#    mount ext4 /dev/block/mmcblk0p14 /persist nosuid nodev barrier=1
+#    mount ext4 /dev/block/mmcblk0p15 /cache nosuid nodev barrier=1
+# ZTE_BOOT_JIA_20111228 jia.jia <---
+
+# ZTE_BOOT_JIA_20120412 jia.jia --->
+    wait /dev/block/platform/msm_sdcc.1/by-name/system
+    mount ext4 /dev/block/platform/msm_sdcc.1/by-name/system /system ro barrier=1
+  
+    #------userdata----------
+    wait /dev/block/platform/msm_sdcc.1/by-name/userdata
+    exec /system/bin/sh -c "/system/bin/ext4check.sh USERDATA /dev/block/platform/msm_sdcc.1/by-name/userdata"
+    mount ext4 /dev/block/platform/msm_sdcc.1/by-name/userdata /data nosuid nodev barrier=1 noauto_da_alloc
+    #------persist----------
+    wait /dev/block/platform/msm_sdcc.1/by-name/persist
+    exec /system/bin/sh -c "/system/bin/ext4check.sh PERSIST /dev/block/platform/msm_sdcc.1/by-name/persist"
+    mount ext4 /dev/block/platform/msm_sdcc.1/by-name/persist /persist rw nosuid nodev barrier=1
+    #------cache----------
+    wait /dev/block/platform/msm_sdcc.1/by-name/cache
+    exec /system/bin/sh -c "/system/bin/ext4check.sh CACHE /dev/block/platform/msm_sdcc.1/by-name/cache"
+    mount ext4 /dev/block/platform/msm_sdcc.1/by-name/cache /cache nosuid nodev barrier=1
+    #------tombstones----------
+    wait /dev/block/platform/msm_sdcc.1/by-name/tombstones
+    exec /system/bin/sh -c "/system/bin/ext4check.sh TOMBSTONES /dev/block/platform/msm_sdcc.1/by-name/tombstones"
+
+#    wait /dev/block/mmcblk0p12
+#    mount ext4 /dev/block/mmcblk0p12 /system ro barrier=1
+#    wait /dev/block/mmcblk0p13
+#    exec /system/bin/e2fsck -p /dev/block/mmcblk0p13
+#    mount ext4 /dev/block/mmcblk0p13 /data nosuid nodev barrier=1 noauto_da_alloc
+#    mount ext4 /dev/block/mmcblk0p14 /persist nosuid nodev barrier=1
+#    mount ext4 /dev/block/mmcblk0p15 /cache nosuid nodev barrier=1
+# ZTE_BOOT_JIA_20120412 jia.jia <---
+
+on post-fs
+    # once everything is setup, no need to modify /
+    mount rootfs rootfs / ro remount
+
+    # We chown/chmod /cache again so because mount is run as root + defaults
+    chown system cache /cache
+    chmod 0770 /cache
+
+    # This may have been created by the recovery system with odd permissions
+    chown system cache /cache/recovery
+    chmod 0770 /cache/recovery
+
+    #change permissions on vmallocinfo so we can grab it from bugreports
+    chown root log /proc/vmallocinfo
+    chmod 0440 /proc/vmallocinfo
+
+    #change permissions on kmsg & sysrq-trigger so bugreports can grab kthread stacks
+    chown root system /proc/kmsg
+    chmod 0440 /proc/kmsg
+    chown root system /proc/sysrq-trigger
+    chmod 0220 /proc/sysrq-trigger
+
+    # create the lost+found directories, so as to enforce our permissions
+    mkdir /cache/lost+found 0770 root root
+
+on post-fs-data
+    # We chown/chmod /data again so because mount is run as root + defaults
+    chown system system /data
+    chmod 0771 /data
+
+    # Create dump dir and collect dumps.
+    # Do this before we mount cache so eventually we can use cache for
+    # storing dumps on platforms which do not have a dedicated dump partition.
+    mkdir /data/dontpanic 0750 root log
+
+    # Collect apanic data, free resources and re-arm trigger
+    copy /proc/apanic_console /data/dontpanic/apanic_console
+    chown root log /data/dontpanic/apanic_console
+    chmod 0640 /data/dontpanic/apanic_console
+
+    copy /proc/apanic_threads /data/dontpanic/apanic_threads
+    chown root log /data/dontpanic/apanic_threads
+    chmod 0640 /data/dontpanic/apanic_threads
+
+    write /proc/apanic_console 1
+
+    # create basic filesystem structure
+    mkdir /data/misc 01771 system misc
+    mkdir /data/misc/bluetoothd 0770 bluetooth bluetooth
+    mkdir /data/misc/bluetooth 0770 system system
+    mkdir /data/misc/keystore 0700 keystore keystore
+    mkdir /data/misc/keychain 0771 system system
+    mkdir /data/misc/vpn 0770 system vpn
+    mkdir /data/misc/systemkeys 0700 system system
+    # give system access to wpa_supplicant.conf for backup and restore
+    mkdir /data/misc/wifi 0770 wifi wifi
+    mkdir /data/misc/wifi/hostapd 0770 wifi wifi	
+    chmod 0660 /data/misc/wifi/wpa_supplicant.conf
+    mkdir /data/local 0771 shell shell
+    mkdir /data/local/tmp 0771 shell shell
+    mkdir /data/data 0771 system system
+    mkdir /data/app-private 0771 system system
+    mkdir /data/app 0771 system system
+    mkdir /data/property 0700 root root
+    mkdir /data/radio 0770 radio radio
+
+    # create dalvik-cache, so as to enforce our permissions
+    mkdir /data/dalvik-cache 0771 system system
+
+    # create resource-cache and double-check the perms
+    mkdir /data/resource-cache 0771 system system
+    chown system system /data/resource-cache
+    chmod 0771 /data/resource-cache
+
+    # create the lost+found directories, so as to enforce our permissions
+    mkdir /data/lost+found 0770 root root
+
+    # create directory for DRM plug-ins
+    mkdir /data/drm 0774 drm drm
+
+    # If there is no fs-post-data action in the init.<device>.rc file, you
+    # must uncomment this line, otherwise encrypted filesystems
+    # won't work.
+    # Set indication (checked by vold) that we have finished this action
+    #setprop vold.post_fs_data_done 1
+
+    chown system system /sys/class/android_usb/android0/f_mass_storage/lun/file
+    chmod 0660 /sys/class/android_usb/android0/f_mass_storage/lun/file
+    chown system system /sys/class/android_usb/android0/f_rndis/ethaddr
+    chmod 0660 /sys/class/android_usb/android0/f_rndis/ethaddr
+
+on boot
+# basic network init
+    ifup lo
+    hostname localhost
+    domainname localdomain
+
+# set RLIMIT_NICE to allow priorities from 19 to -20
+    setrlimit 13 40 40
+
+# Memory management.  Basic kernel parameters, and allow the high
+# level system server to be able to adjust the kernel OOM driver
+# paramters to match how it is managing things.
+    write /proc/sys/vm/overcommit_memory 1
+    write /proc/sys/vm/min_free_order_shift 4
+    chown root system /sys/module/lowmemorykiller/parameters/adj
+    chmod 0664 /sys/module/lowmemorykiller/parameters/adj
+    chown root system /sys/module/lowmemorykiller/parameters/minfree
+    chmod 0664 /sys/module/lowmemorykiller/parameters/minfree
+
+    # Tweak background writeout
+    write /proc/sys/vm/dirty_expire_centisecs 200
+    write /proc/sys/vm/dirty_background_ratio  5
+
+    # Permissions for System Server and daemons.
+    chown radio system /sys/android_power/state
+    chown radio system /sys/android_power/request_state
+    chown radio system /sys/android_power/acquire_full_wake_lock
+    chown radio system /sys/android_power/acquire_partial_wake_lock
+    chown radio system /sys/android_power/release_wake_lock
+    chown radio system /sys/power/state
+    chown radio system /sys/power/wake_lock
+    chown radio system /sys/power/wake_unlock
+    chmod 0660 /sys/power/state
+    chmod 0660 /sys/power/wake_lock
+    chmod 0660 /sys/power/wake_unlock
+    chown system system /sys/class/timed_output/vibrator/enable
+    chown system system /sys/class/leds/keyboard-backlight/brightness
+    chown system system /sys/class/leds/lcd-backlight/brightness
+    chown system system /sys/class/leds/button-backlight/brightness
+    chown system system /sys/class/leds/jogball-backlight/brightness
+    chown system system /sys/class/leds/red/brightness
+    chown system system /sys/class/leds/green/brightness
+    chown system system /sys/class/leds/blue/brightness
+    chown system system /sys/class/leds/red/device/grpfreq
+    chown system system /sys/class/leds/red/device/grppwm
+    chown system system /sys/class/leds/red/device/blink
+    chown system system /sys/class/leds/red/brightness
+    chown system system /sys/class/leds/green/brightness
+    chown system system /sys/class/leds/blue/brightness
+    chown system system /sys/class/leds/red/device/grpfreq
+    chown system system /sys/class/leds/red/device/grppwm
+    chown system system /sys/class/leds/red/device/blink
+#ZTE_TORCH_SLF_20120319 BEGIN
+    chown system camera /sys/class/leds/flashlight/brightness
+    chmod 0774 /sys/class/leds/flashlight/brightness
+ #ZTE_TORCH_SLF_20120319 end
+    chown system system /sys/class/timed_output/vibrator/enable
+    chown system system /sys/module/sco/parameters/disable_esco
+    chown system system /sys/kernel/ipv4/tcp_wmem_min
+    chown system system /sys/kernel/ipv4/tcp_wmem_def
+    chown system system /sys/kernel/ipv4/tcp_wmem_max
+    chown system system /sys/kernel/ipv4/tcp_rmem_min
+    chown system system /sys/kernel/ipv4/tcp_rmem_def
+    chown system system /sys/kernel/ipv4/tcp_rmem_max
+    chown root radio /proc/cmdline
+
+# Define TCP buffer sizes for various networks
+#   ReadMin, ReadInitial, ReadMax, WriteMin, WriteInitial, WriteMax,
+    setprop net.tcp.buffersize.default 4096,87380,110208,4096,16384,110208
+    setprop net.tcp.buffersize.wifi    4096,221184,3461120,4096,221184,3461120
+    setprop net.tcp.buffersize.lte     4094,87380,1220608,4096,16384,1220608
+    setprop net.tcp.buffersize.umts    4094,87380,110208,4096,16384,110208
+    setprop net.tcp.buffersize.hspa    4094,87380,1220608,4096,16384,1220608
+    setprop net.tcp.buffersize.hsupa   4094,87380,1220608,4096,16384,1220608
+    setprop net.tcp.buffersize.hsdpa   4094,87380,1220608,4096,16384,1220608
+    setprop net.tcp.buffersize.edge    4093,26280,35040,4096,16384,35040
+    setprop net.tcp.buffersize.gprs    4092,8760,11680,4096,8760,11680
+    setprop net.tcp.buffersize.evdo_b  4094,87380,262144,4096,16384,262144
+
+
+
+# Assign TCP buffer thresholds to be ceiling value of technology maximums
+# Increased technology maximums should be reflected here.
+    write /proc/sys/net/core/rmem_max  3461120
+    write /proc/sys/net/core/wmem_max  3461120
+
+# Set this property so surfaceflinger is not started by system_init
+    setprop system_init.startsurfaceflinger 0
+#lianghouxing add qcom-post-ftm for LOW POWER	
+	setprop sys.boot_completed_ftm 1
+    class_start core
+    class_start main
+
+on nonencrypted
+    class_start late_start
+
+on property:ro.crypto.state=encrypted
+    class_start late_start
+
+on charger
+    class_start charger
+
+on property:vold.decrypt=trigger_reset_main
+    class_reset main
+
+on property:vold.decrypt=trigger_load_persist_props
+    load_persist_props
+
+on property:vold.decrypt=trigger_post_fs_data
+    trigger post-fs-data
+
+on property:vold.decrypt=trigger_restart_min_framework
+    class_start main
+
+on property:vold.decrypt=trigger_restart_framework
+    class_start main
+    class_start late_start
+
+on property:vold.decrypt=trigger_shutdown_framework
+    class_reset late_start
+    class_reset main
+
+# Used to disable USB when switching states
+on property:sys.usb.config=none
+    stop adbd
+    write /sys/class/android_usb/android0/enable 0
+    write /sys/class/android_usb/android0/bDeviceClass 0
+    setprop sys.usb.state $sys.usb.config
+
+on property:sys.usb.config=diag
+    write /sys/class/android_usb/android0/enable 0
+    write /sys/class/android_usb/android0/idVendor 19D2
+    write /sys/class/android_usb/android0/idProduct 0112
+    write /sys/class/android_usb/android0/f_diag/clients diag
+    write /sys/class/android_usb/android0/functions diag
+    write /sys/class/android_usb/android0/enable 1
+    setprop sys.usb.state $sys.usb.config
+
+on property:sys.usb.config=diag,adb
+    write /sys/class/android_usb/android0/enable 0
+    write /sys/class/android_usb/android0/idVendor 19D2
+    write /sys/class/android_usb/android0/idProduct 213
+    write /sys/class/android_usb/android0/f_diag/clients diag
+    write /sys/class/android_usb/android0/functions diag,adb
+    write /sys/class/android_usb/android0/enable 1
+    start adbd
+    setprop sys.usb.state $sys.usb.config
+    
+# service usbconfig /sbin/usbconfig
+#    class core
+#    user root
+#    oneshot   
+#    
+# USB config end       
+
+## Daemon processes to be run by init.
+##
+service ueventd /sbin/ueventd
+    class core
+    critical
+
+service console /system/bin/sh
+    class core
+    console
+    disabled
+    user shell
+    group log
+
+# merged from 8x60-gb by ZTE_BOOT_JIA_20120110 jia.jia
+on property:persist.sys.ztelog.enable=1
+    start getlog
+
+# merged from 8x60-gb by ZTE_BOOT_JIA_20120110 jia.jia
+on property:persist.sys.ztelog.enable=0
+    stop getlog
+
+# adbd is controlled via property triggers in init.<platform>.usb.rc
+service adbd /sbin/adbd
+    class core
+    disabled
+
+#
+# Commented by ZTE_BOOT_JIA_20120321 jia.jia
+#
+# Always start adbd on userdebug and eng builds
+#on property:ro.debuggable=1
+#    write /sys/class/android_usb/android0/enable 0
+#    write /sys/class/android_usb/android0/idVendor 19D2
+#    write /sys/class/android_usb/android0/idProduct 1352
+#    write /sys/class/android_usb/android0/functions adb
+#    write /sys/class/android_usb/android0/enable 1
+#    write /sys/class/android_usb/android0/iManufacturer $ro.product.manufacturer
+#    write /sys/class/android_usb/android0/iProduct $ro.product.model
+#    write /sys/class/android_usb/android0/iSerial $ro.serialno
+#    start adbd
+
+# This property trigger has added to imitiate the previous behavior of "adb root".
+# The adb gadget driver used to reset the USB bus when the adbd daemon exited,
+# and the host side adb relied on this behavior to force it to reconnect with the
+# new adbd instance after init relaunches it. So now we force the USB bus to reset
+# here when adbd sets the service.adb.root property to 1.  We also restart adbd here
+# rather than waiting for init to notice its death and restarting it so the timing
+# of USB resetting and adb restarting more closely matches the previous behavior.
+on property:service.adb.root=1
+    write /sys/class/android_usb/android0/enable 0
+    restart adbd
+    write /sys/class/android_usb/android0/enable 1
+    
+
+service vold /system/bin/vold
+    class core
+    socket vold stream 0660 root mount
+    ioprio be 2
+
+service netd /system/bin/netd
+    class main
+    socket netd stream 0660 root system
+    socket dnsproxyd stream 0660 root inet
+
+
+service ril-daemon /system/bin/rild
+    class main
+    socket rild stream 660 root radio
+    socket rild-debug stream 660 radio system
+    user root
+    group radio cache inet misc audio sdcard_rw qcom_oncrpc diag
+
+service ftm_qcom-wifi /system/bin/sh /system/etc/init.qcom.wifi.sh
+    oneshot
+
+#
+# FTM daemon for FTM mode added by ZTE_BOOT_JIA_20120425 jia.jia
+#
+service ftmd-fm /system/bin/ftmdaemon-oem ftmmode
+    class late_start
+
+#
+# FTM daemon for EFS force sync added by ZTE_BOOT_JIA_20120815 jia.jia
+#
+service ftmd-fs /system/bin/ftmdaemon-oem forcesync
+    class core
+    disabled
+    user root
+    group radio
+    oneshot
+
+#
+# FTM daemon for EFS force sync added by ZTE_BOOT_JIA_20120815 jia.jia
+#
+on property:sys.ftm.forcesync=1
+    start ftmd-fs
+
