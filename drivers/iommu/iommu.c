@@ -146,13 +146,13 @@ int iommu_map(struct iommu_domain *domain, unsigned long iova,
 
 	BUG_ON(!IS_ALIGNED(iova | paddr, size));
 
-	return iommu_ops->map(domain, iova, paddr, size, prot);
+	return iommu_ops->map(domain, iova, paddr, gfp_order, prot);
 }
 EXPORT_SYMBOL_GPL(iommu_map);
 
 int iommu_unmap(struct iommu_domain *domain, unsigned long iova, int gfp_order)
 {
-	size_t size, unmapped;
+	size_t size;
 
 	if (!iommu_found())
 		return -ENODEV;
@@ -161,9 +161,7 @@ int iommu_unmap(struct iommu_domain *domain, unsigned long iova, int gfp_order)
 
 	BUG_ON(!IS_ALIGNED(iova, size));
 
-	return iommu_ops->unmap(domain, iova, size);
-
-	return get_order(unmapped);
+	return iommu_ops->unmap(domain, iova, gfp_order);
 }
 EXPORT_SYMBOL_GPL(iommu_unmap);
 
