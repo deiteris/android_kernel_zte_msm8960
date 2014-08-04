@@ -459,13 +459,6 @@ config MMC_SDRICOH_CS
 config MMC_TMIO_CORE
 	tristate
 
-config MMC_MSM
-	tristate "Qualcomm SDCC Controller Support"
-	depends on MMC && ARCH_MSM
-	help
-	  This provides support for the SD/MMC cell found in the
-          MSM and QSD SOCs from Qualcomm.
-
 config MMC_MSM_CARD_HW_DETECTION
 	boolean "Qualcomm MMC Hardware detection support"
 	depends on MMC_MSM

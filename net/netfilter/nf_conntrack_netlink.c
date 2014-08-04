@@ -208,7 +208,7 @@ ctnetlink_dump_counters(struct sk_buff *skb, const struct nf_conn *ct,
 {
 	enum ctattr_type type = dir ? CTA_COUNTERS_REPLY: CTA_COUNTERS_ORIG;
 	struct nlattr *nest_count;
-	const struct nf_conn_counter *acct;
+	struct nf_conn_counter *acct;
 
 	acct = nf_conn_acct_find(ct);
 	if (!acct)
