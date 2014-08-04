@@ -2478,9 +2478,14 @@ mark_held_locks(struct task_struct *curr, enum mark_type mark)
 /*
  * Hardirqs will be enabled:
  */
-static void __trace_hardirqs_on_caller(unsigned long ip)
+void trace_hardirqs_on_caller(unsigned long ip)
 {
 	struct task_struct *curr = current;
+
+	time_hardirqs_on(CALLER_ADDR0, ip);
+
+	if (unlikely(!debug_locks || current->lockdep_recursion))
+		return;
 
 	if (DEBUG_LOCKS_WARN_ON(unlikely(early_boot_irqs_disabled)))
 		return;
@@ -2497,6 +2502,8 @@ static void __trace_hardirqs_on_caller(unsigned long ip)
 	/* we'll do an OFF -> ON transition: */
 	curr->hardirqs_enabled = 1;
 
+	if (DEBUG_LOCKS_WARN_ON(!irqs_disabled()))
+		return;
 	if (DEBUG_LOCKS_WARN_ON(current->hardirq_context))
 		return;
 	/*
@@ -2517,21 +2524,6 @@ static void __trace_hardirqs_on_caller(unsigned long ip)
 	curr->hardirq_enable_ip = ip;
 	curr->hardirq_enable_event = ++curr->irq_events;
 	debug_atomic_inc(hardirqs_on_events);
-}
-
-void trace_hardirqs_on_caller(unsigned long ip)
-{
-	time_hardirqs_on(CALLER_ADDR0, ip);
-
-	if (unlikely(!debug_locks || current->lockdep_recursion))
-		return;
-
-	if (DEBUG_LOCKS_WARN_ON(!irqs_disabled()))
-		return;
-
-	current->lockdep_recursion = 1;
-	__trace_hardirqs_on_caller(ip);
-	current->lockdep_recursion = 0;
 }
 EXPORT_SYMBOL(trace_hardirqs_on_caller);
 
@@ -2582,7 +2574,7 @@ void trace_softirqs_on(unsigned long ip)
 {
 	struct task_struct *curr = current;
 
-	if (unlikely(!debug_locks || current->lockdep_recursion))
+	if (unlikely(!debug_locks))
 		return;
 
 	if (DEBUG_LOCKS_WARN_ON(!irqs_disabled()))
@@ -2593,7 +2585,6 @@ void trace_softirqs_on(unsigned long ip)
 		return;
 	}
 
-	current->lockdep_recursion = 1;
 	/*
 	 * We'll do an OFF -> ON transition:
 	 */
@@ -2608,7 +2599,6 @@ void trace_softirqs_on(unsigned long ip)
 	 */
 	if (curr->hardirqs_enabled)
 		mark_held_locks(curr, SOFTIRQ);
-	current->lockdep_recursion = 0;
 }
 
 /*
@@ -2618,7 +2608,7 @@ void trace_softirqs_off(unsigned long ip)
 {
 	struct task_struct *curr = current;
 
-	if (unlikely(!debug_locks || current->lockdep_recursion))
+	if (unlikely(!debug_locks))
 		return;
 
 	if (DEBUG_LOCKS_WARN_ON(!irqs_disabled()))
