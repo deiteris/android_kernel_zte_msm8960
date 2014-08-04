@@ -68,4 +68,3 @@ obj-$(CONFIG_QSEECOM) += qseecom.o
 obj-$(CONFIG_QFP_FUSE) += qfp_fuse.o
 obj-y				+= inv_mpu/
 obj-$(CONFIG_MSM_GPIO_NOTIFY)	+= msm_gpio_notify.o
-obj-$(CONFIG_FSYNC_CONTROL)  	+= fsync_control.o 
