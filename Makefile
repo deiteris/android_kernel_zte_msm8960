@@ -564,18 +564,10 @@ endif # $(dot-config)
 # Defaults to vmlinux, but the arch makefile usually adds further targets
 all: vmlinux
 
-# When we passing different CONFIG_CC change kbuild_cflags accordingly
 ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
-KBUILD_CFLAGS	+= -Os
-endif
-ifdef CONFIG_CC_OPTIMIZE_DEFAULT
 KBUILD_CFLAGS	+= -O2
-endif
-ifdef CONFIG_CC_OPTIMIZE_MORE
-KBUILD_CFLAGS	+= -O3
-endif
-ifdef CONFIG_CC_OPTIMIZE_FAST
-KBUILD_CFLAGS	+= -OFast
+else
+KBUILD_CFLAGS	+= -Ofast
 endif
 
 include $(srctree)/arch/$(SRCARCH)/Makefile
