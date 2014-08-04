@@ -441,7 +441,7 @@ static int __get_pgprot(int prot, int len)
 }
 
 static int msm_iommu_map(struct iommu_domain *domain, unsigned long va,
-			 phys_addr_t pa, int order, int prot)
+			 phys_addr_t pa, size_t len, int prot)
 {
 	struct msm_priv *priv;
 	unsigned long *fl_table;
@@ -451,7 +451,6 @@ static int msm_iommu_map(struct iommu_domain *domain, unsigned long va,
 	unsigned long *sl_pte;
 	unsigned long sl_offset;
 	unsigned int pgprot;
-	size_t len = 0x1000UL << order;
 	int ret = 0;
 
 	mutex_lock(&msm_iommu_lock);
@@ -584,7 +583,7 @@ fail:
 }
 
 static int msm_iommu_unmap(struct iommu_domain *domain, unsigned long va,
-			    int order)
+			    size_t len)
 {
 	struct msm_priv *priv;
 	unsigned long *fl_table;
@@ -593,7 +592,6 @@ static int msm_iommu_unmap(struct iommu_domain *domain, unsigned long va,
 	unsigned long *sl_table;
 	unsigned long *sl_pte;
 	unsigned long sl_offset;
-	size_t len = 0x1000UL << order;
 	int i, ret = 0;
 
 	mutex_lock(&msm_iommu_lock);
