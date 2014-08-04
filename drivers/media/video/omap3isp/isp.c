@@ -2130,6 +2130,25 @@ static int isp_probe(struct platform_device *pdev)
 		goto error_isp;
 	}
 
+<<<<<<< HEAD
+=======
+	/* to be removed once iommu migration is complete */
+	isp->iommu = to_iommu(isp->iommu_dev);
+
+	isp->domain = iommu_domain_alloc(pdev->dev.bus);
+	if (!isp->domain) {
+		dev_err(isp->dev, "can't alloc iommu domain\n");
+		ret = -ENOMEM;
+		goto error_isp;
+	}
+
+	ret = iommu_attach_device(isp->domain, isp->iommu_dev);
+	if (ret) {
+		dev_err(&pdev->dev, "can't attach iommu device: %d\n", ret);
+		goto free_domain;
+	}
+
+>>>>>>> 905d66c... iommu/core: Add bus_type parameter to iommu_domain_alloc
 	/* Interrupt */
 	isp->irq_num = platform_get_irq(pdev, 0);
 	if (isp->irq_num <= 0) {
