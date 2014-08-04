@@ -280,8 +280,4 @@ source "fs/dlm/Kconfig"
 	help
 	   An experimental file sync control using Android's early suspend / late resume drivers
 
-config ASYNC_FSYNC
-	bool "asynchronous fsync"
-	default y
-
 endmenu
