@@ -347,12 +347,12 @@ static int migrate_page_move_mapping(struct address_space *mapping,
 
 	radix_tree_replace_slot(pslot, newpage);
 
+	page_unfreeze_refs(page, expected_count);
 	/*
-	 * Drop cache reference from old page by unfreezing
-	 * to one less reference.
+	 * Drop cache reference from old page.
 	 * We know this isn't the last reference.
 	 */
-	page_unfreeze_refs(page, expected_count - 1);
+	__put_page(page);
 
 	/*
 	 * If moved to a different zone then also account
@@ -412,7 +412,9 @@ int migrate_huge_page_move_mapping(struct address_space *mapping,
 
 	radix_tree_replace_slot(pslot, newpage);
 
-	page_unfreeze_refs(page, expected_count - 1);
+	page_unfreeze_refs(page, expected_count);
+
+	__put_page(page);
 
 	spin_unlock_irq(&mapping->tree_lock);
 	return 0;
