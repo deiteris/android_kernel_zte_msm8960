@@ -131,47 +131,49 @@ EXPORT_SYMBOL_GPL(iommu_domain_alloc);
 
 void iommu_domain_free(struct iommu_domain *domain)
 {
-	if (likely(domain->ops->domain_destroy != NULL))
-		domain->ops->domain_destroy(domain);
+	if (!iommu_found())
+		return;
+
+	iommu_ops->domain_destroy(domain);
 	kfree(domain);
 }
 EXPORT_SYMBOL_GPL(iommu_domain_free);
 
 int iommu_attach_device(struct iommu_domain *domain, struct device *dev)
 {
-	if (unlikely(domain->ops->attach_dev == NULL))
+	if (!iommu_found())
 		return -ENODEV;
 
-	return domain->ops->attach_dev(domain, dev);
+	return iommu_ops->attach_dev(domain, dev);
 }
 EXPORT_SYMBOL_GPL(iommu_attach_device);
 
 void iommu_detach_device(struct iommu_domain *domain, struct device *dev)
 {
-	if (unlikely(domain->ops->detach_dev == NULL))
+	if (!iommu_found())
 		return;
 
-	domain->ops->detach_dev(domain, dev);
+	iommu_ops->detach_dev(domain, dev);
 }
 EXPORT_SYMBOL_GPL(iommu_detach_device);
 
 phys_addr_t iommu_iova_to_phys(struct iommu_domain *domain,
 			       unsigned long iova)
 {
-	if (unlikely(domain->ops->iova_to_phys == NULL))
+	if (!iommu_found())
 		return 0;
 
-	return domain->ops->iova_to_phys(domain, iova);
+	return iommu_ops->iova_to_phys(domain, iova);
 }
 EXPORT_SYMBOL_GPL(iommu_iova_to_phys);
 
 int iommu_domain_has_cap(struct iommu_domain *domain,
 			 unsigned long cap)
 {
-	if (unlikely(domain->ops->domain_has_cap == NULL))
-		return 0;
+	if (!iommu_found())
+		return -ENODEV;
 
-	return domain->ops->domain_has_cap(domain, cap);
+	return iommu_ops->domain_has_cap(domain, cap);
 }
 EXPORT_SYMBOL_GPL(iommu_domain_has_cap);
 
@@ -180,14 +182,14 @@ int iommu_map(struct iommu_domain *domain, unsigned long iova,
 {
 	size_t size;
 
-	if (unlikely(domain->ops->map == NULL))
+	if (!iommu_found())
 		return -ENODEV;
 
 	size         = PAGE_SIZE << gfp_order;
 
 	BUG_ON(!IS_ALIGNED(iova | paddr, size));
 
-	return domain->ops->map(domain, iova, paddr, gfp_order, prot);
+	return iommu_ops->map(domain, iova, paddr, gfp_order, prot);
 }
 EXPORT_SYMBOL_GPL(iommu_map);
 
@@ -195,14 +197,14 @@ int iommu_unmap(struct iommu_domain *domain, unsigned long iova, int gfp_order)
 {
 	size_t size;
 
-	if (unlikely(domain->ops->unmap == NULL))
+	if (!iommu_found())
 		return -ENODEV;
 
 	size         = PAGE_SIZE << gfp_order;
 
 	BUG_ON(!IS_ALIGNED(iova, size));
 
-	return domain->ops->unmap(domain, iova, gfp_order);
+	return iommu_ops->unmap(domain, iova, gfp_order);
 }
 EXPORT_SYMBOL_GPL(iommu_unmap);
 
