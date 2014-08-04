@@ -44,6 +44,71 @@ struct {
 	char *name;
 	int  domain;
 } msm_iommu_ctx_names[] = {
+	/* Camera */
+	{
+		.name = "vpe_src",
+		.domain = CAMERA_DOMAIN,
+	},
+	/* Camera */
+	{
+		.name = "vpe_dst",
+		.domain = CAMERA_DOMAIN,
+	},
+	/* Camera */
+	{
+		.name = "vfe_imgwr",
+		.domain = CAMERA_DOMAIN,
+	},
+	/* Camera */
+	{
+		.name = "vfe_misc",
+		.domain = CAMERA_DOMAIN,
+	},
+	/* Camera */
+	{
+		.name = "ijpeg_src",
+		.domain = CAMERA_DOMAIN,
+	},
+	/* Camera */
+	{
+		.name = "ijpeg_dst",
+		.domain = CAMERA_DOMAIN,
+	},
+	/* Camera */
+	{
+		.name = "jpegd_src",
+		.domain = CAMERA_DOMAIN,
+	},
+	/* Camera */
+	{
+		.name = "jpegd_dst",
+		.domain = CAMERA_DOMAIN,
+	},
+	/* Rotator */
+	{
+		.name = "rot_src",
+		.domain = ROTATOR_DOMAIN,
+	},
+	/* Rotator */
+	{
+		.name = "rot_dst",
+		.domain = ROTATOR_DOMAIN,
+	},
+	/* Video */
+	{
+		.name = "vcodec_a_mm1",
+		.domain = VIDEO_DOMAIN,
+	},
+	/* Video */
+	{
+		.name = "vcodec_b_mm2",
+		.domain = VIDEO_DOMAIN,
+	},
+	/* Video */
+	{
+		.name = "vcodec_a_stream",
+		.domain = VIDEO_DOMAIN,
+	},
 };
 
 static struct mem_pool video_pools[] =  {
@@ -102,7 +167,22 @@ static struct mem_pool rotator_pools[] =  {
 };
 
 static struct msm_iommu_domain msm_iommu_domains[] = {
-
+		[VIDEO_DOMAIN] = {
+			.iova_pools = video_pools,
+			.npools = ARRAY_SIZE(video_pools),
+		},
+		[CAMERA_DOMAIN] = {
+			.iova_pools = camera_pools,
+			.npools = ARRAY_SIZE(camera_pools),
+		},
+		[DISPLAY_DOMAIN] = {
+			.iova_pools = display_pools,
+			.npools = ARRAY_SIZE(display_pools),
+		},
+		[ROTATOR_DOMAIN] = {
+			.iova_pools = rotator_pools,
+			.npools = ARRAY_SIZE(rotator_pools),
+		},
 };
 
 int msm_iommu_map_extra(struct iommu_domain *domain,
@@ -252,8 +332,7 @@ void msm_free_iova_address(unsigned long iova,
 
 int msm_use_iommu()
 {
-	/* Kill use of the iommu by these clients for now. */
-	return 0;
+	return iommu_found();
 }
 
 static int __init msm_subsystem_iommu_init(void)
