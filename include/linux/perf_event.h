@@ -813,7 +813,6 @@ struct perf_event {
 	int				mmap_locked;
 	struct user_struct		*mmap_user;
 	struct ring_buffer		*rb;
-	struct list_head		rb_entry;
 
 	/* poll related */
 	wait_queue_head_t		waitq;
