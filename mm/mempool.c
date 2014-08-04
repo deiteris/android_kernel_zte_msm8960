@@ -27,15 +27,7 @@ static void *remove_element(mempool_t *pool)
 	return pool->elements[--pool->curr_nr];
 }
 
-/**
- * mempool_destroy - deallocate a memory pool
- * @pool:      pointer to the memory pool which was allocated via
- *             mempool_create().
- *
- * Free all reserved elements in @pool and @pool itself.  This function
- * only sleeps if the free_fn() function sleeps.
- */
-void mempool_destroy(mempool_t *pool)
+static void free_pool(mempool_t *pool)
 {
 	while (pool->curr_nr) {
 		void *element = remove_element(pool);
@@ -44,7 +36,6 @@ void mempool_destroy(mempool_t *pool)
 	kfree(pool->elements);
 	kfree(pool);
 }
-EXPORT_SYMBOL(mempool_destroy);
 
 /**
  * mempool_create - create a memory pool
@@ -95,7 +86,7 @@ mempool_t *mempool_create_node(int min_nr, mempool_alloc_t *alloc_fn,
 
 		element = pool->alloc(GFP_KERNEL, pool->pool_data);
 		if (unlikely(!element)) {
-			mempool_destroy(pool);
+			free_pool(pool);
 			return NULL;
 		}
 		add_element(pool, element);
@@ -179,6 +170,23 @@ out:
 	return 0;
 }
 EXPORT_SYMBOL(mempool_resize);
+
+/**
+ * mempool_destroy - deallocate a memory pool
+ * @pool:      pointer to the memory pool which was allocated via
+ *             mempool_create().
+ *
+ * this function only sleeps if the free_fn() function sleeps. The caller
+ * has to guarantee that all elements have been returned to the pool (ie:
+ * freed) prior to calling mempool_destroy().
+ */
+void mempool_destroy(mempool_t *pool)
+{
+	/* Check for outstanding elements */
+	BUG_ON(pool->curr_nr != pool->min_nr);
+	free_pool(pool);
+}
+EXPORT_SYMBOL(mempool_destroy);
 
 /**
  * mempool_alloc - allocate an element from a specific memory pool
