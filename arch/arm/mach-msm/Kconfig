@@ -1870,6 +1870,31 @@ config MSM_RPM_STATS_LOG
 	  the low power modes that RPM enters. The drivers outputs the message
 	  via a debugfs node.
 
+config MSM_IOMMU
+	bool "MSM IOMMU Support"
+	depends on ARCH_MSM8X60 || ARCH_MSM8960 || ARCH_APQ8064
+	select IOMMU_API
+	default n
+	help
+	  Support for the IOMMUs found on certain Qualcomm SOCs.
+	  These IOMMUs allow virtualization of the address space used by most
+	  cores within the multimedia subsystem.
+
+	  If unsure, say N here.
+
+config IOMMU_PGTABLES_L2
+	bool "Allow SMMU page tables in the L2 cache (Experimental)"
+	depends on MSM_IOMMU=y
+	depends on MMU
+	depends on CPU_DCACHE_DISABLE=n
+	depends on SMP
+	default y
+	help
+	 Improves TLB miss latency at the expense of potential L2 pollution.
+	 However, with large multimedia buffers, the TLB should mostly contain
+	 section mappings and TLB misses should be quite infrequent.
+	 Most people can probably say Y here.
+
 config MSM_DIRECT_SCLK_ACCESS
 	bool "Direct access to the SCLK timer"
 	default n
