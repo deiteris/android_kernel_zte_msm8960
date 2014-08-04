@@ -18,6 +18,7 @@
 #include <linux/gpio.h>
 #include <linux/slab.h>
 #include <linux/mmc/host.h>
+#include <linux/mmc/sdhci-pltfm.h>
 #include <linux/mmc/mmc.h>
 #include <linux/mmc/sdio.h>
 #include <mach/hardware.h>
