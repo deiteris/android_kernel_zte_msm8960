@@ -43,7 +43,6 @@
 #    make oldconfig
 #
 use strict;
-use Getopt::Long;
 
 my $config = ".config";
 
@@ -112,13 +111,6 @@ sub find_config {
 }
 
 find_config;
-
-# Parse options
-my $localmodconfig = 0;
-my $localyesconfig = 0;
-
-GetOptions("localmodconfig" => \$localmodconfig,
-	   "localyesconfig" => \$localyesconfig);
 
 # Get the build source and top level Kconfig file (passed in)
 my $ksource = $ARGV[0];
@@ -461,11 +453,7 @@ while(<CIN>) {
 
     if (/^(CONFIG.*)=(m|y)/) {
 	if (defined($configs{$1})) {
-	    if ($localyesconfig) {
-	        $setconfigs{$1} = 'y';
-	    } else {
-	        $setconfigs{$1} = $2;
-	    }
+	    $setconfigs{$1} = $2;
 	} elsif ($2 eq "m") {
 	    print "# $1 is not set\n";
 	    next;
