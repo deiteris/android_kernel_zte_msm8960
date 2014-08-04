@@ -105,16 +105,9 @@ void shm_exit_ns(struct ipc_namespace *ns)
 }
 #endif
 
-static int __init ipc_ns_init(void)
-{
-	shm_init_ns(&init_ipc_ns);
-	return 0;
-}
-
-pure_initcall(ipc_ns_init);
-
 void __init shm_init (void)
 {
+	shm_init_ns(&init_ipc_ns);
 	ipc_init_proc_interface("sysvipc/shm",
 #if BITS_PER_LONG <= 32
 				"       key      shmid perms       size  cpid  lpid nattch   uid   gid  cuid  cgid      atime      dtime      ctime        rss       swap\n",
