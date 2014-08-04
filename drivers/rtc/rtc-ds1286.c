@@ -343,7 +343,7 @@ static int __devinit ds1286_probe(struct platform_device *pdev)
 	if (!priv)
 		return -ENOMEM;
 
-	priv->size = resource_size(res);
+	priv->size = res->end - res->start + 1;
 	if (!request_mem_region(res->start, priv->size, pdev->name)) {
 		ret = -EBUSY;
 		goto out;
