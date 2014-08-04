@@ -36,9 +36,7 @@ struct msm_iommu_domain {
 	 * behavior is undefined if these overlap
 	 */
 	struct mem_pool *iova_pools;
-
 };
-
 
 struct {
 	char *name;
@@ -46,63 +44,7 @@ struct {
 } msm_iommu_ctx_names[] = {
 };
 
-static struct mem_pool video_pools[] =  {
-	/*
-	 * Video hardware has the following requirements:
-	 * 1. All video addresses used by the video hardware must be at a higher
-	 *    address than video firmware address.
-	 * 2. Video hardware can only access a range of 256MB from the base of
-	 *    the video firmware.
-	*/
-	[VIDEO_FIRMWARE_POOL] =
-	/* Low addresses, intended for video firmware */
-		{
-			.paddr	= SZ_128K,
-			.size	= SZ_16M - SZ_128K,
-		},
-	[VIDEO_MAIN_POOL] =
-	/* Main video pool */
-		{
-			.paddr	= SZ_16M,
-			.size	= SZ_256M - SZ_16M,
-		},
-	[GEN_POOL] =
-	/* Remaining address space up to 2G */
-		{
-			.paddr	= SZ_256M,
-			.size	= SZ_2G - SZ_256M,
-		},
-};
-
-static struct mem_pool camera_pools[] =  {
-	[GEN_POOL] =
-	/* One address space for camera */
-		{
-			.paddr	= SZ_128K,
-			.size	= SZ_2G - SZ_128K,
-		},
-};
-
-static struct mem_pool display_pools[] =  {
-	[GEN_POOL] =
-	/* One address space for display */
-		{
-			.paddr	= SZ_128K,
-			.size	= SZ_2G - SZ_128K,
-		},
-};
-
-static struct mem_pool rotator_pools[] =  {
-	[GEN_POOL] =
-	/* One address space for rotator */
-		{
-			.paddr	= SZ_128K,
-			.size	= SZ_2G - SZ_128K,
-		},
-};
-
 static struct msm_iommu_domain msm_iommu_domains[] = {
-
 };
 
 int msm_iommu_map_extra(struct iommu_domain *domain,
