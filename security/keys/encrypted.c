@@ -133,69 +133,46 @@ static int datablob_parse(char *datablob, char **master_desc,
 	substring_t args[MAX_OPT_ARGS];
 	int ret = -EINVAL;
 	int key_cmd;
-	char *keyword;
+	char *p;
 
-	keyword = strsep(&datablob, " \t");
-	if (!keyword) {
-		pr_info("encrypted_key: insufficient parameters specified\n");
+	p = strsep(&datablob, " \t");
+	if (!p)
 		return ret;
-	}
-	key_cmd = match_token(keyword, key_tokens, args);
+	key_cmd = match_token(p, key_tokens, args);
 
 	*master_desc = strsep(&datablob, " \t");
-	if (!*master_desc) {
-		pr_info("encrypted_key: master key parameter is missing\n");
+	if (!*master_desc)
 		goto out;
-	}
 
-	if (valid_master_desc(*master_desc, NULL) < 0) {
-		pr_info("encrypted_key: master key parameter \'%s\' "
-			"is invalid\n", *master_desc);
+	if (valid_master_desc(*master_desc, NULL) < 0)
 		goto out;
-	}
 
 	if (decrypted_datalen) {
 		*decrypted_datalen = strsep(&datablob, " \t");
-		if (!*decrypted_datalen) {
-			pr_info("encrypted_key: keylen parameter is missing\n");
+		if (!*decrypted_datalen)
 			goto out;
-		}
 	}
 
 	switch (key_cmd) {
 	case Opt_new:
-		if (!decrypted_datalen) {
-			pr_info("encrypted_key: keyword \'%s\' not allowed "
-				"when called from .update method\n", keyword);
+		if (!decrypted_datalen)
 			break;
-		}
 		ret = 0;
 		break;
 	case Opt_load:
-		if (!decrypted_datalen) {
-			pr_info("encrypted_key: keyword \'%s\' not allowed "
-				"when called from .update method\n", keyword);
+		if (!decrypted_datalen)
 			break;
-		}
 		*hex_encoded_iv = strsep(&datablob, " \t");
-		if (!*hex_encoded_iv) {
-			pr_info("encrypted_key: hex blob is missing\n");
+		if (!*hex_encoded_iv)
 			break;
-		}
 		ret = 0;
 		break;
 	case Opt_update:
-		if (decrypted_datalen) {
-			pr_info("encrypted_key: keyword \'%s\' not allowed "
-				"when called from .instantiate method\n",
-				keyword);
+		if (decrypted_datalen)
 			break;
-		}
 		ret = 0;
 		break;
 	case Opt_err:
-		pr_info("encrypted_key: keyword \'%s\' not recognized\n",
-			keyword);
 		break;
 	}
 out:
