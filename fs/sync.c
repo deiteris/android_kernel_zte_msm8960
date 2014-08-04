@@ -247,9 +247,32 @@ int vfs_fsync_range(struct file *file, loff_t start, loff_t end, int datasync)
     		return 0;
 	  else {
 #endif
-	if (!file->f_op || !file->f_op->fsync)
-		return -EINVAL;
-	return file->f_op->fsync(file, start, end, datasync);
+ 
+	struct address_space *mapping = file->f_mapping;
+	int err, ret;
+
+/*	if (!fsync_enabled)
+			return 0; */
+
+	if (!file->f_op || !file->f_op->fsync) {
+		ret = -EINVAL;
+		goto out;
+	}
+
+	ret = filemap_write_and_wait_range(mapping, start, end);
+
+	/*
+	 * We need to protect against concurrent writers, which could cause
+	 * livelocks in fsync_buffers_list().
+	 */
+	mutex_lock(&mapping->host->i_mutex);
+	err = file->f_op->fsync(file, datasync);
+	if (!ret)
+		ret = err;
+	mutex_unlock(&mapping->host->i_mutex);
+
+out:
+	return ret;
 #ifdef CONFIG_DYNAMIC_FSYNC
 	  }
 #endif 
