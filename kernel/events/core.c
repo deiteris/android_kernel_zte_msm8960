@@ -2160,8 +2160,7 @@ static void perf_event_context_sched_in(struct perf_event_context *ctx,
 	cpu_ctx_sched_in(cpuctx, EVENT_FLEXIBLE, task);
 	ctx_sched_in(ctx, cpuctx, EVENT_FLEXIBLE, task);
 
-	if (ctx->nr_events)
-		cpuctx->task_ctx = ctx;
+	cpuctx->task_ctx = ctx;
 
 	/*
 	 * Since these rotations are per-cpu, we need to ensure the
