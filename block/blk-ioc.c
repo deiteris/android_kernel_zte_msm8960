@@ -232,7 +232,6 @@ void ioc_cgroup_changed(struct io_context *ioc)
 	ioc_set_changed(ioc, CIC_CGROUP_CHANGED);
 	spin_unlock_irqrestore(&ioc->lock, flags);
 }
-EXPORT_SYMBOL(ioc_cgroup_changed);
 
 static int __init blk_ioc_init(void)
 {
