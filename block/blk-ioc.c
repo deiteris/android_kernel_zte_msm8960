@@ -16,19 +16,6 @@
  */
 static struct kmem_cache *iocontext_cachep;
 
-/**
- * get_io_context - increment reference count to io_context
- * @ioc: io_context to get
- *
- * Increment reference count to @ioc.
- */
-void get_io_context(struct io_context *ioc)
-{
-	BUG_ON(atomic_long_read(&ioc->refcount) <= 0);
-	atomic_long_inc(&ioc->refcount);
-}
-EXPORT_SYMBOL(get_io_context);
-
 static void cfq_dtor(struct io_context *ioc)
 {
 	if (!hlist_empty(&ioc->cic_list)) {
@@ -84,9 +71,6 @@ void exit_io_context(struct task_struct *task)
 {
 	struct io_context *ioc;
 
-	/* PF_EXITING prevents new io_context from being attached to @task */
-	WARN_ON_ONCE(!(current->flags & PF_EXITING));
-
 	task_lock(task);
 	ioc = task->io_context;
 	task->io_context = NULL;
@@ -98,9 +82,7 @@ void exit_io_context(struct task_struct *task)
 	put_io_context(ioc);
 }
 
-static struct io_context *create_task_io_context(struct task_struct *task,
-						 gfp_t gfp_flags, int node,
-						 bool take_ref)
+struct io_context *alloc_io_context(gfp_t gfp_flags, int node)
 {
 	struct io_context *ioc;
 
@@ -116,20 +98,6 @@ static struct io_context *create_task_io_context(struct task_struct *task,
 	INIT_RADIX_TREE(&ioc->radix_root, GFP_ATOMIC | __GFP_HIGH);
 	INIT_HLIST_HEAD(&ioc->cic_list);
 
-	/* try to install, somebody might already have beaten us to it */
-	task_lock(task);
-
-	if (!task->io_context && !(task->flags & PF_EXITING)) {
-		task->io_context = ioc;
-	} else {
-		kmem_cache_free(iocontext_cachep, ioc);
-		ioc = task->io_context;
-	}
-
-	if (ioc && take_ref)
-		get_io_context(ioc);
-
-	task_unlock(task);
 	return ioc;
 }
 
@@ -146,47 +114,46 @@ static struct io_context *create_task_io_context(struct task_struct *task,
  */
 struct io_context *current_io_context(gfp_t gfp_flags, int node)
 {
-	might_sleep_if(gfp_flags & __GFP_WAIT);
+	struct task_struct *tsk = current;
+	struct io_context *ret;
 
-	if (current->io_context)
-		return current->io_context;
+	ret = tsk->io_context;
+	if (likely(ret))
+		return ret;
 
-	return create_task_io_context(current, gfp_flags, node, false);
-}
-EXPORT_SYMBOL(current_io_context);
-
-/**
- * get_task_io_context - get io_context of a task
- * @task: task of interest
- * @gfp_flags: allocation flags, used if allocation is necessary
- * @node: allocation node, used if allocation is necessary
- *
- * Return io_context of @task.  If it doesn't exist, it is created with
- * @gfp_flags and @node.  The returned io_context has its reference count
- * incremented.
- *
- * This function always goes through task_lock() and it's better to use
- * current_io_context() + get_io_context() for %current.
- */
-struct io_context *get_task_io_context(struct task_struct *task,
-				       gfp_t gfp_flags, int node)
-{
-	struct io_context *ioc;
-
-	might_sleep_if(gfp_flags & __GFP_WAIT);
-
-	task_lock(task);
-	ioc = task->io_context;
-	if (likely(ioc)) {
-		get_io_context(ioc);
-		task_unlock(task);
-		return ioc;
+	ret = alloc_io_context(gfp_flags, node);
+	if (ret) {
+		/* make sure set_task_ioprio() sees the settings above */
+		smp_wmb();
+		tsk->io_context = ret;
 	}
-	task_unlock(task);
 
-	return create_task_io_context(task, gfp_flags, node, true);
+	return ret;
 }
-EXPORT_SYMBOL(get_task_io_context);
+
+/*
+ * If the current task has no IO context then create one and initialise it.
+ * If it does have a context, take a ref on it.
+ *
+ * This is always called in the context of the task which submitted the I/O.
+ */
+struct io_context *get_io_context(gfp_t gfp_flags, int node)
+{
+	struct io_context *ioc = NULL;
+
+	/*
+	 * Check for unlikely race with exiting task. ioc ref count is
+	 * zero when ioc is being detached.
+	 */
+	do {
+		ioc = current_io_context(gfp_flags, node);
+		if (unlikely(!ioc))
+			break;
+	} while (!atomic_long_inc_not_zero(&ioc->refcount));
+
+	return ioc;
+}
+EXPORT_SYMBOL(get_io_context);
 
 static int __init blk_ioc_init(void)
 {
