@@ -478,15 +478,15 @@ struct sx150x_platform_data msm8960_sx150x_data[] = {
 
 #define MSM_PMEM_ADSP_SIZE         0x0A00000	//    10.485.760 Bytes =  10 MB
 #define MSM_PMEM_AUDIO_SIZE        0x0200000	//     2.097.152 Bytes =   2 MB
-#define MSM_PMEM_SIZE		   0x1C80000	//    29.884.416 Bytes = 28,5 MB
+#define MSM_PMEM_SIZE		   0x0800000	//     8.388.608 Bytes =   8 MB
 #define MSM_LIQUID_PMEM_SIZE	   0x2800000	//    41.943.040 Bytes =  40 MB
-#define MSM_HDMI_PRIM_PMEM_SIZE    0x2800000	//    41.943.040 Bytes =  40 MB
+#define MSM_HDMI_PRIM_PMEM_SIZE	   0x2800000	//    41.943.040 Bytes =  40 MB
 
 #ifdef CONFIG_MSM_MULTIMEDIA_USE_ION
-#define MSM_PMEM_KERNEL_EBI1_SIZE  0x0600000	//     6.291.456 Bytes =   6 MB
+#define MSM_PMEM_KERNEL_EBI1_SIZE  0x280000
 #define MSM_ION_SF_SIZE		MSM_PMEM_SIZE
 #define MSM_ION_MM_FW_SIZE	0x200000
-#define MSM_ION_MM_SIZE		MSM_PMEM_ADSP_SIZE
+#define MSM_ION_MM_SIZE		0x1C80000	//    29.884.416 Bytes = 28,5 MB
 #define MSM_ION_QSECOM_SIZE	0x600000 /* (6MB) */
 #define MSM_ION_MFC_SIZE	SZ_8K
 #define MSM_ION_AUDIO_SIZE	MSM_PMEM_AUDIO_SIZE
