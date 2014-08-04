@@ -24,6 +24,7 @@
 #include <mach/gpio.h>
 #include <mach/sdhci.h>
 
+#include "sdhci.h"
 #include "sdhci-pltfm.h"
 
 static u32 tegra_sdhci_readl(struct sdhci_host *host, int reg)

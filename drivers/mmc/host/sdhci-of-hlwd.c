@@ -22,6 +22,7 @@
 #include <linux/delay.h>
 #include <linux/mmc/host.h>
 #include "sdhci-pltfm.h"
+#include "sdhci.h"
 
 /*
  * Ops and quirks for the Nintendo Wii SDHCI controllers.
