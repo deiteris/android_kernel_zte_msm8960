@@ -116,16 +116,10 @@ static struct io_context *create_task_io_context(struct task_struct *task,
 	INIT_RADIX_TREE(&ioc->radix_root, GFP_ATOMIC | __GFP_HIGH);
 	INIT_HLIST_HEAD(&ioc->cic_list);
 
-	/*
-	 * Try to install.  ioc shouldn't be installed if someone else
-	 * already did or @task, which isn't %current, is exiting.  Note
-	 * that we need to allow ioc creation on exiting %current as exit
-	 * path may issue IOs from e.g. exit_files().  The exit path is
-	 * responsible for not issuing IO after exit_io_context().
-	 */
+	/* try to install, somebody might already have beaten us to it */
 	task_lock(task);
-	if (!task->io_context &&
-	    (task == current || !(task->flags & PF_EXITING))) {
+
+	if (!task->io_context && !(task->flags & PF_EXITING)) {
 		task->io_context = ioc;
 	} else {
 		kmem_cache_free(iocontext_cachep, ioc);
