@@ -1972,28 +1972,28 @@ struct mempolicy *__mpol_dup(struct mempolicy *old)
 }
 
 /* Slow path of a mempolicy comparison */
-bool __mpol_equal(struct mempolicy *a, struct mempolicy *b)
+int __mpol_equal(struct mempolicy *a, struct mempolicy *b)
 {
 	if (!a || !b)
-		return false;
+		return 0;
 	if (a->mode != b->mode)
-		return false;
+		return 0;
 	if (a->flags != b->flags)
-		return false;
+		return 0;
 	if (mpol_store_user_nodemask(a))
 		if (!nodes_equal(a->w.user_nodemask, b->w.user_nodemask))
-			return false;
+			return 0;
 
 	switch (a->mode) {
 	case MPOL_BIND:
 		/* Fall through */
 	case MPOL_INTERLEAVE:
-		return !!nodes_equal(a->v.nodes, b->v.nodes);
+		return nodes_equal(a->v.nodes, b->v.nodes);
 	case MPOL_PREFERRED:
 		return a->v.preferred_node == b->v.preferred_node;
 	default:
 		BUG();
-		return false;
+		return 0;
 	}
 }
 
