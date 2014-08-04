@@ -674,7 +674,7 @@ static bool free_pages_prepare(struct page *page, unsigned int order)
 	int i;
 	int bad = 0;
 
-	trace_mm_page_free(page, order);
+	trace_mm_page_free_direct(page, order);
 	kmemcheck_free_shadow(page, order);
 
 	if (PageAnon(page))
@@ -1238,7 +1238,7 @@ void free_hot_cold_page_list(struct list_head *list, int cold)
 	struct page *page, *next;
 
 	list_for_each_entry_safe(page, next, list, lru) {
-		trace_mm_page_free_batched(page, cold);
+		trace_mm_pagevec_free(page, cold);
 		free_hot_cold_page(page, cold);
 	}
 }
