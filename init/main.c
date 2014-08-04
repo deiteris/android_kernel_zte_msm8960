@@ -372,12 +372,9 @@ static noinline void __init_refok rest_init(void)
 	init_idle_bootup_task(current);
 	preempt_enable_no_resched();
 	schedule();
-
-	/* At this point, we can enable user mode helper functionality */
-	usermodehelper_enable();
+	preempt_disable();
 
 	/* Call into cpu_idle with preempt disabled */
-	preempt_disable();
 	cpu_idle();
 }
 
