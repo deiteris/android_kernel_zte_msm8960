@@ -735,6 +735,7 @@ static int do_virtio_entry(const char *filename, struct virtio_device_id *id,
 	return 1;
 }
 
+<<<<<<< HEAD
 /*
  * Looks like: vmbus:guid
  * Each byte of the guid will be represented by two hex characters
@@ -756,6 +757,8 @@ static int do_vmbus_entry(const char *filename, struct hv_vmbus_device_id *id,
 	return 1;
 }
 
+=======
+>>>>>>> parent of d2ee52a... Staging: hv: Add code to parse struct hv_vmbus_device_id table
 /* Looks like: i2c:S */
 static int do_i2c_entry(const char *filename, struct i2c_device_id *id,
 			char *alias)
@@ -1019,10 +1022,6 @@ void handle_moddevtable(struct module *mod, struct elf_info *info,
 		do_table(symval, sym->st_size,
 			 sizeof(struct virtio_device_id), "virtio",
 			 do_virtio_entry, mod);
-	else if (sym_is(symname, "__mod_vmbus_device_table"))
-		do_table(symval, sym->st_size,
-			 sizeof(struct hv_vmbus_device_id), "vmbus",
-			 do_vmbus_entry, mod);
 	else if (sym_is(symname, "__mod_i2c_device_table"))
 		do_table(symval, sym->st_size,
 			 sizeof(struct i2c_device_id), "i2c",
