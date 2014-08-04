@@ -558,6 +558,7 @@ void __cfg80211_roamed(struct wireless_dev *wdev,
 	if (WARN_ON(wdev->iftype != NL80211_IFTYPE_STATION &&
 		    wdev->iftype != NL80211_IFTYPE_P2P_CLIENT))
 		return;
+
 	if (wdev->sme_state != CFG80211_SME_CONNECTED)
 		return;
 
