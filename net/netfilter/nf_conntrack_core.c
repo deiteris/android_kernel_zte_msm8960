@@ -1054,8 +1054,10 @@ acct:
 
 		acct = nf_conn_acct_find(ct);
 		if (acct) {
-			atomic64_inc(&acct[CTINFO2DIR(ctinfo)].packets);
-			atomic64_add(skb->len, &acct[CTINFO2DIR(ctinfo)].bytes);
+			spin_lock_bh(&ct->lock);
+			acct[CTINFO2DIR(ctinfo)].packets++;
+			acct[CTINFO2DIR(ctinfo)].bytes += skb->len;
+			spin_unlock_bh(&ct->lock);
 		}
 	}
 }
@@ -1071,9 +1073,11 @@ bool __nf_ct_kill_acct(struct nf_conn *ct,
 
 		acct = nf_conn_acct_find(ct);
 		if (acct) {
-			atomic64_inc(&acct[CTINFO2DIR(ctinfo)].packets);
-			atomic64_add(skb->len - skb_network_offset(skb),
-				     &acct[CTINFO2DIR(ctinfo)].bytes);
+			spin_lock_bh(&ct->lock);
+			acct[CTINFO2DIR(ctinfo)].packets++;
+			acct[CTINFO2DIR(ctinfo)].bytes +=
+				skb->len - skb_network_offset(skb);
+			spin_unlock_bh(&ct->lock);
 		}
 	}
 
