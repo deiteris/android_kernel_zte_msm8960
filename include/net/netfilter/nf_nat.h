@@ -1,13 +1,15 @@
 #ifndef _NF_NAT_H
 #define _NF_NAT_H
 #include <linux/netfilter_ipv4.h>
+<<<<<<< HEAD
+=======
+#include <linux/netfilter/nf_nat.h>
+>>>>>>> c5e1fd8... Merge branch 'nf-next' of git://1984.lsi.us.es/net-next
 #include <net/netfilter/nf_conntrack_tuple.h>
 
-#define NF_NAT_MAPPING_TYPE_MAX_NAMELEN 16
-
 enum nf_nat_manip_type {
-	IP_NAT_MANIP_SRC,
-	IP_NAT_MANIP_DST
+	NF_NAT_MANIP_SRC,
+	NF_NAT_MANIP_DST
 };
 
 /* SRC manip occurs POST_ROUTING or LOCAL_IN */
@@ -76,7 +78,7 @@ struct nf_conn_nat {
 
 /* Set up the info structure to map into this range. */
 extern unsigned int nf_nat_setup_info(struct nf_conn *ct,
-				      const struct nf_nat_range *range,
+				      const struct nf_nat_ipv4_range *range,
 				      enum nf_nat_manip_type maniptype);
 
 /* Is this tuple already taken? (not by us)*/
