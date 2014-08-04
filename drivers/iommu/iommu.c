@@ -16,7 +16,6 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  */
 
-#include <linux/kernel.h>
 #include <linux/bug.h>
 #include <linux/types.h>
 #include <linux/module.h>
@@ -117,14 +116,16 @@ EXPORT_SYMBOL_GPL(iommu_domain_has_cap);
 int iommu_map(struct iommu_domain *domain, unsigned long iova,
 	      phys_addr_t paddr, int gfp_order, int prot)
 {
+	unsigned long invalid_mask;
 	size_t size;
 
 	if (!iommu_found())
 		return -ENODEV;
 
 	size         = 0x1000UL << gfp_order;
+	invalid_mask = size - 1;
 
-	BUG_ON(!IS_ALIGNED(iova | paddr, size));
+	BUG_ON((iova | paddr) & invalid_mask);
 
 	return iommu_ops->map(domain, iova, paddr, gfp_order, prot);
 }
@@ -132,14 +133,16 @@ EXPORT_SYMBOL_GPL(iommu_map);
 
 int iommu_unmap(struct iommu_domain *domain, unsigned long iova, int gfp_order)
 {
+	unsigned long invalid_mask;
 	size_t size;
 
 	if (!iommu_found())
 		return -ENODEV;
 
 	size         = 0x1000UL << gfp_order;
+	invalid_mask = size - 1;
 
-	BUG_ON(!IS_ALIGNED(iova, size));
+	BUG_ON(iova & invalid_mask);
 
 	return iommu_ops->unmap(domain, iova, gfp_order);
 }
