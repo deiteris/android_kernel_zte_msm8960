@@ -34,10 +34,7 @@ static int mount_dev = 1;
 static int mount_dev;
 #endif
 
-<<<<<<< HEAD
 static DEFINE_MUTEX(dirlock);
-=======
-static DEFINE_SPINLOCK(req_lock);
 
 static struct req {
 	struct req *next;
@@ -47,7 +44,6 @@ static struct req {
 	umode_t mode;	/* 0 => delete */
 	struct device *dev;
 } *requests;
->>>>>>> 2c9ede5... switch device_get_devnode() and ->devnode() to umode_t *
 
 static int __init mount_param(char *str)
 {
