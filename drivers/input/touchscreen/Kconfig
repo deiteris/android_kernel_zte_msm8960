@@ -867,6 +867,15 @@ config TOUCHSCREEN_FOCALTECH_FW
 	tristate "FOCALTECH firmware update"
 	default n 
     
+config TOUCHSCREEN_FOCALTECH_FROSTY
+       tristate "FocalTech touchscreen new for frosty"
+       depends on I2C
+       default n
+
+config TOUCHSCREEN_FOCALTECH_FW_FROSTY
+	tristate "FOCALTECH firmware update for frosty"
+	default n 
+
 config TOUCHSCREEN_FOCALTECH_USBNOTIFY
 	tristate "notify touchscrenn about usb plugin/plugout event"
 	default n 

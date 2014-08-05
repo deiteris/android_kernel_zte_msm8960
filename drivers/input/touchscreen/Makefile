@@ -74,5 +74,7 @@ obj-$(CONFIG_TOUCHSCREEN_SYNAPTICS)	+= synaptics_rmi.o
 obj-$(CONFIG_TOUCHSCREEN_SYNAPTICS_FW)	+= synaptics_rmi_fw.o
 obj-$(CONFIG_TOUCHSCREEN_FOCALTECH)	+= focaltech_ft5x0x.o
 obj-$(CONFIG_TOUCHSCREEN_FOCALTECH_FW) += focaltech_ft5x0x_fw.o
+obj-$(CONFIG_TOUCHSCREEN_FOCALTECH_FROSTY)	+= ft5x0x_ts_new.o
+obj-$(CONFIG_TOUCHSCREEN_FOCALTECH_FW_FROSTY) += ft5x0x_ts_fwup.o
 obj-$(CONFIG_TOUCHSCREEN_CY8CTST241)	+= cyttsp_core.o cyttsp_i2c.o
 obj-$(CONFIG_TOUCHSCREEN_CYTTSP)	+= cyttsp3_core.o cyttsp3_i2c.o
