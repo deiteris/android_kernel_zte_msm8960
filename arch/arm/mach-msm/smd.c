@@ -2499,7 +2499,7 @@ static void smsm_cb_snapshot(uint32_t use_wakelock)
 		goto restore_snapshot_count;
 	}
 
-	schedule_work(&smsm_cb_work);
+	queue_work(smsm_cb_wq, &smsm_cb_work);
 	return;
 
 restore_snapshot_count:
@@ -2516,6 +2516,25 @@ restore_snapshot_count:
 		}
 		spin_unlock_irqrestore(&smsm_snapshot_count_lock, flags);
 	}
+
+	/* queue wakelock usage flag */
+	ret = kfifo_in(&smsm_snapshot_fifo,
+			&use_wakelock, sizeof(use_wakelock));
+	if (ret != sizeof(use_wakelock)) {
+		pr_err("%s: SMSM snapshot failure %d\n", __func__, ret);
+		return;
+	}
+
+	if (use_wakelock) {
+		spin_lock_irqsave(&smsm_snapshot_count_lock, flags);
+		if (smsm_snapshot_count == 0) {
+			SMx_POWER_INFO("SMSM snapshot wake lock\n");
+			wake_lock(&smsm_snapshot_wakelock);
+		}
+		++smsm_snapshot_count;
+		spin_unlock_irqrestore(&smsm_snapshot_count_lock, flags);
+	}
+	schedule_work(&smsm_cb_work);
 }
 
 static irqreturn_t smsm_irq_handler(int irq, void *data)
