@@ -60,6 +60,10 @@ static int fmem_probe(struct platform_device *pdev)
 {
 	struct fmem_platform_data *pdata = pdev->dev.platform_data;
 
+	if (!pdata->phys)
+		pdata->phys = allocate_contiguous_ebi_nomap(pdata->size,
+			PAGE_SIZE);
+
 #ifdef CONFIG_MEMORY_HOTPLUG
 	fmem_section_start = pdata->phys >> PA_SECTION_SHIFT;
 	fmem_section_end = (pdata->phys - 1 + pdata->size) >> PA_SECTION_SHIFT;
@@ -222,6 +226,9 @@ static int fmem_memory_callback(struct notifier_block *self,
 				unsigned long action, void *arg)
 {
 	int ret = 0;
+
+	if (fmem_state == FMEM_UNINITIALIZED)
+		return NOTIFY_OK;
 
 	switch (action) {
 	case MEM_ONLINE:
