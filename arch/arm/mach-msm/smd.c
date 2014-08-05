@@ -2517,23 +2517,13 @@ restore_snapshot_count:
 		spin_unlock_irqrestore(&smsm_snapshot_count_lock, flags);
 	}
 
-	/* queue wakelock usage flag */
-	ret = kfifo_in(&smsm_snapshot_fifo,
-			&use_wakelock, sizeof(use_wakelock));
-	if (ret != sizeof(use_wakelock)) {
-		pr_err("%s: SMSM snapshot failure %d\n", __func__, ret);
-		return;
+	spin_lock_irqsave(&smsm_snapshot_count_lock, flags);
+	if (smsm_snapshot_count == 0) {
+		SMx_POWER_INFO("SMSM snapshot wake lock\n");
+		wake_lock(&smsm_snapshot_wakelock);
 	}
-
-	if (use_wakelock) {
-		spin_lock_irqsave(&smsm_snapshot_count_lock, flags);
-		if (smsm_snapshot_count == 0) {
-			SMx_POWER_INFO("SMSM snapshot wake lock\n");
-			wake_lock(&smsm_snapshot_wakelock);
-		}
-		++smsm_snapshot_count;
-		spin_unlock_irqrestore(&smsm_snapshot_count_lock, flags);
-	}
+	++smsm_snapshot_count;
+	spin_unlock_irqrestore(&smsm_snapshot_count_lock, flags);
 	schedule_work(&smsm_cb_work);
 }
 
@@ -2779,6 +2769,7 @@ void notify_smsm_cb_clients_worker(struct work_struct *work)
 	uint32_t use_wakelock;
 	int ret;
 	unsigned long flags;
+	int snapshot_size = SMSM_NUM_ENTRIES * sizeof(uint32_t);
 
 	if (!smd_initialized)
 		return;
@@ -2825,31 +2816,17 @@ void notify_smsm_cb_clients_worker(struct work_struct *work)
 		}
 		mutex_unlock(&smsm_lock);
 
-		/* read wakelock flag */
-		ret = kfifo_out(&smsm_snapshot_fifo, &use_wakelock,
-				sizeof(use_wakelock));
-		if (ret != sizeof(use_wakelock)) {
-			pr_err("%s: snapshot underflow %d\n",
-				__func__, ret);
-			return;
-		}
-
-		if (use_wakelock) {
-			spin_lock_irqsave(&smsm_snapshot_count_lock, flags);
-			if (smsm_snapshot_count) {
-				--smsm_snapshot_count;
-				if (smsm_snapshot_count == 0) {
-					SMx_POWER_INFO("SMSM snapshot"
-						   " wake unlock\n");
-					wake_unlock(&smsm_snapshot_wakelock);
-				}
-			} else {
-				pr_err("%s: invalid snapshot count\n",
-						__func__);
+		spin_lock_irqsave(&smsm_snapshot_count_lock, flags);
+		if (smsm_snapshot_count) {
+			--smsm_snapshot_count;
+			if (smsm_snapshot_count == 0) {
+				SMx_POWER_INFO("SMSM snapshot wake unlock\n");
+				wake_unlock(&smsm_snapshot_wakelock);
 			}
-			spin_unlock_irqrestore(&smsm_snapshot_count_lock,
-					flags);
+		} else {
+			pr_err("%s: invalid snapshot count\n", __func__);
 		}
+		spin_unlock_irqrestore(&smsm_snapshot_count_lock, flags);
 	}
 }
 
