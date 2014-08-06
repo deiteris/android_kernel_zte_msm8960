@@ -159,6 +159,8 @@
  * for a3xx
  */
 
+#define CP_LOAD_STATE 0x30 /* load high level sequencer command */
+
 /* Conditionally load a IB based on a flag */
 #define CP_COND_INDIRECT_BUFFER_PFE 0x3A /* prefetch enabled */
 #define CP_COND_INDIRECT_BUFFER_PFD 0x32 /* prefetch disabled */
