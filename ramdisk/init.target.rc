@@ -32,15 +32,6 @@ service qcamerasvr /system/bin/mm-qcamera-daemon
         user system
         group system camera inet
 
-#start GNSS/Sensor interface daemon
-#Disable gsiff_deamon in 8960-1.5 
-#ZTE_GPS_LPZ_20120614 BEGIN
-#service gsiff_daemon /system/bin/gsiff_daemon
-#    class late_start
-#    user system
-#    group qcom_oncrpc net_raw
-#ZTE_GPS_LPZ_20120614 END
-
 # on emmc mount the partition containing firmware
 on emmc-fs
    mkdir /tombstones 0771 system system
@@ -59,10 +50,8 @@ on post-fs
    mount ext4 /dev/block/platform/msm_sdcc.1/by-name/system /system ro remount barrier=1
 
 on boot
-	#ZTE_ALSPRX_001  start  
-    mkdir /data/misc/prox 0777 radio radio   
-    chmod 0777  /dev/taos    
-	#ZTE_ALSPRX_001  end
+    mkdir /data/misc/prox 0777 radio radio
+    chmod 0777 /dev/taos
 
    write /sys/devices/i2c-3/3-0024/cyttsp_update_fw 1
    start qcamerasvr
@@ -85,39 +74,22 @@ service qseecomd /system/bin/qseecomd
    user system
    group system
 
-# Start kickstart if mdm is detected
-# 'exec /system/bin/sh /system/etc/init.qcom.mdm_links.sh'
-# removed by ZTE_BOOT_JIA_20120104 jia.jia
 on property:ro.baseband=mdm
     mkdir /data/qcks 0770 system system
     start kickstart
-
-#ZTE_AKMD_FYA 20111020 +++++++++++++
-# Change owner&&group for AKM devices
-    chown system  system /sys/class/compass/akm8962/enable_acc
-    chown system  system /sys/class/compass/akm8962/enable_mag
-    chown system  system /sys/class/compass/akm8962/enable_ori
-    chown system  system /sys/class/compass/akm8962/delay_acc
-    chown system  system /sys/class/compass/akm8962/delay_mag
-    chown system  system /sys/class/compass/akm8962/delay_ori	
-    chown system  system /sys/class/compass/akm8962/accel
-#ZTE_AKMD_FYA 20111020 -------------
 
 chmod 0777 /system/bin/akmd8962_new
 
 service akmd /system/bin/akmd8962_new -m 6 
     class late_start
     oneshot
-#ZTE_AKMD_fya 20111020 --------------
 
-#ZTE_WANGZY_PROXIMITY_101014
 service proximity_init /system/bin/proximity.init -r
     disabled
     oneshot
     
 on property:dev.bootcomplete=1
     start proximity_init
-#ZTE_WANGZY_PROXIMITY_101014 
 
 service sdcard /system/bin/sdcard /data/media 1023 1023
     class late_start

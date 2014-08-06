@@ -1,7 +1,3 @@
-#
-# Modified for FTM mode by ZTE_BOOT_JIA_20120316 jia.jia
-# ZTE_PLATFORM & ZTE_BOOT_MODE
-#
 on boot-pause
     chmod 777 /system/bin/battery_charging
     exec /system/bin/battery_charging
@@ -119,18 +115,6 @@ on fs
 
 on emmc-fs
 # mount mmc partitions
-
-# ZTE_BOOT_JIA_20111228 jia.jia --->
-#    wait /dev/block/mmcblk0p12
-#    mount ext4 /dev/block/mmcblk0p12 /system rw barrier=1
-#    wait /dev/block/mmcblk0p13
-#    exec /system/bin/e2fsck -p /dev/block/mmcblk0p13
-#    mount ext4 /dev/block/mmcblk0p13 /data nosuid nodev barrier=1 noauto_da_alloc
-#    mount ext4 /dev/block/mmcblk0p14 /persist nosuid nodev barrier=1
-#    mount ext4 /dev/block/mmcblk0p15 /cache nosuid nodev barrier=1
-# ZTE_BOOT_JIA_20111228 jia.jia <---
-
-# ZTE_BOOT_JIA_20120412 jia.jia --->
     wait /dev/block/platform/msm_sdcc.1/by-name/system
     mount ext4 /dev/block/platform/msm_sdcc.1/by-name/system /system ro barrier=1
   
@@ -149,15 +133,6 @@ on emmc-fs
     #------tombstones----------
     wait /dev/block/platform/msm_sdcc.1/by-name/tombstones
     exec /system/bin/sh -c "/system/bin/ext4check.sh TOMBSTONES /dev/block/platform/msm_sdcc.1/by-name/tombstones"
-
-#    wait /dev/block/mmcblk0p12
-#    mount ext4 /dev/block/mmcblk0p12 /system ro barrier=1
-#    wait /dev/block/mmcblk0p13
-#    exec /system/bin/e2fsck -p /dev/block/mmcblk0p13
-#    mount ext4 /dev/block/mmcblk0p13 /data nosuid nodev barrier=1 noauto_da_alloc
-#    mount ext4 /dev/block/mmcblk0p14 /persist nosuid nodev barrier=1
-#    mount ext4 /dev/block/mmcblk0p15 /cache nosuid nodev barrier=1
-# ZTE_BOOT_JIA_20120412 jia.jia <---
 
 on post-fs
     # once everything is setup, no need to modify /
@@ -202,7 +177,6 @@ on post-fs-data
     copy /proc/apanic_threads /data/dontpanic/apanic_threads
     chown root log /data/dontpanic/apanic_threads
     chmod 0640 /data/dontpanic/apanic_threads
-
     write /proc/apanic_console 1
 
     # create basic filesystem structure
@@ -302,10 +276,10 @@ on boot
     chown system system /sys/class/leds/red/device/grpfreq
     chown system system /sys/class/leds/red/device/grppwm
     chown system system /sys/class/leds/red/device/blink
-#ZTE_TORCH_SLF_20120319 BEGIN
+
     chown system camera /sys/class/leds/flashlight/brightness
     chmod 0774 /sys/class/leds/flashlight/brightness
- #ZTE_TORCH_SLF_20120319 end
+
     chown system system /sys/class/timed_output/vibrator/enable
     chown system system /sys/module/sco/parameters/disable_esco
     chown system system /sys/kernel/ipv4/tcp_wmem_min
@@ -316,21 +290,6 @@ on boot
     chown system system /sys/kernel/ipv4/tcp_rmem_max
     chown root radio /proc/cmdline
 
-# Define TCP buffer sizes for various networks
-#   ReadMin, ReadInitial, ReadMax, WriteMin, WriteInitial, WriteMax,
-    setprop net.tcp.buffersize.default 4096,87380,110208,4096,16384,110208
-    setprop net.tcp.buffersize.wifi    4096,221184,3461120,4096,221184,3461120
-    setprop net.tcp.buffersize.lte     4094,87380,1220608,4096,16384,1220608
-    setprop net.tcp.buffersize.umts    4094,87380,110208,4096,16384,110208
-    setprop net.tcp.buffersize.hspa    4094,87380,1220608,4096,16384,1220608
-    setprop net.tcp.buffersize.hsupa   4094,87380,1220608,4096,16384,1220608
-    setprop net.tcp.buffersize.hsdpa   4094,87380,1220608,4096,16384,1220608
-    setprop net.tcp.buffersize.edge    4093,26280,35040,4096,16384,35040
-    setprop net.tcp.buffersize.gprs    4092,8760,11680,4096,8760,11680
-    setprop net.tcp.buffersize.evdo_b  4094,87380,262144,4096,16384,262144
-
-
-
 # Assign TCP buffer thresholds to be ceiling value of technology maximums
 # Increased technology maximums should be reflected here.
     write /proc/sys/net/core/rmem_max  3461120
@@ -338,8 +297,7 @@ on boot
 
 # Set this property so surfaceflinger is not started by system_init
     setprop system_init.startsurfaceflinger 0
-#lianghouxing add qcom-post-ftm for LOW POWER	
-	setprop sys.boot_completed_ftm 1
+    setprop sys.boot_completed_ftm 1
     class_start core
     class_start main
 
@@ -418,11 +376,9 @@ service console /system/bin/sh
     user shell
     group log
 
-# merged from 8x60-gb by ZTE_BOOT_JIA_20120110 jia.jia
 on property:persist.sys.ztelog.enable=1
     start getlog
 
-# merged from 8x60-gb by ZTE_BOOT_JIA_20120110 jia.jia
 on property:persist.sys.ztelog.enable=0
     stop getlog
 
@@ -430,21 +386,6 @@ on property:persist.sys.ztelog.enable=0
 service adbd /sbin/adbd
     class core
     disabled
-
-#
-# Commented by ZTE_BOOT_JIA_20120321 jia.jia
-#
-# Always start adbd on userdebug and eng builds
-#on property:ro.debuggable=1
-#    write /sys/class/android_usb/android0/enable 0
-#    write /sys/class/android_usb/android0/idVendor 19D2
-#    write /sys/class/android_usb/android0/idProduct 1352
-#    write /sys/class/android_usb/android0/functions adb
-#    write /sys/class/android_usb/android0/enable 1
-#    write /sys/class/android_usb/android0/iManufacturer $ro.product.manufacturer
-#    write /sys/class/android_usb/android0/iProduct $ro.product.model
-#    write /sys/class/android_usb/android0/iSerial $ro.serialno
-#    start adbd
 
 # This property trigger has added to imitiate the previous behavior of "adb root".
 # The adb gadget driver used to reset the USB bus when the adbd daemon exited,
@@ -469,7 +410,6 @@ service netd /system/bin/netd
     socket netd stream 0660 root system
     socket dnsproxyd stream 0660 root inet
 
-
 service ril-daemon /system/bin/rild
     class main
     socket rild stream 660 root radio
@@ -480,15 +420,9 @@ service ril-daemon /system/bin/rild
 service ftm_qcom-wifi /system/bin/sh /system/etc/init.qcom.wifi.sh
     oneshot
 
-#
-# FTM daemon for FTM mode added by ZTE_BOOT_JIA_20120425 jia.jia
-#
 service ftmd-fm /system/bin/ftmdaemon-oem ftmmode
     class late_start
 
-#
-# FTM daemon for EFS force sync added by ZTE_BOOT_JIA_20120815 jia.jia
-#
 service ftmd-fs /system/bin/ftmdaemon-oem forcesync
     class core
     disabled
@@ -496,9 +430,6 @@ service ftmd-fs /system/bin/ftmdaemon-oem forcesync
     group radio
     oneshot
 
-#
-# FTM daemon for EFS force sync added by ZTE_BOOT_JIA_20120815 jia.jia
-#
 on property:sys.ftm.forcesync=1
     start ftmd-fs
 

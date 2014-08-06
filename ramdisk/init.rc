@@ -31,15 +31,8 @@ loglevel 3
     export ANDROID_ROOT /system
     export ANDROID_ASSETS /system/app
     export ANDROID_DATA /data
-    
-    #
-    # Add '/mnt/sdcard' for external sdcard
-    # and '/mnt/sdcard2' for internal sdcard
-    # by ZTE_BOOT_JIA_20120615 jia.jia
-    #
     export EXTERNAL_STORAGE /mnt/sdcard
     export SECONDARY_STORAGE /mnt/sdcard2
-
     export ASEC_MOUNTPOINT /mnt/asec
     export LOOP_MOUNTPOINT /mnt/obb
     export BOOTCLASSPATH /system/framework/core.jar:/system/framework/core-junit.jar:/system/framework/bouncycastle.jar:/system/framework/ext.jar:/system/framework/framework.jar:/system/framework/android.policy.jar:/system/framework/services.jar:/system/framework/apache-xml.jar:/system/framework/filterfw.jar:/system/framework/ZteDrmClient.jar:/system/framework/qcnvitems.jar:/system/framework/qcrilhook.jar:/system/framework/sprint.jar
@@ -55,16 +48,8 @@ loglevel 3
 
 # create mountpoints
     mkdir /mnt 0775 root system
-
-    #
-    # Add '/mnt/sdcard' for external sdcard
-    # and '/mnt/sdcard2' for internal sdcard
-    # and '/mnt/carrier for vendor requirement
-    # by ZTE_BOOT_JIA_20120615 jia.jia
-    #
     mkdir /mnt/sdcard 0000 system system
     mkdir /mnt/sdcard2 0000 system system
-    mkdir /carrier 0770 system system
 
 # Create cgroup mount point for cpu accounting
     mkdir /acct
@@ -105,8 +90,7 @@ loglevel 3
     write /proc/sys/kernel/sched_compat_yield 1
     write /proc/sys/kernel/sched_child_runs_first 0
     write /proc/sys/kernel/randomize_va_space 2
-    
-# ZTE_PM_SLF_001:modify the permissions of PM interface
+
     chmod 0660 /sys/module/pm8921_charger/parameters/disabled
     chmod 0660 /sys/module/pm8921_charger/parameters/enable_to_shutdown
     chmod 0660 /sys/class/rtc/rtc0/wakealarm
@@ -119,8 +103,7 @@ loglevel 3
     chown root system /sys/class/rtc/rtc0/wakealarm
     chown root system /sys/kernel/debug/gpio_debug/gpio_get
     chown root system /sys/kernel/debug/gpio_debug/gpio_out_l
-    chown root system /sys/kernel/debug/gpio_debug/gpio_out_h    
-# ZTE_PM_SLF_001:end
+    chown root system /sys/kernel/debug/gpio_debug/gpio_out_h
 
 # Create cgroup mount points for process groups
     mkdir /dev/cpuctl
@@ -156,22 +139,6 @@ on fs
     mount yaffs2 mtd@persist /persist nosuid nodev
 
 on emmc-fs
-# mount mmc partitions
-
-# ZTE_BOOT_JIA_20111228 jia.jia --->
-#    wait /dev/block/mmcblk0p12
-#    mount ext4 /dev/block/mmcblk0p12 /system rw barrier=1
-#    wait /dev/block/mmcblk0p13
-#    exec /system/bin/e2fsck -p /dev/block/mmcblk0p13
-#    mount ext4 /dev/block/mmcblk0p13 /data nosuid nodev barrier=1 noauto_da_alloc
-#    mount ext4 /dev/block/mmcblk0p14 /persist nosuid nodev barrier=1
-#    mount ext4 /dev/block/mmcblk0p15 /cache nosuid nodev barrier=1
-# ZTE_BOOT_JIA_20111228 jia.jia <---
-
-#
-# Set prop of 'persist' as 'rw' instead of 'ro' by ZTE_BOOT_JIA_20120703 jia.jia
-#
-# ZTE_BOOT_JIA_20120703 jia.jia --->
     wait /dev/block/platform/msm_sdcc.1/by-name/system
     mount ext4 /dev/block/platform/msm_sdcc.1/by-name/system /system ro barrier=1
   
@@ -194,20 +161,6 @@ on emmc-fs
     #------sdcarddata----------
     wait /dev/block/platform/msm_sdcc.1/by-name/sdcarddata
     exec /system/bin/format_vfat
-    
-    #------carrier----------
-    wait /dev/block/platform/msm_sdcc.1/by-name/carrier
-    exec /system/bin/sh -c "/system/bin/ext4check.sh CARRIER /dev/block/platform/msm_sdcc.1/by-name/carrier"
-    mount ext4 /dev/block/platform/msm_sdcc.1/by-name/carrier /carrier rw nosuid nodev barrier=1
-
-#    wait /dev/block/mmcblk0p12
-#    mount ext4 /dev/block/mmcblk0p12 /system ro barrier=1
-#    wait /dev/block/mmcblk0p13
-#    exec /system/bin/e2fsck -p /dev/block/mmcblk0p13
-#    mount ext4 /dev/block/mmcblk0p13 /data nosuid nodev barrier=1 noauto_da_alloc
-#    mount ext4 /dev/block/mmcblk0p14 /persist nosuid nodev barrier=1
-#    mount ext4 /dev/block/mmcblk0p15 /cache nosuid nodev barrier=1
-# ZTE_BOOT_JIA_20120412 jia.jia <---
 
 on post-fs
     # once everything is setup, no need to modify /
@@ -233,13 +186,6 @@ on post-fs
 
     # create the lost+found directories, so as to enforce our permissions
     mkdir /cache/lost+found 0770 root root
-    
-    #
-    # Add '/mnt/carrier for vendor requirement
-    # by ZTE_BOOT_JIA_20120630 jia.jia
-    #
-    chown system system /carrier
-    chmod 0771 /carrier
 
 on post-fs-data
     # We chown/chmod /data again so because mount is run as root + defaults
@@ -259,7 +205,6 @@ on post-fs-data
     copy /proc/apanic_threads /data/dontpanic/apanic_threads
     chown root log /data/dontpanic/apanic_threads
     chmod 0640 /data/dontpanic/apanic_threads
-
     write /proc/apanic_console 1
 
     # create basic filesystem structure
@@ -310,15 +255,9 @@ on post-fs-data
     chmod 0660 /sys/class/android_usb/android0/f_rndis/ethaddr
     
     mkdir /sys/ispfw/ispfwupdate  0775 shell system
-    
 
 on boot
-# xiongyiming begin
     chown root system /proc/touchscreen/ts_information
-# xiongyiming end
-
-service sysinit /system/bin/sysinit
-	oneshot
 
 # basic network init
     ifup lo
@@ -371,9 +310,7 @@ service sysinit /system/bin/sysinit
     chown system system /sys/class/leds/red/device/grpfreq
     chown system system /sys/class/leds/red/device/grppwm
     chown system system /sys/class/leds/red/device/blink
-   
-#add by lukai -------------
-# Change owner&&group for AKM and gsensor devices
+
     chown system  system /sys/class/compass/akm8962/enable_acc
     chown system  system /sys/class/compass/akm8962/enable_mag
     chown system  system /sys/class/compass/akm8962/enable_ori
@@ -381,12 +318,10 @@ service sysinit /system/bin/sysinit
     chown system  system /sys/class/compass/akm8962/delay_mag
     chown system  system /sys/class/compass/akm8962/delay_ori	
     chown system  system /sys/class/compass/akm8962/accel
-    
+
     chown system  system /sys/devices/i2c-12/12-000f/enable
     chown system  system /sys/devices/i2c-12/12-000f/poll
-#add by lukai -------------    
-   
-#ZTE_TORCH_SLF_20120319 BEGIN
+
     chown system camera /sys/class/leds/flashlight/brightness
     chmod 0774 /sys/class/leds/flashlight/brightness
 
@@ -399,7 +334,6 @@ service sysinit /system/bin/sysinit
     chmod 0774 /sys/class/leds/led:battery_full/brightness
     chown system system /sys/class/leds/led:battery_full/blink
     chmod 0774 /sys/class/leds/led:battery_full/blink
- #ZTE_TORCH_SLF_20120319 end
      
     chown system system /sys/class/timed_output/vibrator/enable
     chown system system /sys/module/sco/parameters/disable_esco
@@ -410,25 +344,6 @@ service sysinit /system/bin/sysinit
     chown system system /sys/kernel/ipv4/tcp_rmem_def
     chown system system /sys/kernel/ipv4/tcp_rmem_max
     chown root radio /proc/cmdline
-
-# Modify to improve data throughput by ZTE_WANGCHENG_20120704
-# Define TCP buffer sizes for various networks
-#   ReadMin, ReadInitial, ReadMax, WriteMin, WriteInitial, WriteMax,
-    setprop net.tcp.buffersize.default 4096,87380,110208,4096,16384,110208
-    setprop net.tcp.buffersize.wifi    4096,221184,3461120,4096,221184,3461120
-    setprop net.tcp.buffersize.lte     4096,221184,3461120,4096,221184,3461120
-    setprop net.tcp.buffersize.umts    4096,221184,3461120,4096,221184,3461120
-    setprop net.tcp.buffersize.hspa    4096,221184,3461120,4096,221184,3461120
-    setprop net.tcp.buffersize.hsupa   4096,221184,3461120,4096,221184,3461120
-    setprop net.tcp.buffersize.hsdpa   4096,221184,3461120,4096,221184,3461120
-    setprop net.tcp.buffersize.edge    4096,221184,3461120,4096,221184,3461120
-    setprop net.tcp.buffersize.gprs    4096,221184,3461120,4096,221184,3461120
-    setprop net.tcp.buffersize.evdo_b  4094,87380,262144,4096,16384,262144
-
-# merged from 8x60-gb by ZTE_BOOT_JIA_20120110 jia.jia
-# ZTE_ZHP_20110714 add getlogtofile control,user version is close and eng version is open by default.
-#    setprop persist.sys.ztelog.enable 1
-#add end
 
 # Assign TCP buffer thresholds to be ceiling value of technology maximums
 # Increased technology maximums should be reflected here.
@@ -512,17 +427,10 @@ on property:persist.sys.usb.config=*
 
 ## Daemon processes to be run by init.
 ##
-
-#
-# FTM daemon for normal mode added by ZTE_BOOT_JIA_20120425 jia.jia
-#
 service ftmd-nm /system/bin/ftmdaemon-oem normalmode
     class core
     oneshot
 
-#
-# FTM daemon for EFS force sync added by ZTE_BOOT_JIA_20120815 jia.jia
-#
 service ftmd-fs /system/bin/ftmdaemon-oem forcesync
     class core
     disabled
@@ -530,9 +438,6 @@ service ftmd-fs /system/bin/ftmdaemon-oem forcesync
     group radio
     oneshot
 
-#
-# FTM daemon for EFS force sync added by ZTE_BOOT_JIA_20120815 jia.jia
-#
 on property:sys.ftm.forcesync=1
     start ftmd-fs
 
@@ -547,11 +452,9 @@ service console /system/bin/sh
     user shell
     group log
 
-# merged from 8x60-gb by ZTE_BOOT_JIA_20120110 jia.jia
 on property:persist.sys.ztelog.enable=1
     start getlog
 
-# merged from 8x60-gb by ZTE_BOOT_JIA_20120110 jia.jia
 on property:persist.sys.ztelog.enable=0
     stop getlog
 
@@ -599,7 +502,6 @@ service netd /system/bin/netd
 service debuggerd /system/bin/debuggerd
     class main
 
-# Add 'drmrpc' in group by ZTE_BOOT_JIA_20120703 jia.jia
 service ril-daemon /system/bin/rild
     class main
     socket rild stream 660 root radio
@@ -607,14 +509,12 @@ service ril-daemon /system/bin/rild
     user root
     group radio cache inet misc audio sdcard_rw qcom_oncrpc diag drmrpc
 
-#ZTE_RIL_RJG_20100804 begin,disabled
 service sdlog-daemon /system/bin/sdlog
     class late_start
     disabled
     
 on property:persist.service.sdlog.enable=1
     start sdlog-daemon
-#ZTE_RIL_RJG_20100804 end		
 	
 service surfaceflinger /system/bin/surfaceflinger
     class main
@@ -635,10 +535,6 @@ service drm /system/bin/drmserver
     user drm
     group system inet drmrpc
     
-# add for nfc yangxiangling.    
-on property:ro.build.type=eng
-    mkdir /data/nfc 0777
-    
 on property:ro.feature.ztedrm.support=1
     mkdir /data/oma 1777
     chmod 1777 /data/oma
@@ -654,19 +550,17 @@ service media /system/bin/mediaserver
     user media
     group audio camera inet net_bt net_bt_admin net_bw_acct drmrpc
     ioprio rt 4
-	
+
 service bootanim /system/bin/bootanimation
     class main
     user graphics
     group graphics
     disabled
     oneshot
-#======= bluetooth services +++==========================
-#zte_bt_dm_20120110 add for 7x27A_*983*24474636# chipertest
+
 service bluetooth_prop /system/bin/sh /system/bin/init.btprop.sh
     class late_start
     oneshot
-#20120110 end
 
 service dbus /system/bin/dbus-daemon --system --nofork
     class main
@@ -686,10 +580,6 @@ service bluetoothd /system/bin/bluetoothd -n
 service installd /system/bin/installd
     class main
     socket installd stream 600 system system
-
-service flash_recovery /system/etc/install-recovery.sh
-    class main
-    oneshot
 
 service racoon /system/bin/racoon
     class main
@@ -719,13 +609,10 @@ service dumpstate /system/bin/dumpstate -s
     disabled
     oneshot
 
-# merged from 8x60-gb by ZTE_BOOT_JIA_20120110 jia.jia
 service getlog /system/bin/getlogtofile
     user root
-#   disabled
     oneshot
 
-	
 service hostapd /system/bin/hostapd -dddd /data/misc/wifi/hostapd.conf
     class late_start
     user root
@@ -733,7 +620,6 @@ service hostapd /system/bin/hostapd -dddd /data/misc/wifi/hostapd.conf
     oneshot
     disabled
 
-//For wcn3660 rf test	-	pengji
 service wifi_ftmd /system/bin/wifi_ftmd
    socket wifi_ftmd dgram 0666
     disabled
@@ -743,7 +629,6 @@ service wlan_prop /system/bin/sh /system/etc/init.wlanprop.sh
 	class late_start
     oneshot
 
-# ZTE_FMC_ZL_20120202,begin
 service pppd /system/bin/pppd file /data/data/zte.com.android.ppptunl/pppd.conf
     class late_start 
     user root
@@ -758,54 +643,34 @@ service ct_fmc_init /system/bin/sh /system/etc/init.ct_fmc.sh
 
 on property:ro.feature.ct_fmc.support=true
     start ct_fmc_init
-# ZTE_FMC_ZL_20120202,end
-	
-# ZTE_RIL_YAOSUJUAN_20110309 begin
+
 on property:persist.radio.gcftest=1
     stop DrmHost
-# ZTE_RIL_YAOSUJUAN_20110309 end
 
-#zenghuipeng add
-service sprintdiag /system/bin/sprintdiag
-    class late_start
-    user root
-    group radio cache inet misc audio qcom_oncrpc diag
-    
-#ZTE_LILEYANG_PARTNERAPP
 service copypartnerapp /system/bin/copypartnerapp
     class late_start 
     oneshot
-#end ZTE_LILEYANG_PARTNERAPP    
 
-#ruanmeisi
 service hibernate /system/bin/hibernate
     class late_start 
     disabled
     oneshot
 
-#ZTE_HWY_FOR_FORMAT_CARRIER 20120427 begin                      
-service formatcarrier /system/bin/sh /system/bin/hm_format_carrier.sh                      
-    class late_start                                    
-    user root                                   
-    oneshot                                                           
-    disabled                                                                         
-#ZTE_HWY_FOR_FORMAT_CARRIER 20120427 end 
-
 on init
-#jinzhiqiang  add fuse point
+#Add fuse point
     mkdir /mnt/sdcard2 0000 system system
     symlink /mnt/sdcard2 /Device
 
 on post-fs
-    #jinzhiqiang add fuse point
+#Add fuse point
     mkdir /data/media 0775 media_rw media_rw
     chown media_rw media_rw /data/media    
 
-#ZTE_ZB_SUBSYSTEMRESTART_120829_01 begin
+#ZTE subsystem restart begin
 on property:persist.sys.subrestart.enable=0
     write /sys/module/subsystem_restart/parameters/restart_level 1
     
 on property:persist.sys.subrestart.enable=1
     write /sys/module/subsystem_restart/parameters/restart_level 3
-#ZTE_ZB_SUBSYSTEMRESTART_120829_01 end
+#ZTE subsystem restart end
 

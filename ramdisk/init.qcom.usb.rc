@@ -29,11 +29,6 @@ on init
     write /sys/class/android_usb/android0/f_rndis/wceis 1
     write /sys/class/android_usb/android0/f_serial/max_transports smd,tty,smd	
 
-service config_serialno /system/bin/config_serialno -r
-#    class core
-    user root
-    disabled
-    oneshot
 
 service qcom-usb-sh /system/bin/sh /init.qcom.usb.sh
     class core

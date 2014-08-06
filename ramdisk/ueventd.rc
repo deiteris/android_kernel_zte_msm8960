@@ -30,8 +30,6 @@
 #
 # Chmod /dev/smdcntl* from 640 to 666 to fix failure of EFS sync, i.e.,
 # 'Unable to open port id /dev/smdcntl0' in vendor/qcom/proprietary/qmi/platform/qmi_platform_qmux_io.c
-# by ZTE_BOOT_JIA_20120215
-#
 # these should not be world writable
 /dev/diag_arm9            0660   radio      radio
 /dev/android_adb          0660   adb        adb
@@ -160,12 +158,8 @@
 /sys/devices/virtual/input/input*	min		0660  root   input 
 /sys/devices/virtual/input/input*	poll	0660  root   input
 
-#by lukai,can't use 660,but 666 can make gsensor and compass work
-
 /sys/devices/i2c-12/12-000f		enable	0660  root   system
 /sys/devices/i2c-12/12-000f		poll	0660  root   system
-#/sys/devices/i2c-12/12-000f		enable	0666  root   system
-#/sys/devices/i2c-12/12-000f		poll	0666  root   system
 
 #permissions for video
 /dev/msm_vidc_reg         0660  system       audio

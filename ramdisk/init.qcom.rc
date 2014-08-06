@@ -32,7 +32,6 @@ on init
     mkdir /persist 0775 system system
 
 on early-boot
-    # set RLIMIT_MEMLOCK to 64MB
     setrlimit 8 67108864 67108864
 
 on boot
@@ -180,10 +179,6 @@ on post-fs-data
     mkdir /data/shared 0755
     chown system system /data/shared
 
-    #Create directory for FOTA
-    mkdir /data/fota 0771
-    chown system system /data/fota
-
     #Provide the access to hostapd.conf only to root and group
     chmod 0660 /data/hostapd/hostapd.conf
 
@@ -237,15 +232,17 @@ service hciattach /system/bin/sh /system/etc/init.qcom.bt.sh
     group qcom_oncrpc bluetooth net_bt_admin
     disabled
     oneshot
-#ZTE_zhukaidi_TESTMODE_001 20111025 +++
+
 service bttestmode /system/bin/sh /system/bin/bt_testmode_new.sh
     user root
     oneshot
     disabled  
+
 service btsspdebugmode /system/bin/sh /system/bin/bt_ssp_debug_mode.sh
     user root
     oneshot
-    disabled  
+    disabled
+
 service bt-dun /system/bin/dun-server /dev/smd7 /dev/rfcomm0
     class late_start
     user bluetooth
@@ -428,7 +425,7 @@ service qcom-post-boot /system/bin/sh /system/etc/init.qcom.post_boot.sh
     user root
     disabled
     oneshot
-#lianghouxing add qcom-post-ftm for LOW POWER
+
 service qcom-post-ftm /system/bin/sh /system/etc/init.qcom.post_boot_ftm.sh
     class late_start
     user root
@@ -442,7 +439,6 @@ service qcom-wifi /system/bin/sh /system/etc/init.qcom.wifi.sh
 on property:sys.boot_completed=1
     start qcom-post-boot
 	
-#lianghouxing add qcom-post-ftm for LOW POWER
 on property:sys.boot_completed_ftm=1
     start qcom-post-ftm
 
@@ -515,7 +511,6 @@ service profiler_daemon /system/bin/profiler_daemon
     user root
     group root
     disabled
-
 
 service hcidump /system/bin/sh /system/etc/hcidump.sh
     user bluetooth
