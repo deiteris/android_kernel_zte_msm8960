@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2012, The Linux Foundation. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -64,7 +64,7 @@
 
 #define dbgTraceInfo(_Mask, _InParams)                 \
   {                                                      \
-    KdPrint (_InParams) ;                                 \
+    DbgPrint _InParams ;                                 \
   }
 
 #define utilLogLogDebugMessage(HddAdapter, _LogBuffer)   \
