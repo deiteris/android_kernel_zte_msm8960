@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012, Code Aurora Forum. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -186,7 +186,7 @@ sysBbtProcessMessageCore(tpAniSirGlobal pMac, tpSirMsgQ pMsg, tANI_U32 type,
             if( (dropReason = limIsPktCandidateForDrop(pMac, pBd, subType)) != eMGMT_DROP_NO_DROP)
             {
                 PELOG1(sysLog(pMac, LOG1, FL("Mgmt Frame %d being dropped, reason: %d\n"), subType, dropReason);)
-                MTRACE(macTrace(pMac,   TRACE_CODE_RX_MGMT_DROP, NO_SESSION, dropReason);)
+                MTRACE(macTrace(pMac,   TRACE_CODE_RX_MGMT_DROP, 0, dropReason);)
                 goto fail;
             }
             //Post the message to PE Queue

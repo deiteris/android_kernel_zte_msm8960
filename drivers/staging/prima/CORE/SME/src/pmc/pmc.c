@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012, Code Aurora Forum. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -2530,15 +2530,6 @@ tANI_BOOLEAN pmcShouldBmpsTimerRun( tpAniSirGlobal pMac )
           pMac->pmc.wowlModeRequired )))
     {
         smsLog(pMac, LOG1, FL("BMPS is not enabled or not required"));
-        return eANI_BOOLEAN_FALSE;
-    }
-
-    if ((vos_concurrent_sessions_running()) &&
-        ((csrIsConcurrentInfraConnected( pMac ) ||
-        (vos_get_concurrency_mode()& VOS_SAP) ||
-        (vos_get_concurrency_mode()& VOS_P2P_GO))))
-    {
-        smsLog(pMac, LOG1, FL("Multiple Sessions/GO/SAP sessions . BMPS should not be started"));
         return eANI_BOOLEAN_FALSE;
     }
 

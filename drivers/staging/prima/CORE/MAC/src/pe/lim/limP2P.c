@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012, Code Aurora Forum. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -60,8 +60,8 @@
 #define   BSSID_OFFSET           16
 #define   ADDR2_OFFSET           10
 #define   ACTION_OFFSET          24
-#define   LIM_MIN_REM_TIME_FOR_TX_ACTION_FRAME                     50
-#define   LIM_MIN_REM_TIME_EXT_FOR_TX_ACTION_FRAME                 60
+#define   LIM_MIN_REM_TIME_FOR_TX_ACTION_FRAME                     30
+#define   LIM_MIN_REM_TIME_EXT_FOR_TX_ACTION_FRAME                 40
 
 
 
@@ -582,7 +582,7 @@ void limSendSmeMgmtFrameInd(
             pMac->lim.p2pRemOnChanTimeStamp = vos_timer_get_system_time();
             pMac->lim.gTotalScanDuration = LIM_MIN_REM_TIME_EXT_FOR_TX_ACTION_FRAME;
 
-            chanWaitTime = SYS_MS_TO_TICKS(LIM_MIN_REM_TIME_EXT_FOR_TX_ACTION_FRAME);
+            chanWaitTime = SYS_MS_TO_TICKS(40);
             vStatus = tx_timer_deactivate(&pMac->lim.limTimers.gLimRemainOnChannelTimer);
 
             if (VOS_STATUS_SUCCESS != vStatus)
@@ -623,12 +623,12 @@ eHalStatus limP2PActionCnf(tpAniSirGlobal pMac, tANI_U32 txCompleteSuccess)
 }
 
 
-void limSetHtCaps(tpAniSirGlobal pMac, tpPESession psessionEntry, tANI_U8 *pIeStartPtr,tANI_U32 nBytes)
+void limSetHtCaps(tpAniSirGlobal pMac,tANI_U8 *pIeStartPtr,tANI_U32 nBytes)
 {
     v_U8_t              *pIe=NULL;
     tDot11fIEHTCaps     dot11HtCap;
 
-    PopulateDot11fHTCaps(pMac, psessionEntry, &dot11HtCap);
+    PopulateDot11fHTCaps(pMac,&dot11HtCap);
     pIe = limGetIEPtr(pMac,pIeStartPtr, nBytes,
                                        DOT11F_EID_HTCAPS,ONE_BYTE);
    limLog( pMac, LOGE, FL("pIe 0x%x dot11HtCap.supportedMCSSet[0]=0x%x"),
@@ -851,7 +851,7 @@ void limSendP2PActionFrame(tpAniSirGlobal pMac, tpSirMsgQ pMsg)
 
         if (SIR_MAC_MGMT_PROBE_RSP == pFc->subType)
         {
-            limSetHtCaps( pMac, psessionEntry, (tANI_U8*)pMbMsg->data + PROBE_RSP_IE_OFFSET,
+            limSetHtCaps( pMac,(tANI_U8*)pMbMsg->data + PROBE_RSP_IE_OFFSET,
                            nBytes);
         }
         

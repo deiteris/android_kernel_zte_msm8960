@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012, Code Aurora Forum. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -2138,6 +2138,8 @@ WLANTL_GetRssi
     {
       *pRssi = pTLCb->atlSTAClients[ucSTAId].rssiAvg;
     }
+    TLLOGE(VOS_TRACE( VOS_MODULE_ID_TL, VOS_TRACE_LEVEL_ERROR,
+                                 "WLAN TL:bmpsRssi %d \n",*pRssi));
   }
   else
   {
@@ -2145,9 +2147,7 @@ WLANTL_GetRssi
   }
 
   TLLOG2(VOS_TRACE( VOS_MODULE_ID_TL, VOS_TRACE_LEVEL_INFO_HIGH,
-                    "WLAN TL:WLANTL_GetRssi for STA: %d RSSI: %d%s",
-                    ucSTAId, *pRssi,
-                    pTLCb->isBMPS ? " in BMPS" : ""));
+            "WLAN TL:WLANTL_GetRssi for STA: %d RSSI: %d", ucSTAId, *puRssi));
 
   return VOS_STATUS_SUCCESS;
 }/* WLANTL_GetRssi */
@@ -5100,15 +5100,12 @@ WLANTL_RxFrames
           continue;
         }
 
-/* This will be handled within statistics module */
-#ifndef FEATURE_WLAN_INTEGRATED_SOC
 #ifdef WLAN_SOFTAP_FEATURE
     /* RX Statistics Data */
       /* This is RX UC data frame */
       pTLCb->atlSTAClients[ucSTAId].trafficStatistics.rxUCFcnt++;
       pTLCb->atlSTAClients[ucSTAId].trafficStatistics.rxUCBcnt += usPktLen;
 #endif
-#endif /* FEATURE_WLAN_INTEGRATED_SOC */
 
     }/* else data frame*/
 
@@ -5882,10 +5879,6 @@ WLANTL_STATxAuth
 
     return vosStatus;
   }
-
-#ifdef FEATURE_WLAN_INTEGRATED_SOC
-  WLANTL_StatHandleTXFrame(pvosGCtx, ucSTAId, vosDataBuff, NULL, &tlMetaInfo);
-#endif /* FEATURE_WLAN_INTEGRATED_SOC */
 
 #ifdef WLAN_SOFTAP_FEATURE
   /*There are still packets in HDD - set back the pending packets and 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012, Code Aurora Forum. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -184,6 +184,14 @@ limGetBssDescription( tpAniSirGlobal pMac, tSirBssDescription *pBssDescription,
     // Extract reserved bssDescription
     pBuf += sizeof(pBssDescription->sSirBssDescriptionRsvd);
     len -= sizeof(pBssDescription->sSirBssDescriptionRsvd);
+    if (limCheckRemainingLength(pMac, len) == eSIR_FAILURE)
+        return eSIR_FAILURE;
+
+    // Extract the TITAN capability info
+    // NOTE - titanHtCaps is now DWORD aligned
+    pBssDescription->titanHtCaps = limGetU32( pBuf );
+    pBuf += sizeof(tANI_U32);
+    len  -= sizeof(tANI_U32);
     if (limCheckRemainingLength(pMac, len) == eSIR_FAILURE)
         return eSIR_FAILURE;
 
@@ -585,11 +593,15 @@ limCopyNeighborBssInfo(tpAniSirGlobal pMac, tANI_U8 *pBuf, tpSirNeighborBssInfo 
     pBuf       += sizeof(tSirMacAddr);
     bssInfoLen += sizeof(tSirMacAddr);
    PELOG3(limLog(pMac, LOG3,
-       FL("Copying new NeighborWds node:channel is %d, wniIndicator is %d, bssType is %d, bssId is "),
-       pBssInfo->channelId, pBssInfo->wniIndicator, pBssInfo->bssType);
+       FL("Copying new NeighborWds node:channel is %d, TITAN HT Caps are %1d, wniIndicator is %d, bssType is %d, bssId is "),
+       pBssInfo->channelId, pBssInfo->titanHtCaps, pBssInfo->wniIndicator,
+       pBssInfo->bssType);
     limPrintMacAddr(pMac, pBssInfo->bssId, LOG3);)
 
     *pBuf++ = pBssInfo->channelId;
+    bssInfoLen++;
+
+    *pBuf++ = pBssInfo->titanHtCaps;
     bssInfoLen++;
 
     limCopyU32(pBuf, pBssInfo->wniIndicator);
@@ -1354,7 +1366,7 @@ limStartBssReqSerDes(tpAniSirGlobal pMac, tpSirSmeStartBssReq pStartBssReq, tANI
     len--;
 
     // Extract CB secondary channel info
-    pStartBssReq->cbMode = (ePhyChanBondState)limGetU32( pBuf );
+    pStartBssReq->cbMode = (tAniCBSecondaryMode)limGetU32( pBuf );
     pBuf += sizeof( tANI_U32 );
     len -= sizeof( tANI_U32 );
 
@@ -1777,12 +1789,6 @@ limJoinReqSerDes(tpAniSirGlobal pMac, tpSirSmeJoinReq pJoinReq, tANI_U8 *pBuf)
     if (limCheckRemainingLength(pMac, len) == eSIR_FAILURE)
         return eSIR_FAILURE;
 
-    // Extract cbMode
-    pJoinReq->cbMode = *pBuf++;
-    len--;
-    if (limCheckRemainingLength(pMac, len) == eSIR_FAILURE)
-        return eSIR_FAILURE;
-
     // Extract uapsdPerAcBitmask
     pJoinReq->uapsdPerAcBitmask = *pBuf++;
     len--;
@@ -1958,7 +1964,7 @@ limJoinReqSerDes(tpAniSirGlobal pMac, tpSirSmeJoinReq pJoinReq, tANI_U8 *pBuf)
         return eSIR_FAILURE;
 #endif
     
-#if defined WLAN_FEATURE_VOWIFI_11R || defined FEATURE_WLAN_CCX || defined(FEATURE_WLAN_LFR)
+#if defined WLAN_FEATURE_VOWIFI_11R || defined FEATURE_WLAN_CCX
     //isFastTransitionEnabled;
     pJoinReq->isFastTransitionEnabled = (tAniBool)limGetU32(pBuf);
     pBuf += sizeof(tAniBool);
@@ -1967,15 +1973,7 @@ limJoinReqSerDes(tpAniSirGlobal pMac, tpSirSmeJoinReq pJoinReq, tANI_U8 *pBuf)
         return eSIR_FAILURE;    
 #endif
 
-#ifdef FEATURE_WLAN_LFR
-    //isFastRoamIniFeatureEnabled;
-    pJoinReq->isFastRoamIniFeatureEnabled = (tAniBool)limGetU32(pBuf);
-    pBuf += sizeof(tAniBool);
-    len -= sizeof(tAniBool);
-    if (limCheckRemainingLength(pMac, len) == eSIR_FAILURE)
-        return eSIR_FAILURE;    
-#endif
-
+    
 #if (WNI_POLARIS_FW_PACKAGE == ADVANCED) && defined(ANI_PRODUCT_TYPE_AP)
     // Extract BP Indicator
     pJoinReq->bpIndicator = (tAniBool) limGetU32(pBuf);
@@ -2186,6 +2184,11 @@ limAssocIndSerDes(tpAniSirGlobal pMac, tpLimMlmAssocInd pAssocInd, tANI_U8 *pBuf
     mLen += sizeof(tANI_U32);
 
 #endif
+
+    // Copy the new TITAN capabilities
+    *pBuf = pAssocInd->titanHtCaps;
+    pBuf++;
+    mLen++;
 
     limCopyU32(pBuf, pAssocInd->spectrumMgtIndicator);
     pBuf += sizeof(tAniBool);
@@ -2754,6 +2757,11 @@ limReassocIndSerDes(tpAniSirGlobal pMac, tpLimMlmReassocInd pReassocInd, tANI_U8
     pBuf += sizeof(tANI_U32); // nwType
     mLen += sizeof(tANI_U32);
 #endif
+
+    // Copy the new TITAN capabilities
+    *pBuf = pReassocInd->titanHtCaps;
+    pBuf++;
+    mLen++;
 
     limCopyU32(pBuf, pReassocInd->spectrumMgtIndicator);
     pBuf += sizeof(tAniBool);
@@ -3409,7 +3417,7 @@ limCopyNeighborInfoToCfg(tpAniSirGlobal pMac, tSirNeighborBssInfo neighborBssInf
         pMac->lim.htCapabilityPresentInBeacon = 1;
     else
         pMac->lim.htCapabilityPresentInBeacon = 0;
-    if (neighborBssInfo.localPowerConstraints && pSessionEntry->lim11hEnable)
+    if (neighborBssInfo.localPowerConstraints && pMac->lim.gLim11hEnable)
     {
         localPowerConstraints = neighborBssInfo.localPowerConstraints;
     }

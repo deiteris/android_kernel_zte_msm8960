@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012, Code Aurora Forum. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -192,7 +192,7 @@ limProcessAuthFrame(tpAniSirGlobal pMac, tANI_U8 *pRxPacketInfo, tpPESession pse
 
     pBody = WDA_GET_RX_MPDU_DATA(pRxPacketInfo);
 
-    //PELOG3(sirDumpBuf(pMac, SIR_LIM_MODULE_ID, LOG3, (tANI_U8*)pBd, ((tpHalBufDesc) pBd)->mpduDataOffset + frameLen);)
+    PELOG3(sirDumpBuf(pMac, SIR_LIM_MODULE_ID, LOG3, (tANI_U8*)pBd, ((tpHalBufDesc) pBd)->mpduDataOffset + frameLen);)
 
 
    
@@ -1162,7 +1162,7 @@ limProcessAuthFrame(tpAniSirGlobal pMac, tANI_U8 *pRxPacketInfo, tpPESession pse
                                                     encrAuthFrame,key_length);
 
                                 psessionEntry->limMlmState = eLIM_MLM_WT_AUTH_FRAME4_STATE;
-                                MTRACE(macTrace(pMac, TRACE_CODE_MLM_STATE, psessionEntry->peSessionId, psessionEntry->limMlmState));
+                                MTRACE(macTrace(pMac, TRACE_CODE_MLM_STATE, 0, pMac->lim.gLimMlmState));
 
                                 limSendAuthMgmtFrame(pMac,
                                                      (tpSirMacAuthFrameBody) encrAuthFrame,
@@ -1243,7 +1243,7 @@ limProcessAuthFrame(tpAniSirGlobal pMac, tANI_U8 *pRxPacketInfo, tpPESession pse
 
                                 psessionEntry->limMlmState =
                                 eLIM_MLM_WT_AUTH_FRAME4_STATE;
-                                MTRACE(macTrace(pMac, TRACE_CODE_MLM_STATE, psessionEntry->peSessionId, psessionEntry->limMlmState));
+                                MTRACE(macTrace(pMac, TRACE_CODE_MLM_STATE, 0, pMac->lim.gLimMlmState));
 
                                 limSendAuthMgmtFrame(pMac,
                                                      (tpSirMacAuthFrameBody) encrAuthFrame,

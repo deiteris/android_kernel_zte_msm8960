@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012, Code Aurora Forum. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -831,22 +831,6 @@ limIsSmeJoinReqValid(tpAniSirGlobal pMac, tpSirSmeJoinReq pJoinReq)
         // Log the event
         limLog(pMac, LOGE,
                FL("received SME_JOIN_REQ with invalid bssInfo\n"));
-
-        valid = false;
-        goto end;
-    }
-
-    /*
-       Reject Join Req if the Self Mac Address and 
-       the Ap's Mac Address is same
-    */
-    if( palEqualMemory( pMac->hHdd, (tANI_U8* ) pJoinReq->selfMacAddr, 
-                       (tANI_U8 *) pJoinReq->bssDescription.bssId, 
-                       (tANI_U8) (sizeof(tSirMacAddr))))
-    {
-        // Log the event
-        limLog(pMac, LOGE,
-               FL("received SME_JOIN_REQ with Self Mac and BSSID Same\n"));
 
         valid = false;
         goto end;

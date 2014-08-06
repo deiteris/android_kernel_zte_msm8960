@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012, Code Aurora Forum. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -1499,34 +1499,7 @@ VOS_STATUS vos_nv_getChannelListWithPower(tChannelListWithPower *channels20MHz /
 #endif
         *num20MHzChannelsFound = (tANI_U8)count;
     }
-
-    if( channels40MHz && num40MHzChannelsFound )
-    {
-        count = 0;
-#ifdef FEATURE_WLAN_INTEGRATED_SOC
-        //center channels for 2.4 Ghz 40 MHz channels
-        for( i = RF_CHAN_BOND_3; i <= RF_CHAN_BOND_11; i++ )
-        {
-            
-            if( regChannels[i].enabled )
-            {
-                channels40MHz[count].chanId = rfChannels[i].channelNum;
-                channels40MHz[count++].pwr  = regChannels[i].pwrLimit;
-            }
-        }
-        //center channels for 5 Ghz 40 MHz channels
-        for( i = RF_CHAN_BOND_38; i <= RF_CHAN_BOND_163; i++ )
-        {
-            
-            if( regChannels[i].enabled )
-            {
-                channels40MHz[count].chanId = rfChannels[i].channelNum;
-                channels40MHz[count++].pwr  = regChannels[i].pwrLimit;
-            }
-        }
-#endif
-        *num40MHzChannelsFound = (tANI_U8)count;
-    }
+    //TODO: 40 MHz
     return (status);
 }
 

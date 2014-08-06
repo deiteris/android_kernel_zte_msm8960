@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012, Code Aurora Forum. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -774,18 +774,6 @@ typedef VOS_STATUS (*WLANTL_RSSICrossThresholdCBType)
    v_U8_t                          rssiNotification,
    v_PVOID_t                       pUserCtxt
 );
-
-typedef struct
-{
-    // Common for all types are requests
-    v_U16_t                         msgType;    // message type is same as the request type
-    v_U16_t                         msgLen;  // length of the entire request
-    v_U8_t                          sessionId; //sme Session Id
-    v_U8_t                          rssiNotification;    
-    v_PVOID_t                       tlCallback;
-    v_PVOID_t                       pAdapter;
-    v_PVOID_t                       pUserCtxt;
-} WLANTL_TlIndicationReq;
 
 /*----------------------------------------------------------------------------
  * Function Declarations and Documentation
