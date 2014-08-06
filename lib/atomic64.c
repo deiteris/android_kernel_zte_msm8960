@@ -13,13 +13,8 @@
 #include <linux/cache.h>
 #include <linux/spinlock.h>
 #include <linux/init.h>
-<<<<<<< HEAD
 #include <linux/export.h>
-#include <asm/atomic.h>
-=======
-#include <linux/module.h>
 #include <linux/atomic.h>
->>>>>>> 60063497... atomic: use <linux/atomic.h>
 
 /*
  * We use a hashed array of spinlocks to provide exclusive access
