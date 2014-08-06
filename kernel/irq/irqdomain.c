@@ -143,6 +143,11 @@ int irq_domain_simple_dt_translate(struct irq_domain *d,
 	return 0;
 }
 
+struct irq_domain_ops irq_domain_simple_ops = {
+	.dt_translate = irq_domain_simple_dt_translate,
+};
+EXPORT_SYMBOL_GPL(irq_domain_simple_ops);
+
 /**
  * irq_domain_create_simple() - Set up a 'simple' translation range
  */
@@ -177,10 +182,3 @@ void irq_domain_generate_simple(const struct of_device_id *match,
 }
 EXPORT_SYMBOL_GPL(irq_domain_generate_simple);
 #endif /* CONFIG_OF_IRQ */
-
-struct irq_domain_ops irq_domain_simple_ops = {
-#ifdef CONFIG_OF_IRQ
-	.dt_translate = irq_domain_simple_dt_translate,
-#endif /* CONFIG_OF_IRQ */
-};
-EXPORT_SYMBOL_GPL(irq_domain_simple_ops);
