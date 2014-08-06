@@ -119,7 +119,7 @@ case "$target" in
                 ;;
             *)
                 #8960
-                setprop debug.composition.type dyn
+                setprop debug.composition.type gpu
                 ;;
         esac
 
