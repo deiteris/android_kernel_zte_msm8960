@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012, Code Aurora Forum. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -49,7 +49,11 @@
 #define HDD_WLAN_WMM_PARAM_SUSPENSION_INTERVAL         13
 #define HDD_WLAN_WMM_PARAM_BURST_SIZE_DEFN             14
 #define HDD_WLAN_WMM_PARAM_ACK_POLICY                  15
-#define HDD_WLAN_WMM_PARAM_COUNT                       16
+#define HDD_WLAN_WMM_PARAM_INACTIVITY_INTERVAL         16
+#define HDD_WLAN_WMM_PARAM_MAX_SERVICE_INTERVAL        17
+#define HDD_WLAN_WMM_PARAM_COUNT                       18
+
+#define MHZ 6
 
 typedef enum
 {
@@ -192,6 +196,7 @@ typedef enum
 #endif
 
 
+ 
 #define WPS_OUI_TYPE   "\x00\x50\xf2\x04"
 #define WPS_OUI_TYPE_SIZE  4
  
@@ -199,6 +204,7 @@ typedef enum
 #define P2P_OUI_TYPE   "\x50\x6f\x9a\x09"
 #define P2P_OUI_TYPE_SIZE  4
 #endif
+
 
 #ifdef WLAN_FEATURE_WFD
 #define WFD_OUI_TYPE   "\x50\x6f\x9a\x0a"
@@ -272,6 +278,12 @@ typedef struct hdd_wext_state_s
 
    /* oem data req ID */
    v_U32_t oemDataReqID;
+#endif
+
+#ifdef FEATURE_WLAN_CCX
+   /* CCX state variables */
+   v_BOOL_t isCCXConnection;
+   eCsrAuthType collectedAuthType; /* Collected from ALL SIOCSIWAUTH Ioctls. Will be negotiatedAuthType - in tCsrProfile */
 #endif
 }hdd_wext_state_t;
 

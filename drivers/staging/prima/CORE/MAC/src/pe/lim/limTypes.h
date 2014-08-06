@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012, Code Aurora Forum. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -271,6 +271,11 @@ typedef struct sLimMlmAssocInd
     tANI_U32                  numBss; // List received from STA
     tSirNeighborBssInfo  neighborList[1]; // List received from STA
 #endif
+    // Required for indicating the frames to upper layer
+    tANI_U32             beaconLength;
+    tANI_U8*             beaconPtr;
+    tANI_U32             assocReqLength;
+    tANI_U8*             assocReqPtr;    
 } tLimMlmAssocInd, *tpLimMlmAssocInd;
 
 typedef struct sLimMlmReassocReq
@@ -320,6 +325,11 @@ typedef struct sLimMlmReassocInd
     tANI_U32                  numBss; // List received from STA
     tSirNeighborBssInfo  neighborList[1]; // List received from STA
 #endif
+    // Required for indicating the frames to upper layer
+    tANI_U32             beaconLength;
+    tANI_U8*             beaconPtr;
+    tANI_U32             assocReqLength;
+    tANI_U8*             assocReqPtr;    
 } tLimMlmReassocInd, *tpLimMlmReassocInd;
 
 typedef struct sLimMlmAuthCnf
@@ -335,6 +345,7 @@ typedef struct sLimMlmAuthInd
 {
     tSirMacAddr    peerMacAddr;
     tAniAuthType   authType;
+    tANI_U8        sessionId;
 } tLimMlmAuthInd, *tpLimMlmAuthInd;
 
 typedef struct sLimMlmDeauthReq
@@ -737,6 +748,10 @@ tSirRetStatus limSendLinkReportActionFrame(tpAniSirGlobal, tpSirMacLinkReport, t
 tSirRetStatus limSendRadioMeasureReportActionFrame(tpAniSirGlobal, tANI_U8, tANI_U8, tpSirMacRadioMeasureReport, tSirMacAddr, tpPESession);
 #endif
 
+#ifdef FEATURE_WLAN_CCX
+void limProcessIappFrame(tpAniSirGlobal, tANI_U8 *,tpPESession);
+#endif
+
 // Algorithms & Link Monitoring related functions
 tSirBackgroundScanMode limSelectsBackgroundScanMode(tpAniSirGlobal);
 void limTriggerBackgroundScan(tpAniSirGlobal);
@@ -746,7 +761,7 @@ void limAbortBackgroundScan(tpAniSirGlobal);
 void limHandleHeartBeatFailure(tpAniSirGlobal,tpPESession);
 
 /// Function that triggers link tear down with AP upon HB failure
-void limTearDownLinkWithAp(tpAniSirGlobal);
+void limTearDownLinkWithAp(tpAniSirGlobal,tANI_U8, tSirMacReasonCodes);
 
 #ifdef ANI_PRODUCT_TYPE_AP
 /// Function that performs periodic release of AIDs
@@ -841,6 +856,7 @@ void limSendHalFinishScanReq( tpAniSirGlobal, tLimLimHalScanState);
 void limContinuePostChannelScan(tpAniSirGlobal pMac);
 void limContinueChannelLearn( tpAniSirGlobal );
 //WLAN_SUSPEND_LINK Related
+tANI_U8 limIsLinkSuspended(tpAniSirGlobal pMac);
 void limSuspendLink(tpAniSirGlobal, tSirLinkTrafficCheck, SUSPEND_RESUME_LINK_CALLBACK, tANI_U32*);
 void limResumeLink(tpAniSirGlobal, SUSPEND_RESUME_LINK_CALLBACK, tANI_U32*);
 //end WLAN_SUSPEND_LINK Related
@@ -868,7 +884,11 @@ void limProcessMlmHalBADeleteInd( tpAniSirGlobal pMac,
 void limProcessMlmRemoveKeyRsp( tpAniSirGlobal pMac, tpSirMsgQ limMsgQ );
 
 void limProcessLearnIntervalTimeout(tpAniSirGlobal pMac);
-
+#ifdef WLAN_FEATURE_11W
+//11w SA query request action frame handler
+tSirRetStatus limSendSaQueryResponseFrame( tpAniSirGlobal pMac, 
+                   tANI_U16 transId, tSirMacAddr peer,tpPESession psessionEntry);
+#endif
 // Inline functions
 
 /**

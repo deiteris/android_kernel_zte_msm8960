@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012, Code Aurora Forum. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -664,9 +664,10 @@ limCleanupRxPath(tpAniSirGlobal pMac, tpDphHashNode pStaDs,tpPESession psessionE
         pMac->lim.gLastBeaconDtimCount = 0;
         pMac->lim.gLastBeaconDtimPeriod = 0;
 
-        
+#ifdef FEATURE_WLAN_CCX
+        limDeactivateAndChangeTimer(pMac,eLIM_TSM_TIMER);
+#endif
 
-        
         /**
          * Update the status for PMM module
          */
@@ -959,7 +960,13 @@ limRejectAssociation(tpAniSirGlobal pMac, tSirMacAddr peerAddr, tANI_U8 subType,
 
         if ( psessionEntry->parsedAssocReq[pStaDs->assocId] != NULL)
         {
-            palFreeMemory(pMac->hHdd, psessionEntry->parsedAssocReq[pStaDs->assocId]);
+            // Assoction confirmation is complete, free the copy of association request frame
+            if ( ((tpSirAssocReq)(psessionEntry->parsedAssocReq[pStaDs->assocId]))->assocReqFrame) 
+            {
+                palFreeMemory(pMac->hHdd,((tpSirAssocReq)(psessionEntry->parsedAssocReq[pStaDs->assocId]))->assocReqFrame);
+                ((tpSirAssocReq)(psessionEntry->parsedAssocReq[pStaDs->assocId]))->assocReqFrame = NULL;
+            }            
+            palFreeMemory(pMac->hHdd, psessionEntry->parsedAssocReq[pStaDs->assocId]);    
             psessionEntry->parsedAssocReq[pStaDs->assocId] = NULL;
         }
     }
@@ -1039,7 +1046,7 @@ limDecideApProtectionOnDelete(tpAniSirGlobal pMac,
     if(NULL == pStaDs)
       return;
 
-    limGetRfBand(pMac, &rfBand);
+    limGetRfBand(pMac, &rfBand, psessionEntry);
     if(SIR_BAND_5_GHZ == rfBand)
     {
         //we are HT. if we are 11A, then protection is not required.
@@ -1081,7 +1088,8 @@ limDecideApProtectionOnDelete(tpAniSirGlobal pMac,
     }
     else if(SIR_BAND_2_4_GHZ == rfBand)
     {
-        limGetPhyMode(pMac, &phyMode);
+        limGetPhyMode(pMac, &phyMode, psessionEntry);
+
         erpEnabled = pStaDs->erpEnabled;
         //we are HT or 11G and 11B station is getting deleted.
         if (((phyMode == WNI_CFG_PHY_MODE_11G) ||
@@ -1512,10 +1520,7 @@ limPopulateOwnRateSet(tpAniSirGlobal pMac,
 
     isArate = 0;
 
-
-    if (wlan_cfgGetInt(pMac, WNI_CFG_PHY_MODE, &phyMode) != eSIR_SUCCESS)
-        PELOGE(limLog(pMac, LOGE, FL("cfg get failed for PHY_MODE\n"));)
-    
+    limGetPhyMode(pMac, &phyMode, psessionEntry);
 
     // Get own rate set
     #if 0
@@ -1714,8 +1719,7 @@ limPopulateMatchingRateSet(tpAniSirGlobal pMac,
    isArate=0;
 
    // limGetPhyMode(pMac, &phyMode);
-   // FIXME
-   phyMode = pMac->lim.gLimPhyMode;
+   limGetPhyMode(pMac, &phyMode, psessionEntry);
 
    // get own rate set
    // val = WNI_CFG_OPERATIONAL_RATE_SET_LEN;
@@ -1880,7 +1884,6 @@ limPopulateMatchingRateSet(tpAniSirGlobal pMac,
                     }
                     else
                         rates->llbRates[bRateIndex++] = tempRateSet2.rate[i];
-            
                     break;
                 }
             }
@@ -3080,7 +3083,8 @@ tSirRetStatus limStaSendAddBss( tpAniSirGlobal pMac, tpSirAssocRsp pAssocRsp,
     }
 #endif
 
-    pAddBssParams->bSpectrumMgtEnabled = psessionEntry->spectrumMgtEnabled;
+    pAddBssParams->bSpectrumMgtEnabled = psessionEntry->spectrumMgtEnabled || 
+        limIsconnectedOnDFSChannel(bssDescription->channelId);
 
 #if defined WLAN_FEATURE_VOWIFI_11R
     pAddBssParams->extSetStaKeyParamValid = 0;
@@ -3314,7 +3318,8 @@ tSirRetStatus limStaSendAddBssPreAssoc( tpAniSirGlobal pMac, tANI_U8 updateEntry
     
     pAddBssParams->halPersona = (tANI_U8)psessionEntry->pePersona; //update persona
 
-    pAddBssParams->bSpectrumMgtEnabled = psessionEntry->spectrumMgtEnabled;
+    pAddBssParams->bSpectrumMgtEnabled = psessionEntry->spectrumMgtEnabled || 
+        limIsconnectedOnDFSChannel(bssDescription->channelId);
 
 #if defined WLAN_FEATURE_VOWIFI_11R
     pAddBssParams->extSetStaKeyParamValid = 0;
