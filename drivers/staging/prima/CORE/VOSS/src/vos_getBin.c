@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012, Code Aurora Forum. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -157,12 +157,19 @@ v_BOOL_t vos_concurrent_sessions_running(void)
 {
     v_U8_t i=0;
     v_U8_t j=0;
-    tVOS_CONCURRENCY_MODE con_mode; 
-    con_mode = hdd_get_concurrency_mode ( );
-    for (i=0;i<VOS_MAX_CONCURRENCY_PERSONA; i++)
+    hdd_context_t *pHddCtx;
+    v_CONTEXT_t pVosContext = vos_get_global_context( VOS_MODULE_ID_HDD, NULL );    
+
+    if (NULL != pVosContext)
     {
-      if (con_mode & (1<<i))
-        j++;
+       pHddCtx = vos_get_context( VOS_MODULE_ID_HDD, pVosContext);
+
+       for (i=0; i < VOS_MAX_NO_OF_MODE; i++)
+       {
+          j += pHddCtx->no_of_sessions[i];
+       }
     }
+
     return (j>1);
 }
+

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012, Code Aurora Forum. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -275,6 +275,12 @@ when        who    what, where, why
 #define WDI_TX_BD_GET_STA_ID( _pvBDHeader ) (((WDI_TxBdType*)_pvBDHeader)->staIndex)
 
 #define WDI_RX_BD_GET_DPU_SIG( _pvBDHeader )     (((WDI_RxBdType*)_pvBDHeader)->dpuSignature)
+
+//flow control related.
+#define WDI_RX_FC_BD_GET_STA_TX_DISABLED_BITMAP( _pvBDHeader )     (((WDI_FcRxBdType*)_pvBDHeader)->fcStaTxDisabledBitmap)
+#define WDI_RX_FC_BD_GET_FC( _pvBDHeader )     (((WDI_FcRxBdType*)_pvBDHeader)->fc)
+#define WDI_RX_FC_BD_GET_STA_VALID_MASK( _pvBDHeader )     (((WDI_FcRxBdType*)_pvBDHeader)->fcSTAValidMask)
+
 
 /*------------ RSSI and SNR Information extraction -------------*/
 #define WDI_RX_BD_GET_RSSI0( _pvBDHeader )  \

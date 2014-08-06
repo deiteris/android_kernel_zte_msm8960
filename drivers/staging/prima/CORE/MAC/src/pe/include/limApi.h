@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012, Code Aurora Forum. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -20,6 +20,7 @@
  */
 
 /*
+ *
  * Airgo Networks, Inc proprietary. All rights reserved.
  * This file limApi.h contains the definitions exported by
  * LIM module.
@@ -260,7 +261,7 @@ void limHandleLowRssiInd(tpAniSirGlobal pMac);
 void limHandleBmpsStatusInd(tpAniSirGlobal pMac);
 void limHandleMissedBeaconInd(tpAniSirGlobal pMac);
 tMgmtFrmDropReason limIsPktCandidateForDrop(tpAniSirGlobal pMac, tANI_U8 *pRxPacketInfo, tANI_U32 subType);
-
+void limMicFailureInd(tpAniSirGlobal pMac, tpSirMsgQ pMsg);
 
 
 /* ----------------------------------------------------------------------- */
@@ -274,11 +275,19 @@ extern tSirRetStatus limCheckRxSeqNumber(tpAniSirGlobal pMac, tANI_U8 *pRxPacket
 #define limGetWmeMode(psessionEntry, pVal) *(pVal) = (psessionEntry)->limWmeEnabled
 #define limGetWsmMode(psessionEntry, pVal) *(pVal) = (psessionEntry)->limWsmEnabled
 #define limGet11dMode(psessionEntry, pVal) *(pVal) = (psessionEntry)->lim11dEnabled
-#define limGetPhyMode(pMac, pVal) *(pVal) = (pMac)->lim.gLimPhyMode
-#define limGetRfBand(pMac, pVal) *(pVal) = (pMac)->lim.gLimRFBand
 #define limGetAckPolicy(pMac, pVal)         *(pVal) = pMac->lim.ackPolicy
 
 /* ----------------------------------------------------------------------- */
+static inline void limGetPhyMode(tpAniSirGlobal pMac, tANI_U32 *phyMode, tpPESession psessionEntry)
+{
+   *phyMode = psessionEntry ? psessionEntry->gLimPhyMode : pMac->lim.gLimPhyMode;
+}
+
+/* ----------------------------------------------------------------------- */
+static inline void limGetRfBand(tpAniSirGlobal pMac, tSirRFBand *band, tpPESession psessionEntry)
+{
+   *band = psessionEntry ? psessionEntry->limRFBand : SIR_BAND_UNKNOWN;
+}
 
 /*--------------------------------------------------------------------------
   

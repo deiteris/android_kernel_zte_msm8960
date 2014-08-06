@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012, Code Aurora Forum. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -443,6 +443,16 @@ typedef enum
 #define CFG_ENABLE_LTE_COEX_MAX               ( 1 )
 #define CFG_ENABLE_LTE_COEX_DEFAULT           ( 0 )
 
+#define CFG_AP_KEEP_ALIVE_PERIOD_NAME          "gApKeepAlivePeriod"
+#define CFG_AP_KEEP_ALIVE_PERIOD_MIN           ( 0 )
+#define CFG_AP_KEEP_ALIVE_PERIOD_MAX           ( 255)
+#define CFG_AP_KEEP_ALIVE_PERIOD_DEFAULT       ( 20 )
+
+#define CFG_GO_KEEP_ALIVE_PERIOD_NAME          "gGoKeepAlivePeriod"
+#define CFG_GO_KEEP_ALIVE_PERIOD_MIN           ( 0 )
+#define CFG_GO_KEEP_ALIVE_PERIOD_MAX           ( 255)
+#define CFG_GO_KEEP_ALIVE_PERIOD_DEFAULT       ( 20 )
+
 #endif
 
 #define CFG_BEACON_INTERVAL_NAME               "gBeaconInterval"
@@ -518,6 +528,9 @@ typedef enum
 #define CFG_RSSI_FILTER_PERIOD_NAME            "gRssiFilterPeriod"
 #define CFG_RSSI_FILTER_PERIOD_MIN             WNI_CFG_RSSI_FILTER_PERIOD_STAMIN
 #define CFG_RSSI_FILTER_PERIOD_MAX             WNI_CFG_RSSI_FILTER_PERIOD_STAMAX
+// Increased this value for Non-CCX AP. This is cause FW RSSI Monitoring
+// the consumer of this value is ON by default. So to impact power numbers
+// we are setting this to a high value.
 #define CFG_RSSI_FILTER_PERIOD_DEFAULT         WNI_CFG_RSSI_FILTER_PERIOD_STADEF
 
 #define CFG_IGNORE_DTIM_NAME                   "gIgnoreDtim"
@@ -543,7 +556,7 @@ typedef enum
 #define CFG_FW_RSSI_MONITORING_NAME            "gEnableFWRssiMonitoring"
 #define CFG_FW_RSSI_MONITORING_MIN             ( 0 )
 #define CFG_FW_RSSI_MONITORING_MAX             ( 1 )
-#define CFG_FW_RSSI_MONITORING_DEFAULT         ( 1 )
+#define CFG_FW_RSSI_MONITORING_DEFAULT         WNI_CFG_PS_ENABLE_RSSI_MONITOR_STADEF
 
 #define CFG_DATA_INACTIVITY_TIMEOUT_NAME       "gDataInactivityTimeout"
 #define CFG_DATA_INACTIVITY_TIMEOUT_MIN        ( 1 )
@@ -625,6 +638,36 @@ typedef enum
 #define CFG_QOS_WMM_INFRA_UAPSD_BK_SUS_INTV_MIN             (0)
 #define CFG_QOS_WMM_INFRA_UAPSD_BK_SUS_INTV_MAX             (4294967295UL)             
 #define CFG_QOS_WMM_INFRA_UAPSD_BK_SUS_INTV_DEFAULT         (2000)
+
+#ifdef FEATURE_WLAN_CCX
+#define CFG_QOS_WMM_INFRA_INACTIVITY_INTERVAL_NAME         "InfraInactivityInterval"
+#define CFG_QOS_WMM_INFRA_INACTIVITY_INTERVAL_MIN           (0)
+#define CFG_QOS_WMM_INFRA_INACTIVITY_INTERVAL_MAX           (4294967295UL)
+#define CFG_QOS_WMM_INFRA_INACTIVITY_INTERVAL_DEFAULT       (0) //disabled
+
+#define CFG_CCX_FEATURE_ENABLED_NAME                       "CcxEnabled"
+#define CFG_CCX_FEATURE_ENABLED_MIN                         (0)
+#define CFG_CCX_FEATURE_ENABLED_MAX                         (1)
+#define CFG_CCX_FEATURE_ENABLED_DEFAULT                     (0) //disabled
+#endif // FEATURE_WLAN_CCX
+
+#if  defined (WLAN_FEATURE_VOWIFI_11R) || defined (FEATURE_WLAN_CCX)
+#define CFG_FT_RSSI_FILTER_PERIOD_NAME                     "FTRssiFilterPeriod"
+#define CFG_FT_RSSI_FILTER_PERIOD_MIN                      WNI_CFG_FT_RSSI_FILTER_PERIOD_STAMIN
+#define CFG_FT_RSSI_FILTER_PERIOD_MAX                      WNI_CFG_FT_RSSI_FILTER_PERIOD_STAMAX
+#define CFG_FT_RSSI_FILTER_PERIOD_DEFAULT                  WNI_CFG_FT_RSSI_FILTER_PERIOD_STADEF 
+
+// This flag will control fasttransition in case of 11r and ccx.
+// Basically with this the whole neighbor roam, pre-auth, reassoc
+// can be turned ON/OFF. 
+// With this turned OFF 11r will completely not work.
+// For 11r this flag has to be ON.
+// For CCX fastroam will not work.
+#define CFG_FAST_TRANSITION_ENABLED_NAME                    "FastTransitionEnabled"
+#define CFG_FAST_TRANSITION_ENABLED_NAME_MIN                (0)
+#define CFG_FAST_TRANSITION_ENABLED_NAME_MAX                (1)
+#define CFG_FAST_TRANSITION_ENABLED_NAME_DEFAULT            (0) //disabled
+#endif
 
 #define CFG_QOS_WMM_PKT_CLASSIFY_BASIS_NAME                "PktClassificationBasis" // DSCP or 802.1Q
 #define CFG_QOS_WMM_PKT_CLASSIFY_BASIS_MIN                  (0)
@@ -884,6 +927,7 @@ typedef enum
 #define CFG_11R_NEIGHBOR_REQ_MAX_TRIES_MAX            (4)
 #define CFG_11R_NEIGHBOR_REQ_MAX_TRIES_DEFAULT        (1)
 
+
 #define CFG_NEIGHBOR_SCAN_RESULTS_REFRESH_PERIOD_NAME         "gNeighborScanRefreshPeriod"
 #define CFG_NEIGHBOR_SCAN_RESULTS_REFRESH_PERIOD_MIN          (1000)
 #define CFG_NEIGHBOR_SCAN_RESULTS_REFRESH_PERIOD_MAX          (60000)
@@ -982,16 +1026,44 @@ typedef enum
 #define CFG_ENABLE_DFS_CHNL_SCAN_MAX               ( 1 )
 #define CFG_ENABLE_DFS_CHNL_SCAN_DEFAULT           ( 1 )
 
+typedef enum
+{
+    eHDD_LINK_SPEED_REPORT_ACTUAL = 0,
+    eHDD_LINK_SPEED_REPORT_MAX = 1,
+    eHDD_LINK_SPEED_REPORT_MAX_SCALED = 2,
+}eHddLinkSpeedReportType;
+
 #define CFG_REPORT_MAX_LINK_SPEED                  "gReportMaxLinkSpeed"
-#define CFG_REPORT_MAX_LINK_SPEED_MIN              ( 0 )
-#define CFG_REPORT_MAX_LINK_SPEED_MAX              ( 1 )
-#define CFG_REPORT_MAX_LINK_SPEED_DEFAULT          ( 0 )
+#define CFG_REPORT_MAX_LINK_SPEED_MIN              ( eHDD_LINK_SPEED_REPORT_ACTUAL )
+#define CFG_REPORT_MAX_LINK_SPEED_MAX              ( eHDD_LINK_SPEED_REPORT_MAX_SCALED )
+#define CFG_REPORT_MAX_LINK_SPEED_DEFAULT          ( eHDD_LINK_SPEED_REPORT_ACTUAL )
+
+/*
+ * RSSI Thresholds
+ * Used when eHDD_LINK_SPEED_REPORT_SCALED is selected
+ */
+#define CFG_LINK_SPEED_RSSI_HIGH                   "gLinkSpeedRssiHigh"
+#define CFG_LINK_SPEED_RSSI_HIGH_MIN               ( -127 )
+#define CFG_LINK_SPEED_RSSI_HIGH_MAX               (  0 )
+#define CFG_LINK_SPEED_RSSI_HIGH_DEFAULT           ( -55 )
+
+#define CFG_LINK_SPEED_RSSI_LOW                    "gLinkSpeedRssiLow"
+#define CFG_LINK_SPEED_RSSI_LOW_MIN                ( -127 )
+#define CFG_LINK_SPEED_RSSI_LOW_MAX                (  0 )
+#define CFG_LINK_SPEED_RSSI_LOW_DEFAULT            ( -65 )
 
 #ifdef WLAN_FEATURE_P2P
 #define CFG_P2P_DEVICE_ADDRESS_ADMINISTRATED_NAME                "isP2pDeviceAddrAdministrated"
 #define CFG_P2P_DEVICE_ADDRESS_ADMINISTRATED_MIN                 ( 0 )
 #define CFG_P2P_DEVICE_ADDRESS_ADMINISTRATED_MAX                 ( 1 )
 #define CFG_P2P_DEVICE_ADDRESS_ADMINISTRATED_DEFAULT             ( 0 )
+#endif
+
+#ifdef WLAN_FEATURE_PACKET_FILTERING
+#define CFG_MC_ADDR_LIST_FILTER_NAME               "isMcAddrListFilter"
+#define CFG_MC_ADDR_LIST_FILTER_MIN                ( 0 )
+#define CFG_MC_ADDR_LIST_FILTER_MAX                ( 1 )
+#define CFG_MC_ADDR_LIST_FILTER_DEFAULT            ( 0 )
 #endif
 
 /*
@@ -1066,14 +1138,32 @@ typedef enum
 #define CFG_SHORT_GI_40MHZ_MAX                 1
 #define CFG_SHORT_GI_40MHZ_DEFAULT             1
 
+/*
+ * Enable / Disable MCC feature
+ * Default: Enable
+ */
+#define CFG_ENABLE_MCC_ENABLED_NAME             "gEnableMCCMode"      
+#define CFG_ENABLE_MCC_ENABLED_MIN              ( 0 )
+#define CFG_ENABLE_MCC_ENABLED_MAX              ( 1 )
+#define CFG_ENABLE_MCC_ENABLED_DEFAULT          ( 0 ) 
 
 /*
- * Scan Aging timeout value in seconds
+ * Enable/Disable Thermal Mitigation feature
+ * Default: Disable
  */
-#define CFG_SCAN_AGING_PARAM_NAME          "gScanAgingTime"
-#define CFG_SCAN_AGING_PARAM_MIN           ( 0 )
-#define CFG_SCAN_AGING_PARAM_MAX           ( 200 )
-#define CFG_SCAN_AGING_PARAM_DEFAULT       ( 60 )
+#define CFG_THERMAL_MIGRATION_ENABLE_NAME      "gThermalMitigationEnable"   
+#define CFG_THERMAL_MIGRATION_ENABLE_MIN       ( 0 ) 
+#define CFG_THERMAL_MIGRATION_ENABLE_MAX       ( 1 ) 
+#define CFG_THERMAL_MIGRATION_ENABLE_DEFAULT   ( 0 ) 
+
+/*
+ * Enable/Disable Modulated DTIM feature
+ * Default: Disable
+ */
+#define CFG_ENABLE_MODULATED_DTIM_NAME       "gEnableModulatedDTIM"
+#define CFG_ENABLE_MODULATED_DTIM_MIN        ( 0 )
+#define CFG_ENABLE_MODULATED_DTIM_MAX        ( 5 )
+#define CFG_ENABLE_MODULATED_DTIM_DEFAULT    ( 0 )
 
 /*--------------------------------------------------------------------------- 
   Type declarations
@@ -1147,7 +1237,7 @@ typedef struct
    
    v_U8_t        intfAddrMask;
    v_MACADDR_t   intfMacAddr[VOS_MAX_CONCURRENCY_PERSONA];
-   
+
 #ifdef WLAN_SOFTAP_FEATURE
    v_BOOL_t      apUapsdEnabled;
    v_BOOL_t      apProtEnabled;
@@ -1163,6 +1253,8 @@ typedef struct
    v_U8_t        apOperatingBand;
    v_BOOL_t      apAutoChannelSelection;
    v_U8_t        enableLTECoex;
+   v_U32_t       apKeepAlivePeriod;
+   v_U32_t       goKeepAlivePeriod;
 #endif
    v_U32_t       nBeaconInterval;
    v_U8_t        nTxPowerCap;   //In dBm
@@ -1231,6 +1323,15 @@ typedef struct
    v_U32_t                      InfraUapsdBeSuspIntv;
    v_U32_t                      InfraUapsdBkSrvIntv;
    v_U32_t                      InfraUapsdBkSuspIntv;
+#ifdef FEATURE_WLAN_CCX
+   v_U32_t                      InfraInactivityInterval;
+   v_BOOL_t                     isCcxIniFeatureEnabled;
+#endif
+#if  defined (WLAN_FEATURE_VOWIFI_11R) || defined (FEATURE_WLAN_CCX)
+   v_U8_t                       FTRssiFilterPeriod;
+   v_BOOL_t                     isFastTransitionEnabled;
+#endif
+
    hdd_wmm_classification_t     PktClassificationBasis; // DSCP or 802.1Q
    v_BOOL_t                     bImplicitQosEnabled;
 
@@ -1318,11 +1419,18 @@ typedef struct
    v_U8_t                      enableDynamicDTIM;
    v_U8_t                      enableAutomaticTxPowerControl;
    v_U8_t                      ShortGI40MhzEnable;
-   v_U8_t                      reportMaxLinkSpeed;
+   eHddLinkSpeedReportType     reportMaxLinkSpeed;
+   v_S31_t                     linkSpeedRssiHigh;
+   v_S31_t                     linkSpeedRssiLow;
+   v_U8_t                      enableMCC;
 #ifdef WLAN_FEATURE_P2P
    v_BOOL_t                    isP2pDeviceAddrAdministrated;
 #endif
-   v_U8_t                      scanAgingTimeout;
+   v_U8_t                      thermalMitigationEnable;
+#ifdef WLAN_FEATURE_PACKET_FILTERING
+   v_BOOL_t                    isMcAddrListFilter;
+#endif
+   v_U8_t                      enableModulatedDTIM;
 } hdd_config_t;
 /*--------------------------------------------------------------------------- 
   Function declarations and documenation
@@ -1332,6 +1440,7 @@ VOS_STATUS hdd_set_sme_config( hdd_context_t *pHddCtx );
 v_BOOL_t hdd_update_config_dat ( hdd_context_t *pHddCtx );
 VOS_STATUS hdd_cfg_get_config(hdd_context_t *pHddCtx, char *pBuf, int buflen);
 eCsrPhyMode hdd_cfg_xlate_to_csr_phy_mode( eHddDot11Mode dot11Mode );
+VOS_STATUS hdd_execute_config_command(hdd_context_t *pHddCtx, char *command);
 
 #define FIELD_OFFSET(__type, __field) ((unsigned int)(&((__type *)0)->__field))
 #define VAR_OFFSET( _Struct, _Var ) ( (unsigned int) FIELD_OFFSET(_Struct, _Var ) )
@@ -1351,16 +1460,15 @@ eCsrPhyMode hdd_cfg_xlate_to_csr_phy_mode( eHddDot11Mode dot11Mode );
                                                          // If less than MIN, assume DEFAULT,
                                                          // If grateer than MAX, assume DEFAULT.
 
-#define VAR_FLAGS_XLATION_REQD ( 1 << 3 ) // Bit 3 indicates that
-                                          // translation from a raw
-                                          // integer to an enumeration
-                                          // is required
-
-#define CFG_BAD_ENUM_XLATION ( 0xffffffff )
+#define VAR_FLAGS_DYNAMIC_CFG ( 1 << 3 )  // Bit 3 indicates that
+                                          // the config item can be
+                                          // modified dynamicially
+                                          // on a running system
 
 typedef enum 
 {
   WLAN_PARAM_Integer,
+  WLAN_PARAM_SignedInteger,
   WLAN_PARAM_HexInteger,
   WLAN_PARAM_String,
   WLAN_PARAM_MacAddr,
@@ -1377,7 +1485,24 @@ typedef enum
   ( _Default ),                                                  \
   ( _Min ),                                                      \
   ( _Max ),                                                      \
-  NULL                                                           \
+  NULL,                                                          \
+  0                                                              \
+}
+
+#define REG_DYNAMIC_VARIABLE( _Name, _Type,  _Struct, _VarName,  \
+                              _Flags, _Default, _Min, _Max,      \
+                              _CBFunc, _CBParam )                \
+{                                                                \
+  ( _Name ),                                                     \
+  ( _Type ),                                                     \
+  ( VAR_FLAGS_DYNAMIC_CFG | ( _Flags ) ),                        \
+  VAR_OFFSET( _Struct, _VarName ),                               \
+  VAR_SIZE( _Struct, _VarName ),                                 \
+  ( _Default ),                                                  \
+  ( _Min ),                                                      \
+  ( _Max ),                                                      \
+  ( _CBFunc ),                                                   \
+  ( _CBParam )                                                   \
 }
 
 #define REG_VARIABLE_STRING( _Name, _Type,  _Struct, _VarName,   \
@@ -1391,7 +1516,8 @@ typedef enum
   (unsigned long)( _Default ),                                   \
   0,                                                             \
   0,                                                             \
-  NULL                                                           \
+  NULL,                                                          \
+  0                                                              \
 }
 
 typedef struct tREG_TABLE_ENTRY {
@@ -1404,7 +1530,9 @@ typedef struct tREG_TABLE_ENTRY {
   unsigned long       VarDefault;         // default value to use
   unsigned long       VarMin;             // minimum value, for range checking
   unsigned long       VarMax;             // maximum value, for range checking
-  unsigned int        (*pfnXlate)(char*); // Reg value in, enumeration out
+                                          // Dynamic modification notifier
+  void (*pfnDynamicNotify)(hdd_context_t *pHddCtx, unsigned long NotifyId);
+  unsigned long       NotifyId;           // Dynamic modification identifier
 } REG_TABLE_ENTRY;
 
 static __inline unsigned long utilMin( unsigned long a, unsigned long b )
