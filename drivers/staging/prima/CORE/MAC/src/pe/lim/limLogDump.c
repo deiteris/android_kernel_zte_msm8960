@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012, Code Aurora Forum. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -456,6 +456,7 @@ static char *sendSmeScanReq(tpAniSirGlobal pMac, char *p)
     pScanReq->channelList.channelNumber[0] = 6;
     pScanReq->uIEFieldLen = 0;
     pScanReq->uIEFieldOffset = sizeof(tSirSmeScanReq);
+    pScanReq->sessionId = 0;
 
     msg.type = eWNI_SME_SCAN_REQ;
     msg.bodyptr = pScanReq;

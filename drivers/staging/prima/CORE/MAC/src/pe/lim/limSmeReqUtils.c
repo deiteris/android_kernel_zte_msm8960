@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012, Code Aurora Forum. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -20,6 +20,7 @@
  */
 
 /*
+ *
  * Airgo Networks, Inc proprietary. All rights reserved.
  * This file limSmeReqUtils.cc contains the utility functions
  * for processing SME request messages.
@@ -704,7 +705,7 @@ limIsSmeStartBssReqValid(tpAniSirGlobal pMac,
             // Reject START_BSS_REQ
             limLog(pMac, LOGW,
                FL("Invalid operational rates in eWNI_SME_START_BSS_REQ\n"));
-            sirDumpBuf(pMac, SIR_LIM_MODULE_ID, LOG2,
+            sirDumpBuf(pMac, SIR_LIM_MODULE_ID, LOGW,
                        pStartBssReq->operationalRateSet.rate,
                        pStartBssReq->operationalRateSet.numRates);
 
@@ -722,7 +723,7 @@ limIsSmeStartBssReqValid(tpAniSirGlobal pMac,
             // Reject START_BSS_REQ
             limLog(pMac, LOGW,
                FL("Invalid operational rates in eWNI_SME_START_BSS_REQ\n"));
-            sirDumpBuf(pMac, SIR_LIM_MODULE_ID, LOG2,
+            sirDumpBuf(pMac, SIR_LIM_MODULE_ID, LOGW,
                        pStartBssReq->operationalRateSet.rate,
                        pStartBssReq->operationalRateSet.numRates);
 
@@ -739,7 +740,7 @@ limIsSmeStartBssReqValid(tpAniSirGlobal pMac,
             // Reject START_BSS_REQ
             limLog(pMac, LOGW,
                FL("Invalid operational rates in eWNI_SME_START_BSS_REQ\n"));
-            sirDumpBuf(pMac, SIR_LIM_MODULE_ID, LOG2,
+            sirDumpBuf(pMac, SIR_LIM_MODULE_ID, LOGW,
                        pStartBssReq->operationalRateSet.rate,
                        pStartBssReq->operationalRateSet.numRates);
 
