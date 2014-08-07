@@ -1,13 +1,3 @@
-/*drivers/input/keyboard/ft5x0x_ts.c
- *This file is used for FocalTech ft5x0x_ts touchscreen
- *
-*/
-
-/*
-=======================================================================================================
-When		Who	What,Where,Why		Comment			Tag
-
-*/
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/delay.h>
@@ -34,16 +24,9 @@ int focaltech_fwupdate_init(struct i2c_client *client);
 int focaltech_fwupdate_deinit(struct i2c_client *client);
 #endif
 static void focaltech_get_vid(struct i2c_client *client,char *p_vid,int *p_fw_ver );
-
 #if defined(CONFIG_TOUCHSCREEN_FOCALTECH_USBNOTIFY)
 static int usb_plug_status=0;
 #endif
-
-/*ergate-012*/
-static int touch_after_resume = 0;
-static int timeout_after_resume = 0;
-static unsigned long endtime_after_resume = 0;
-
 
 #define ABS_SINGLE_TAP	0x21	/* Major axis of touching ellipse */
 #define ABS_TAP_HOLD	0x22	/* Minor axis (omit if circular) */
@@ -53,8 +36,6 @@ static unsigned long endtime_after_resume = 0;
 #define ABS_PRESS	0x26	/* Major axis of touching ellipse */
 #define ABS_PINCH 	0x27	/* Minor axis (omit if circular) */
 
-
-
 static struct workqueue_struct *focaltech_wq;
 static struct i2c_driver focaltech_ts_driver;
 
@@ -63,22 +44,20 @@ struct focaltech_ts_data
 	uint16_t addr;
 	struct i2c_client *client;
 	struct input_dev *input_dev;
-	struct focaltech_finger_data finger_data[5];//ZTE_TS_XYM_20110711
+	struct focaltech_finger_data finger_data[5];
 	int touch_number;
 	int touch_event;
 	int use_irq;
 	struct hrtimer timer;
-	struct work_struct  work;
+	struct work_struct work;
 	uint16_t max[2];
 	struct early_suspend early_suspend;
-//	int gpio_irq;
 	int (*gpio_init)(int on);
 	void (*power)(int on);
 	void (*reset)(int hl);
 	void (*irq)(int hl, bool io);
-	char  fwfile[64];
+	char fwfile[64];
 };
-
 
 #if defined (CONFIG_TOUCHSCREEN_FOCALTECH_USBNOTIFY)
 static int focaltech_ts_event(struct notifier_block *this, unsigned long event,void *ptr)
@@ -88,19 +67,17 @@ static int focaltech_ts_event(struct notifier_block *this, unsigned long event,v
 	switch(event)
 	{
 	case 0:
-		//offline
 		if ( usb_plug_status != 0 ){
 	 		usb_plug_status = 0;
 			printk("focaltech ts config change to offline status\n");
-			i2c_smbus_write_byte_data( ftc_ts->client, 0x86,0x1);
+			i2c_smbus_write_byte_data(ftc_ts->client, 0x86,0x1);
 		}
 		break;
 	case 1:
-		//online
 		if ( usb_plug_status != 1 ){
 	 		usb_plug_status = 1;
 			printk("focaltech ts config change to online status\n");
-			i2c_smbus_write_byte_data( ftc_ts->client, 0x86,0x3);
+			i2c_smbus_write_byte_data(ftc_ts->client, 0x86,0x3);
 		}
 		break;
 	default:
@@ -115,7 +92,6 @@ static int focaltech_ts_event(struct notifier_block *this, unsigned long event,v
 static struct notifier_block ts_notifier = {
 	.notifier_call = focaltech_ts_event,
 };
-
 
 static BLOCKING_NOTIFIER_HEAD(ts_chain_head);
 
@@ -136,13 +112,11 @@ int focaltech_ts_notifier_call_chain(unsigned long val)
 	return (blocking_notifier_call_chain(&ts_chain_head, val, NULL)
 			== NOTIFY_BAD) ? -EINVAL : 0;
 }
-
 #endif
 
-
-static bool  detect_device(struct i2c_client *client)
+static bool detect_device(struct i2c_client *client)
 {
-	int retry;//ret;
+	int retry;
 	signed int buf;
 	
 	retry = 3;
@@ -174,7 +148,6 @@ static int get_screeninfo(uint *xres, uint *yres)
 
 	return 1;
 }
-
 
 static int
 proc_read_val(char *page, char **start, off_t off, int count, int *eof,
@@ -228,25 +201,7 @@ static int proc_write_val(struct file *file, const char *buffer,
 	}
 #endif
 	return -EINVAL;
- 	//return 0;
 }
-/*
-static void release_all_fingers(struct focaltech_ts_data *ts)
-{
-	int i;
-	for(i =0; i< ts->touch_event; i ++ )
-	{
-		input_report_abs(ts->input_dev, ABS_MT_TRACKING_ID, ts->finger_data[i].touch_id);
-		input_report_abs(ts->input_dev, ABS_MT_TOUCH_MAJOR, 0);
-		input_report_abs(ts->input_dev, ABS_MT_WIDTH_MAJOR, ts->finger_data[i].w );
-		input_report_abs(ts->input_dev, ABS_MT_PRESSURE, 0);		
-		input_report_abs(ts->input_dev, ABS_MT_POSITION_X, ts->finger_data[i].x );
-		input_report_abs(ts->input_dev, ABS_MT_POSITION_Y, ts->finger_data[i].y );
-		input_mt_sync(ts->input_dev);	
-	}
-	input_sync(ts->input_dev);
-}
-*/
 
 static void focaltech_get_vid(
 	struct i2c_client *client,
@@ -296,7 +251,7 @@ static void focaltech_get_vid(
 	default:
 		sprintf( p_vid, "unknown(0x%x)", buf1  );
 		break;
-	}		
+	}
 
 	*p_fw_ver = buf2;
 
@@ -304,30 +259,25 @@ static void focaltech_get_vid(
 
 }
 
-
 static void focaltech_ts_work_func(struct work_struct *work)
 {
 	int ret, i;
 	uint8_t buf[33];
 	struct focaltech_ts_data *ts = container_of(work, struct focaltech_ts_data, work);
 
-	//ret = focaltech_i2c_read(ts->client, 0x00, buf, 33); 
 	ret = i2c_smbus_read_i2c_block_data(ts->client, 0x00, 33, buf);
 	if (ret < 0){
    		pr_err("%s: focaltech_i2c_read failed, go to poweroff.\n", __func__);
 		if (ts->power){
 			ts->power(0);
-	    	msleep(200);
-	    	ts->power(1);
-	    	msleep(220);
+	    		msleep(100);
+	    		ts->power(1);
 		}
 	}
 	else
 	{
 		ts->touch_number = buf[2]&0x0f;
 		ts->touch_event = buf[2] >> 4;
-		//printk("xiayc~~~ touch number=%d, event=%d\n", 
-		//	ts->touch_number, ts->touch_event);
 		for (i = 0; i< 5; i++)
 		{
 			ts->finger_data[i].x = (uint16_t)((buf[3 + i*6] & 0x0F)<<8 )| (uint16_t)buf[4 + i*6];
@@ -340,7 +290,6 @@ static void focaltech_ts_work_func(struct work_struct *work)
 		}
 		for (i = 0; i< ts->touch_event; i++)
 		{
-			/*ergate-008*/
 			if(ts->finger_data[i].z != 0)
 			{
 			input_report_key(ts->input_dev, BTN_TOUCH, 1);
@@ -352,32 +301,6 @@ static void focaltech_ts_work_func(struct work_struct *work)
 			input_report_abs(ts->input_dev, ABS_MT_PRESSURE, ts->finger_data[i].z);		
 			}
 			input_mt_sync(ts->input_dev);
-			//printk("%s: finger=%d, z=%d, event_flag=%d, touch_id=%d\n", __func__, i, 
-			//ts->finger_data[i].z, ts->finger_data[i].event_flag,ts->finger_data[i].touch_id);
-			/*ergate-012*/
-			if(ts->finger_data[i].z != 0)
-			{
-				if(touch_after_resume == 0 || timeout_after_resume == 0)
-				{
-					if(touch_after_resume == 0)
-					{
-						touch_after_resume = 1;
-						endtime_after_resume = jiffies+HZ*5;
-					}
-					//printk("TP down: %d,%d\n",ts->finger_data[i].x,ts->finger_data[i].y); 
-				}
-			}
-			else
-			{
-				if(timeout_after_resume == 0)
-				{
-					if(endtime_after_resume != 0)
-						timeout_after_resume = time_before(jiffies,endtime_after_resume)?0:1;
-					else
-						printk("invalid TP up\n");
-					//printk("TP up: %d,%d\n",ts->finger_data[i].x,ts->finger_data[i].y); 
-				}
-			}
 		}
 
 		input_sync(ts->input_dev);
@@ -431,12 +354,11 @@ focaltech_resume_start:
 
 	//fix bug: fts failed set reg when usb plug in under suspend mode
 #if defined(CONFIG_TOUCHSCREEN_FOCALTECH_USBNOTIFY)
-	if(usb_plug_status==1)
-		i2c_smbus_write_byte_data( ftc_ts->client, 0x86,0x3);
-	else 
-		i2c_smbus_write_byte_data( ftc_ts->client, 0x86,0x1);
+	if(usb_plug_status == 1)
+		i2c_smbus_write_byte_data(ftc_ts->client, 0x86,0x3);
+	else
+		i2c_smbus_write_byte_data(ftc_ts->client, 0x86,0x1);
 #endif
-
 	buf = i2c_smbus_read_byte_data(client, FT5X0X_REG_FIRMID );
 	if ( !buf )
 	{
@@ -444,13 +366,7 @@ focaltech_resume_start:
 		if ( ++retry < 3 ) goto focaltech_resume_start;
 	}
 
-	//release_all_fingers(ts);
 	enable_irq(client->irq);
-
-	/*ergate-012*/
-	touch_after_resume = 0;
-	timeout_after_resume = 0;
-	endtime_after_resume = 0;
 	
 	return 0;
 }
@@ -545,14 +461,12 @@ static int focaltech_ts_probe(
 	}
 	
 	ts->input_dev->name = "Fts-touchscreen";
-	//ts->input_dev->phys = "Fts-touchscreen/input0";
 
 	get_screeninfo(&xres, &yres);
 
 	set_bit(EV_SYN, ts->input_dev->evbit);
 	set_bit(EV_KEY, ts->input_dev->evbit);
 	set_bit(EV_ABS, ts->input_dev->evbit);
-	//set_bit(BTN_9, ts->input_dev->keybit);
 	set_bit(KEY_HOME, ts->input_dev->keybit);
 	set_bit(KEY_MENU, ts->input_dev->keybit);
 	set_bit(KEY_BACK, ts->input_dev->keybit);
@@ -573,13 +487,6 @@ static int focaltech_ts_probe(
 	input_set_abs_params(ts->input_dev, ABS_MT_POSITION_Y, 0, yres, 0, 0);
 	input_set_abs_params(ts->input_dev, ABS_MT_WIDTH_MAJOR, 16, 208, 0, 0);
 	input_set_abs_params(ts->input_dev, ABS_MT_PRESSURE, 0, 0xFF, 0, 0);
-	/*input_set_abs_params(ts->input_dev, ABS_SINGLE_TAP, 0, 5, 0, 0);
-	input_set_abs_params(ts->input_dev, ABS_TAP_HOLD, 0, 5, 0, 0);
-	input_set_abs_params(ts->input_dev, ABS_EARLY_TAP, 0, 5, 0, 0);
-	input_set_abs_params(ts->input_dev, ABS_FLICK, 0, 5, 0, 0);
-	input_set_abs_params(ts->input_dev, ABS_PRESS, 0, 5, 0, 0);
-	input_set_abs_params(ts->input_dev, ABS_DOUBLE_TAP, 0, 5, 0, 0);
-	input_set_abs_params(ts->input_dev, ABS_PINCH, -255, 255, 0, 0);*/
 
 	ret = input_register_device(ts->input_dev);
 	if (ret)
@@ -667,9 +574,6 @@ static int focaltech_ts_remove(struct i2c_client *client)
 	kfree(ts);
 	return 0;
 }
-
-
-
 
 static const struct i2c_device_id focaltech_ts_id[] = {
 	{ "ft5x0x_ts", 0 },
