@@ -83,6 +83,7 @@ case "$baseband" in
         "true")
         start netmgrd
     esac
+    start config_serialno
 esac
 
 #

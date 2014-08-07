@@ -81,8 +81,7 @@ static unsigned int ramp_up_step;
  * Zero disables and will calculate ramp down according to load heuristic.
  * When above the ideal freqeuncy we always ramp down to the ideal freq.
  */
-//#define DEFAULT_RAMP_DOWN_STEP 216000
- //tcd
+//#define DEFAULT_RAMP_DOWN_STEP 216000 //tcd
 #define DEFAULT_RAMP_DOWN_STEP 0
 static unsigned int ramp_down_step;
 
@@ -121,8 +120,7 @@ static unsigned long up_rate_us;
  * The minimum amount of time to spend at a frequency before we can ramp down.
  * Notice we ignore this when we are above the ideal frequency.
  */
-#define DEFAULT_DOWN_RATE_US 39000;
- //tcd change from 99->39
+#define DEFAULT_DOWN_RATE_US 39000; //tcd change from 99->39
 static unsigned long down_rate_us;
 
 /*
@@ -1325,8 +1323,7 @@ static int cpufreq_governor_smartass(struct cpufreq_policy *new_policy,
 		if (cpu == 0 && atomic_inc_return(&active_count) <= 1) {
 			rc = sysfs_create_group(cpufreq_global_kobject,
 						&smartass_attr_group);
-			if (rc)
-{
+			if (rc){
 				return rc;
 			}
 
