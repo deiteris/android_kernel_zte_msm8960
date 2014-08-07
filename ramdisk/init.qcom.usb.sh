@@ -32,13 +32,17 @@
 # if persistent serial number is not set then Update USB serial number if
 # passed from command line
 #
-serialno=`cat /data/misc/iSerial`
+serialno=`getprop persist.usb.serialno`
 case "$serialno" in
     "")
-    serialnum=`getprop ro.product.name`
-    echo "$serialnum" > /sys/class/android_usb/android0/iSerial
+    serialnum=`getprop ro.serialno`
+    case "$serialnum" in
+        "");; #Do nothing, use default serial number
+        *)
+        echo "$serialnum" > /sys/class/android_usb/android0/iSerial
+    esac
     ;;
-    * )
+    *)
     echo "$serialno" > /sys/class/android_usb/android0/iSerial
 esac
 
