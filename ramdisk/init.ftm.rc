@@ -1,7 +1,7 @@
 on boot-pause
     chmod 777 /system/bin/battery_charging
     exec /system/bin/battery_charging
-    
+
 on early-init
     # Set init and its forked children's oom_adj.
     write /proc/1/oom_adj -16

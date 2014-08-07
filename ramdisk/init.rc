@@ -256,6 +256,9 @@ on post-fs-data
     
     mkdir /sys/ispfw/ispfwupdate  0775 shell system
 
+# Include extra init file
+    import /init.extras.rc
+
 on boot
     chown root system /proc/touchscreen/ts_information
 
