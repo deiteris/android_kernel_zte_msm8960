@@ -3540,7 +3540,7 @@ static int nl80211_trigger_scan(struct sk_buff *skb, struct genl_info *info)
 		nla_for_each_nested(attr, info->attrs[NL80211_ATTR_SCAN_SSIDS], tmp)
 			n_ssids++;
 
-	if (n_ssids > wiphy->max_sched_scan_ssids)
+	if (n_ssids > wiphy->max_scan_ssids)
 		return -EINVAL;
 
 	if (info->attrs[NL80211_ATTR_IE])
@@ -3730,7 +3730,7 @@ static int nl80211_start_sched_scan(struct sk_buff *skb,
 			n_ssids++;
 
 	if (n_ssids > wiphy->max_scan_ssids)
-		return -EINVAL;
+		return -EBUSY;
 
 	if (info->attrs[NL80211_ATTR_SCHED_SCAN_MATCH])
 		nla_for_each_nested(attr,
