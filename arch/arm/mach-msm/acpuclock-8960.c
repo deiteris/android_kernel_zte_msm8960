@@ -534,12 +534,13 @@ struct acpu_level acpu_freq_tbl_8960_kraitv2_nom[] = {
 };
 
 struct acpu_level acpu_freq_tbl_8960_kraitv2_fast[] = {
-        { 1, {   192000, HFPLL, 2, 0, 0x10 }, L2(1),   785000 },
-        { 1, {   240000, HFPLL, 2, 0, 0x12 }, L2(1),   785000 },
-        { 0, {   288000, HFPLL, 2, 0, 0x14 }, L2(1),   785000 },
-        { 1, {   336000, HFPLL, 2, 0, 0x16 }, L2(1),   785000 },
-	/* Downclocking sequence */
-	{ 0, { STBY_KHZ, QSB,   0, 0, 0x00 }, L2(0),   750000 },
+	/* Downclocking sequence start */
+        { 1, {   192000, HFPLL, 2, 0, 0x10 }, L2(1),   775000 },
+        { 1, {   240000, HFPLL, 2, 0, 0x12 }, L2(1),   775000 },
+        { 0, {   288000, HFPLL, 2, 0, 0x14 }, L2(1),   775000 },
+        { 1, {   336000, HFPLL, 2, 0, 0x16 }, L2(1),   775000 },
+	/* Downclocking sequence end */
+	{ 0, { STBY_KHZ, QSB,   0, 0, 0x00 }, L2(0),   700000 },
 	{ 1, {   384000, PLL_8, 0, 2, 0x00 }, L2(1),   800000 },
 	{ 0, {   432000, HFPLL, 2, 0, 0x20 }, L2(3),   825000 },
 	{ 1, {   486000, HFPLL, 2, 0, 0x24 }, L2(4),   850000 },
@@ -562,11 +563,12 @@ struct acpu_level acpu_freq_tbl_8960_kraitv2_fast[] = {
 	{ 1, {  1404000, HFPLL, 1, 0, 0x34 }, L2(20), 1137500 },
 	{ 1, {  1458000, HFPLL, 1, 0, 0x36 }, L2(21), 1150000 },
 	{ 1, {  1512000, HFPLL, 1, 0, 0x38 }, L2(21), 1175000 },
-	/* Overclocking sequence */
+	/* Overclocking sequence start */
 	{ 1, {  1568000, HFPLL, 1, 0, 0x36 }, L2(21), 1200000 },
 	{ 1, {  1622000, HFPLL, 1, 0, 0x38 }, L2(21), 1225000 },
 	{ 1, {  1676000, HFPLL, 1, 0, 0x38 }, L2(21), 1250000 },
 	{ 1, {  1730000, HFPLL, 1, 0, 0x38 }, L2(21), 1275000 },
+	/* Overclocking sequence end */
 	{ 0, { 0 } }
 };
 
