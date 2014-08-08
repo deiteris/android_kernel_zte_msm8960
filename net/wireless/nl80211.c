@@ -1270,6 +1270,12 @@ static int nl80211_set_wiphy(struct sk_buff *skb, struct genl_info *info)
 			goto bad_res;
 		}
 
+		if (netdev->ieee80211_ptr->iftype != NL80211_IFTYPE_AP &&
+		    netdev->ieee80211_ptr->iftype != NL80211_IFTYPE_P2P_GO) {
+			result = -EINVAL;
+			goto bad_res;
+		}
+
 		nla_for_each_nested(nl_txq_params,
 				    info->attrs[NL80211_ATTR_WIPHY_TXQ_PARAMS],
 				    rem_txq_params) {
@@ -2551,18 +2557,25 @@ static int nl80211_set_station(struct sk_buff *skb, struct genl_info *info)
 		break;
 	case NL80211_IFTYPE_P2P_CLIENT:
 	case NL80211_IFTYPE_STATION:
-		/* disallow everything but AUTHORIZED flag */
+		/* disallow things sta doesn't support */
 		if (params.plink_action)
 			err = -EINVAL;
 		if (params.vlan)
 			err = -EINVAL;
-		if (params.supported_rates)
+		if (params.supported_rates &&
+		    !(params.sta_flags_set & BIT(NL80211_STA_FLAG_TDLS_PEER)))
 			err = -EINVAL;
 		if (params.ht_capa)
 			err = -EINVAL;
 		if (params.listen_interval >= 0)
 			err = -EINVAL;
-		if (params.sta_flags_mask & ~BIT(NL80211_STA_FLAG_AUTHORIZED))
+		if (params.sta_flags_mask &
+				~(BIT(NL80211_STA_FLAG_AUTHORIZED) |
+				  BIT(NL80211_STA_FLAG_TDLS_PEER)))
+			err = -EINVAL;
+		/* can't change the TDLS bit */
+		if (!(params.sta_flags_set & BIT(NL80211_STA_FLAG_TDLS_PEER)) &&
+		    (params.sta_flags_mask & BIT(NL80211_STA_FLAG_TDLS_PEER)))
 			err = -EINVAL;
 		break;
 	case NL80211_IFTYPE_MESH_POINT:
@@ -2683,7 +2696,18 @@ static int nl80211_new_station(struct sk_buff *skb, struct genl_info *info)
 	if (dev->ieee80211_ptr->iftype != NL80211_IFTYPE_AP &&
 	    dev->ieee80211_ptr->iftype != NL80211_IFTYPE_AP_VLAN &&
 	    dev->ieee80211_ptr->iftype != NL80211_IFTYPE_MESH_POINT &&
-	    dev->ieee80211_ptr->iftype != NL80211_IFTYPE_P2P_GO)
+	    dev->ieee80211_ptr->iftype != NL80211_IFTYPE_P2P_GO &&
+	    dev->ieee80211_ptr->iftype != NL80211_IFTYPE_STATION)
+		return -EINVAL;
+
+	/*
+	 * Only managed stations can add TDLS peers, and only when the
+	 * wiphy supports external TDLS setup.
+	 */
+	if (dev->ieee80211_ptr->iftype == NL80211_IFTYPE_STATION &&
+	    !((params.sta_flags_set & BIT(NL80211_STA_FLAG_TDLS_PEER)) &&
+	      (rdev->wiphy.flags & WIPHY_FLAG_SUPPORTS_TDLS) &&
+	      (rdev->wiphy.flags & WIPHY_FLAG_TDLS_EXTERNAL_SETUP)))
 		return -EINVAL;
 
 	err = get_vlan(info, rdev, &params.vlan);
