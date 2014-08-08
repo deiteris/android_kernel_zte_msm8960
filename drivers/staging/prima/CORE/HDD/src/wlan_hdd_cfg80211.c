@@ -1705,7 +1705,6 @@ int wlan_hdd_cfg80211_change_iface( struct wiphy *wiphy,
     struct wireless_dev *wdev;
     hdd_adapter_t *pAdapter = WLAN_HDD_GET_PRIV_PTR( ndev );
     hdd_context_t *pHddCtx = WLAN_HDD_GET_CTX( pAdapter );
-    hdd_adapter_t  *pP2pAdapter = NULL;
     tCsrRoamProfile *pRoamProfile = NULL;
     eCsrRoamBssType LastBSSType;
     hdd_config_t *pConfig = pHddCtx->cfg_ini;
@@ -1791,26 +1790,6 @@ int wlan_hdd_cfg80211_change_iface( struct wiphy *wiphy,
                 hddLog(VOS_TRACE_LEVEL_INFO_HIGH,
                       "%s: setting interface Type to %s", __func__,
                       (type == NL80211_IFTYPE_AP) ? "SoftAP" : "P2pGo");
-
-                if (NL80211_IFTYPE_AP == type)
-                {
-                     /* As Loading WLAN Driver one interface being created for p2p device
-                      * address. This will take one HW STA and the max number of clients
-                      * that can connect to softAP will be reduced by one. so while changing
-                      * the interface type to NL80211_IFTYPE_AP (SoftAP) remove p2p0
-                      * interface as it is not required in SoftAP mode.
-                      */
-
-                    // Get P2P Adapter
-                    pP2pAdapter = hdd_get_adapter(pHddCtx, WLAN_HDD_P2P_DEVICE);
-
-                    if (pP2pAdapter)
-                    {
-                        hdd_stop_adapter(pHddCtx, pP2pAdapter);
-                        hdd_deinit_adapter(pHddCtx, pP2pAdapter);
-                        hdd_close_adapter(pHddCtx, pP2pAdapter, VOS_TRUE);
-                    }
-                }
 
                 //De-init the adapter.
                 hdd_stop_adapter( pHddCtx, pAdapter );
@@ -3114,13 +3093,13 @@ static eHalStatus hdd_cfg80211_scan_done_callback(tHalHandle halHandle,
     if (!ret)
     {
        VOS_ASSERT(pScanInfo->mScanPending);
-       goto allow_suspend;
+       return 0;
     }
 
     if(pScanInfo->mScanPending != VOS_TRUE)
     {
         VOS_ASSERT(pScanInfo->mScanPending);
-        goto allow_suspend;
+        return 0;
     }
 
     /* Check the scanId */
@@ -3131,6 +3110,9 @@ static eHalStatus hdd_cfg80211_scan_done_callback(tHalHandle halHandle,
                 "scanId = %d \n", __func__, (int) pScanInfo->scanId, 
                 (int) scanId);
     }
+
+    /* Scan is no longer pending */
+    pScanInfo->mScanPending = VOS_FALSE;
 
     ret = wlan_hdd_cfg80211_update_bss((WLAN_HDD_GET_CTX(pAdapter))->wiphy, 
                                         pAdapter);
@@ -3171,8 +3153,7 @@ static eHalStatus hdd_cfg80211_scan_done_callback(tHalHandle halHandle,
     if (!req)
     {
         hddLog(VOS_TRACE_LEVEL_ERROR, "request is became NULL\n");
-        pScanInfo->mScanPending = VOS_FALSE;
-        goto allow_suspend;
+        return 0;
     }
 
     /*
@@ -3189,8 +3170,6 @@ static eHalStatus hdd_cfg80211_scan_done_callback(tHalHandle halHandle,
     cfg80211_scan_done(req, false);
     complete(&pAdapter->abortscan_event_var);
     pAdapter->request = NULL;
-    /* Scan is no longer pending */
-    pScanInfo->mScanPending = VOS_FALSE;
 
 #ifdef WLAN_FEATURE_P2P
     /* Flush out scan result after p2p_serach is done */
@@ -3201,14 +3180,6 @@ static eHalStatus hdd_cfg80211_scan_done_callback(tHalHandle halHandle,
         pScanInfo->p2pSearch = 0;
     }
 #endif
-
-allow_suspend:
-    /* release the wake lock */
-    if((eConnectionState_NotConnected == 
-         (WLAN_HDD_GET_STATION_CTX_PTR(pAdapter))->conn_info.connState))
-    {
-        hdd_allow_suspend();
-    }
 
     EXIT();
     return 0;
@@ -3230,7 +3201,6 @@ int wlan_hdd_cfg80211_scan( struct wiphy *wiphy, struct net_device *dev,
     v_U32_t scanId = 0;
     int status = 0;
     hdd_scaninfo_t *pScanInfo = &pAdapter->scan_info;
-    v_U8_t preventSuspend = 0;
 #ifdef WLAN_FEATURE_P2P
     v_U8_t* pP2pIe = NULL;
 #endif
@@ -3415,15 +3385,6 @@ int wlan_hdd_cfg80211_scan( struct wiphy *wiphy, struct net_device *dev,
 
     INIT_COMPLETION(pScanInfo->scan_req_completion_event);
 
-    /*If the station is not connected and recieved a scan request, acquire the 
-     * wake lock to not request the suspend from Android*/
-    if((eConnectionState_NotConnected == 
-         (WLAN_HDD_GET_STATION_CTX_PTR(pAdapter))->conn_info.connState))
-    {
-        preventSuspend = 1;
-        hdd_prevent_suspend();
-    }
-
     status = sme_ScanRequest( WLAN_HDD_GET_HAL_CTX(pAdapter),
                               pAdapter->sessionId, &scanRequest, &scanId,
                               &hdd_cfg80211_scan_done_callback, dev );
@@ -3433,10 +3394,6 @@ int wlan_hdd_cfg80211_scan( struct wiphy *wiphy, struct net_device *dev,
                 "%s: sme_ScanRequest returned error %d", __func__, status);
         complete(&pScanInfo->scan_req_completion_event);
         status = -EIO;
-        if(preventSuspend)
-        {
-            hdd_allow_suspend();
-        }
         goto free_mem;
     }
 
@@ -3465,7 +3422,7 @@ free_mem:
  * This function is used to start the association process 
  */
 int wlan_hdd_cfg80211_connect_start( hdd_adapter_t  *pAdapter, 
-        const u8 *ssid, size_t ssid_len, const u8 *bssid, u8 operatingChannel)
+        const u8 *ssid, size_t ssid_len, const u8 *bssid)
 {
     int status = 0;
     hdd_wext_state_t *pWextState;
@@ -3596,12 +3553,6 @@ int wlan_hdd_cfg80211_connect_start( hdd_adapter_t  *pAdapter,
         }
 #endif /* FEATURE_WLAN_WAPI */
         pRoamProfile->csrPersona = pAdapter->device_mode;
-
-        if( operatingChannel )
-        {
-           pRoamProfile->ChannelInfo.ChannelList = &operatingChannel;
-           pRoamProfile->ChannelInfo.numOfChannels = 1;
-        }
 
         status = sme_RoamConnect( WLAN_HDD_GET_HAL_CTX(pAdapter), 
                             pAdapter->sessionId, pRoamProfile, &roamId);
@@ -4127,18 +4078,8 @@ static int wlan_hdd_cfg80211_connect( struct wiphy *wiphy,
         return status;
     }
 
-    if ( req->channel )
-    {
-        status = wlan_hdd_cfg80211_connect_start(pAdapter, req->ssid,
-                                                  req->ssid_len, req->bssid,
-                                                  req->channel->hw_value);
-    }
-    else
-    {
-        status = wlan_hdd_cfg80211_connect_start(pAdapter, req->ssid,
-                                                  req->ssid_len, req->bssid,
-                                                  0);
-    }
+    status = wlan_hdd_cfg80211_connect_start(pAdapter, req->ssid, 
+                                                req->ssid_len, req->bssid);
 
     if (0 > status)
     {
@@ -4201,10 +4142,10 @@ static int wlan_hdd_cfg80211_disconnect( struct wiphy *wiphy,
 
                 case WLAN_REASON_PREV_AUTH_NOT_VALID:
                 case WLAN_REASON_CLASS2_FRAME_FROM_NONAUTH_STA:
-                case WLAN_REASON_DEAUTH_LEAVING:
                     reasonCode = eCSR_DISCONNECT_REASON_DEAUTH;
                     break;
 
+                case WLAN_REASON_DEAUTH_LEAVING:
                 default:
                     reasonCode = eCSR_DISCONNECT_REASON_UNSPECIFIED;
                     break;
@@ -4423,7 +4364,7 @@ static int wlan_hdd_cfg80211_join_ibss( struct wiphy *wiphy,
 
     /* Issue connect start */
     status = wlan_hdd_cfg80211_connect_start(pAdapter, params->ssid, 
-            params->ssid_len, params->bssid, 0);
+            params->ssid_len, params->bssid);
 
     if (0 > status)
     {
