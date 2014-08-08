@@ -203,7 +203,7 @@ int hdd_hostapd_ioctl(struct net_device *dev, struct ifreq *ifr, int cmd)
        goto exit;
     }
 
-    if ((!ifr) && (!ifr->ifr_data))
+    if ((!ifr) || (!ifr->ifr_data))
     {
         ret = -EINVAL;
         goto exit;
@@ -546,7 +546,7 @@ VOS_STATUS hdd_hostapd_SAPEventCB( tpSap_Event pSapEvent, v_PVOID_t usrDataForCa
                     staInfo.assoc_req_ies =
                         (const u8 *)&pSapEvent->sapevt.sapStationAssocReassocCompleteEvent.ies[0];
                     staInfo.assoc_req_ies_len = iesLen;
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3,4,0))
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3,0,31))
                     staInfo.filled |= STATION_INFO_ASSOC_REQ_IES;
 #endif
                     cfg80211_new_sta(dev,
@@ -697,8 +697,7 @@ VOS_STATUS hdd_hostapd_SAPEventCB( tpSap_Event pSapEvent, v_PVOID_t usrDataForCa
             we_custom_event_generic = (v_BYTE_t *)maxAssocExceededEvent;
             hddLog(LOG1,"%s\n", maxAssocExceededEvent);
             break;
-        case eSAP_STA_ASSOC_IND:
-            return VOS_STATUS_SUCCESS;
+
         default:
             hddLog(LOG1,"SAP message is not handled\n");
             goto stopbss;
@@ -898,20 +897,6 @@ static iw_softap_setparam(struct net_device *dev,
             }
             break;
 
-        case QCSAP_PARAM_HIDE_SSID:
-            {
-                eHalStatus status = eHAL_STATUS_SUCCESS;
-                status = sme_HideSSID(hHal, pHostapdAdapter->sessionId, set_value);
-                if(eHAL_STATUS_SUCCESS != status)
-                {
-                    hddLog(VOS_TRACE_LEVEL_ERROR,
-                            "%s: QCSAP_PARAM_HIDE_SSID failed",
-                            __FUNCTION__);
-                    return status;
-                }
-                break;
-            }
-
         default:
             hddLog(LOGE, FL("Invalid setparam command %d value %d"),
                     sub_cmd, set_value);
@@ -966,21 +951,8 @@ static iw_softap_getparam(struct net_device *dev,
 #endif            
             *value = 0;
             break;
-        }
-
-    case QCSAP_PARAM_GET_WLAN_DBG:
-        {
-            vos_trace_display();
-            *value = 0;
-            break;
-        }
-
-    case QCSAP_PARAM_AUTO_CHANNEL:
-        {
-            *value = (WLAN_HDD_GET_CTX(pHostapdAdapter))->cfg_ini->apAutoChannelSelection;
-             break;
-        }
-
+         }
+    
     default:
         hddLog(LOGE, FL("Invalid getparam command %d"), sub_cmd);
         ret = -EINVAL;
@@ -1051,9 +1023,10 @@ static iw_softap_getchannel(struct net_device *dev,
 {
     hdd_adapter_t *pHostapdAdapter = (netdev_priv(dev));
 
-    int *value = (int *)extra;
+    *(v_U32_t *)(wrqu->data.pointer) = (WLAN_HDD_GET_AP_CTX_PTR(pHostapdAdapter))->operatingChannel;
 
-    *value = (WLAN_HDD_GET_AP_CTX_PTR(pHostapdAdapter))->operatingChannel;
+    wrqu->data.length = sizeof((WLAN_HDD_GET_AP_CTX_PTR(pHostapdAdapter))->operatingChannel);
+
     return 0;
 }
 
@@ -1833,11 +1806,11 @@ static int iw_get_ap_frag_threshold(struct net_device *dev,
 static int iw_get_ap_freq(struct net_device *dev, struct iw_request_info *info,
              struct iw_freq *fwrq, char *extra)
 {
-   v_U32_t status = FALSE, channel = 0, freq = 0;
+   v_U32_t status = 0,channel,freq;
    hdd_adapter_t *pHostapdAdapter = (netdev_priv(dev));
    tHalHandle hHal;
    hdd_hostapd_state_t *pHostapdState;
-   hdd_ap_ctx_t *pHddApCtx = WLAN_HDD_GET_AP_CTX_PTR(pHostapdAdapter);
+   hdd_ap_ctx_t *pHddApCtx = WLAN_HDD_GET_AP_CTX_PTR(pHostapdAdapter);  
 
    ENTER();
 
@@ -1860,30 +1833,18 @@ static int iw_get_ap_freq(struct net_device *dev, struct iw_request_info *info,
        else
        {
           status = hdd_wlan_get_freq(channel, &freq);
-          if( TRUE == status)
-          {
-              /* Set Exponent parameter as 6 (MHZ) in struct iw_freq
-               * iwlist & iwconfig command shows frequency into proper
-               * format (2.412 GHz instead of 246.2 MHz)*/
-              fwrq->m = freq;
-              fwrq->e = MHZ;
-          }
+          fwrq->m = freq;
+          fwrq->e = 0;
        }
     }
     else
     {
        channel = pHddApCtx->operatingChannel;
        status = hdd_wlan_get_freq(channel, &freq);
-       if( TRUE == status)
-       {
-          /* Set Exponent parameter as 6 (MHZ) in struct iw_freq
-           * iwlist & iwconfig command shows frequency into proper
-           * format (2.412 GHz instead of 246.2 MHz)*/
-           fwrq->m = freq;
-           fwrq->e = MHZ;
-       }
+       fwrq->m = freq;
+       fwrq->e = 0;
     }
-   return 0;
+   return status;
 }
 
 static int iw_softap_setwpsie(struct net_device *dev,
@@ -2448,8 +2409,6 @@ static const struct iw_priv_args hostapd_private_args[] = {
       IW_PRIV_TYPE_INT | IW_PRIV_SIZE_FIXED | 1, 0, "" },
   { QCSAP_PARAM_MAX_ASSOC,
       IW_PRIV_TYPE_INT | IW_PRIV_SIZE_FIXED | 1, 0, "setMaxAssoc" },
-   { QCSAP_PARAM_HIDE_SSID,
-      IW_PRIV_TYPE_INT | IW_PRIV_SIZE_FIXED | 1, 0,  "hideSSID" },
   { QCSAP_IOCTL_GETPARAM,
       IW_PRIV_TYPE_INT | IW_PRIV_SIZE_FIXED | 1,
       IW_PRIV_TYPE_INT | IW_PRIV_SIZE_FIXED | 1,    "getparam" },
@@ -2457,10 +2416,6 @@ static const struct iw_priv_args hostapd_private_args[] = {
       IW_PRIV_TYPE_INT | IW_PRIV_SIZE_FIXED | 1,    "" },
   { QCSAP_PARAM_MAX_ASSOC, 0,
       IW_PRIV_TYPE_INT | IW_PRIV_SIZE_FIXED | 1,    "getMaxAssoc" },
-  { QCSAP_PARAM_GET_WLAN_DBG, 0,
-      IW_PRIV_TYPE_INT | IW_PRIV_SIZE_FIXED | 1,    "getwlandbg" },
-  { QCSAP_PARAM_AUTO_CHANNEL, 0,
-      IW_PRIV_TYPE_INT | IW_PRIV_SIZE_FIXED | 1,    "getAutoChannel" },
   { QCSAP_PARAM_MODULE_DOWN_IND, 0,
       IW_PRIV_TYPE_INT | IW_PRIV_SIZE_FIXED | 1,    "moduleDownInd" },
   { QCSAP_PARAM_CLR_ACL, 0,
@@ -2482,7 +2437,7 @@ static const struct iw_priv_args hostapd_private_args[] = {
   { QCSAP_IOCTL_GET_WPS_PBC_PROBE_REQ_IES,
       IW_PRIV_TYPE_BYTE | sizeof(sQcSapreq_WPSPBCProbeReqIES_t) | IW_PRIV_SIZE_FIXED | 1, 0, "getProbeReqIEs" },
   { QCSAP_IOCTL_GET_CHANNEL, 0,
-      IW_PRIV_TYPE_INT | IW_PRIV_SIZE_FIXED | 1, "getchannel" },
+      IW_PRIV_TYPE_INT | IW_PRIV_SIZE_FIXED | sizeof(signed long int), "getchannel" },
   { QCSAP_IOCTL_ASSOC_STA_MACADDR, 0,
       IW_PRIV_TYPE_BYTE | /*((WLAN_MAX_STA_COUNT*6)+100)*/1 , "get_assoc_stamac" },
     { QCSAP_IOCTL_DISASSOC_STA,
@@ -2641,24 +2596,6 @@ VOS_STATUS hdd_init_ap_mode( hdd_adapter_t *pAdapter )
     
 #ifdef CONFIG_CFG80211
     wlan_hdd_set_monitor_tx_adapter( WLAN_HDD_GET_CTX(pAdapter), pAdapter );
-#endif
-#ifdef WLAN_FEATURE_P2P
-    /* If administrative interface is enabled then one interface being
-     * created for p2p device address. This will take one HW STA and 
-     * the max number of clients that can connect to softAP will be 
-     * reduced by one. So as soon as SoftAP interface got created remove 
-     * the session for p2p device address.
-     */
-    if ( VOS_IS_STATUS_SUCCESS( status ) && 
-            ( pAdapter->device_mode == WLAN_HDD_SOFTAP ) && 
-            ( !strncmp( pAdapter->dev->name, "wlan", 4 )) )
-    {
-       /* TODO: Revisit this later, either unregister p2p0 
-                interface here or make change in wifi.c file to pass 
-                information, that driver is getting loaded for SAP interface, 
-                in that case, during load time don't start p2p0 interface 
-        */
-    }
 #endif
     EXIT();
     return status;

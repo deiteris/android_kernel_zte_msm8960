@@ -49,7 +49,6 @@
 #include "sirApi.h"
 #include "btcApi.h"
 #include "vos_nvitem.h"
-#include "p2p_Api.h"
 #ifdef FEATURE_WLAN_NON_INTEGRATED_SOC
 #include "halFw.h"
 #endif
@@ -83,15 +82,6 @@ typedef struct _smeConfigParams
    tCsrConfigParam  csrConfig;
 #if defined WLAN_FEATURE_VOWIFI
    tRrmConfigParam  rrmConfig;
-#endif
-#if defined FEATURE_WLAN_CCX
-    tANI_U8   isCcxIniFeatureEnabled;
-#endif
-#if defined WLAN_FEATURE_P2P_INTERNAL
-   tP2PConfigParam  p2pConfig;
-#endif
-#if  defined (WLAN_FEATURE_VOWIFI_11R) || defined (FEATURE_WLAN_CCX)
-    tANI_U8   isFastTransitionEnabled;
 #endif
 } tSmeConfigParams, *tpSmeConfigParams;
 
@@ -753,7 +743,7 @@ eHalStatus sme_GetStatistics(tHalHandle hHal, eCsrStatsRequesterType requesterId
 
 eHalStatus sme_GetRssi(tHalHandle hHal, 
                              tCsrRssiCallback callback, 
-                             tANI_U8 staId, tCsrBssid bssId, void *pContext, void* pVosContext);
+                             tANI_U8 staId, void *pContext, void* pVosContext);
 
 /* ---------------------------------------------------------------------------
     \fn sme_CfgSetInt
@@ -1137,13 +1127,9 @@ extern eHalStatus sme_WowlDelBcastPattern (
             Note 5. Request for WoWL is rejected if BMPS is disabled.
             
     \param  hHal - The handle returned by macOpen.
-    \param  enterWowlCallbackRoutine -  Callback routine provided by HDD.
+    \param  callbackRoutine -  Callback routine provided by HDD. 
                                Used for success/failure notification by SME
-    \param  enterWowlCallbackContext - A cookie passed by HDD, that is passed back to HDD
-                              at the time of callback.
-    \param  wakeReasonIndCB -  Callback routine provided by HDD.
-                               Used for Wake Reason Indication by SME
-    \param  wakeReasonIndCBContext - A cookie passed by HDD, that is passed back to HDD
+    \param  callbackContext - A cookie passed by HDD, that is passed back to HDD 
                               at the time of callback.
     \return eHalStatus
             eHAL_STATUS_SUCCESS  Device is already in WoWLAN mode
@@ -1151,15 +1137,10 @@ extern eHalStatus sme_WowlDelBcastPattern (
             eHAL_STATUS_PMC_PENDING  Request accepted. SME will enable WOWL when BMPS
                                       mode is entered.
   ---------------------------------------------------------------------------*/
-extern eHalStatus sme_EnterWowl (
-    tHalHandle hHal,
-    void (*enterWowlCallbackRoutine) (void *callbackContext, eHalStatus status),
-    void *enterWowlCallbackContext,
-#ifdef WLAN_WAKEUP_EVENTS
-    void (*wakeReasonIndCB) (void *callbackContext, tpSirWakeReasonInd pWakeReasonInd),
-    void *wakeReasonIndCBContext,
-#endif // WLAN_WAKEUP_EVENTS
-    tpSirSmeWowlEnterParams wowlEnterParams);
+extern eHalStatus sme_EnterWowl ( 
+    tHalHandle hHal, 
+    void (*callbackRoutine) (void *callbackContext, eHalStatus status),   
+    void *callbackContext, tpSirSmeWowlEnterParams wowlEnterParams);
 
 /* ---------------------------------------------------------------------------
     \fn sme_ExitWowl
@@ -1662,11 +1643,11 @@ eHalStatus sme_AbortMacScan(tHalHandle hHal);
    \fn sme_GetOperationChannel
    \brief API to get current channel on which STA is parked
    this function gives channel information only of infra station or IBSS station.
-   \param hHal, pointer to memory location and sessionId 
+   \param hHal and poiter to memory location 
    \returns eHAL_STATUS_SUCCESS
             eHAL_STATUS_FAILURE
 -------------------------------------------------------------------------------*/
-eHalStatus sme_GetOperationChannel(tHalHandle hHal, tANI_U32 *pChannel, tANI_U8 sessionId);
+eHalStatus sme_GetOperationChannel(tHalHandle hHal, tANI_U32 *pChannel);
 
 #ifdef WLAN_FEATURE_P2P
 /* ---------------------------------------------------------------------------
@@ -1838,28 +1819,7 @@ tANI_U8 sme_GetInfraOperationChannel( tHalHandle hHal, tANI_U8 sessionId);
   -------------------------------------------------------------------------------*/
 tANI_U8 sme_GetConcurrentOperationChannel( tHalHandle hHal );
 
-/* ---------------------------------------------------------------------------
-    \fn sme_AbortMacScan
-    \brief  API to cancel MAC scan.
-    \param  hHal - The handle returned by macOpen.
-    \return VOS_STATUS
-            VOS_STATUS_E_FAILURE - failure
-            VOS_STATUS_SUCCESS  success
-  ---------------------------------------------------------------------------*/
-eHalStatus sme_AbortMacScan(tHalHandle hHal);
-
-/* ---------------------------------------------------------------------------
-    \fn sme_GetCfgValidChannels
-    \brief  API to get valid channel list
-    \param  hHal - The handle returned by macOpen.
-    \param  aValidChannels -  Pointer to the valid channel list
-    \param  len -  valid channel list length
-    \return eHalStatus
-  ---------------------------------------------------------------------------*/
-eHalStatus sme_GetCfgValidChannels(tHalHandle hHal, tANI_U8 *aValidChannels, tANI_U32 *len);
-
 #ifdef FEATURE_WLAN_SCAN_PNO
-
 /* ---------------------------------------------------------------------------
     \fn sme_SetPreferredNetworkList
     \brief  API to set the Preferred Network List Offload feature.
@@ -1867,7 +1827,7 @@ eHalStatus sme_GetCfgValidChannels(tHalHandle hHal, tANI_U8 *aValidChannels, tAN
     \param  pRequest -  Pointer to the offload request.
     \return eHalStatus
   ---------------------------------------------------------------------------*/
-eHalStatus sme_SetPreferredNetworkList (tHalHandle hHal, tpSirPNOScanReq pRequest, tANI_U8 sessionId, preferredNetworkFoundIndCallback callbackRoutine, void *callbackContext );
+eHalStatus sme_SetPreferredNetworkList (tHalHandle hHal, tpSirPNOScanReq pRequest, tANI_U8 sessionId, void (*callbackRoutine) (void *callbackContext, tSirPrefNetworkFoundInd *pPrefNetworkFoundInd), void *callbackContext );
 
 /* ---------------------------------------------------------------------------
     \fn sme_SetRSSIFilter
@@ -1937,7 +1897,7 @@ eHalStatus sme_8023MulticastList(tHalHandle hHal, tpSirRcvFltMcAddrList pMultica
 eHalStatus sme_ReceiveFilterSetFilter(tHalHandle hHal, tpSirRcvPktFilterCfgType pRcvPktFilterCfg);
 
 /* ---------------------------------------------------------------------------
-    \fn sme_GetFilterMatchCount
+    \fn sme_GetPCFilterMatchCount
     \brief  API to get D0 PC Filter Match Count
     \param  hHal - The handle returned by macOpen 
     \param  callbackRoutine - Callback routine invoked to receive Packet Coalescing Filter Match Count
@@ -1961,6 +1921,7 @@ eHalStatus sme_ReceiveFilterClearFilter(tHalHandle hHal,
 /* ---------------------------------------------------------------------------
 
     \fn sme_IsChannelValid
+
     \brief To check if the channel is valid for currently established domain
     This is a synchronous API.
 
@@ -1990,81 +1951,6 @@ eHalStatus sme_SetFreqBand(tHalHandle hHal, eCsrBand eBand);
     -------------------------------------------------------------------------*/
 eHalStatus sme_GetFreqBand(tHalHandle hHal, eCsrBand *pBand);
 
-/* ---------------------------------------------------------------------------
-
-    \fn sme_SetTxPerTracking
-    \brief  Set Tx PER tracking configuration parameters
-    \param  hHal - The handle returned by macOpen.
-    \param  pTxPerTrackingParam - Tx PER configuration parameters
-    \return eHalStatus     
-  ---------------------------------------------------------------------------*/
-eHalStatus sme_SetTxPerTracking (
-   tHalHandle hHal,
-   void (*pCallbackfn) (void *pCallbackContext),
-   void *pCallbackContext,
-   tpSirTxPerTrackingParam pTxPerTrackingParam);
-
-#ifdef WLAN_FEATURE_GTK_OFFLOAD
-/* ---------------------------------------------------------------------------
-    \fn sme_SetGTKOffload
-    \brief  API to set GTK offload feature.
-    \param  hHal - The handle returned by macOpen.
-    \param  pRequest -  Pointer to the GTK offload request.
-    \return eHalStatus
-  ---------------------------------------------------------------------------*/
-eHalStatus sme_SetGTKOffload (tHalHandle hHal, tpSirGtkOffloadParams pRequest);
-
-/* ---------------------------------------------------------------------------
-    \fn sme_GetGTKOffload
-    \brief  API to get GTK offload information.
-    \param  hHal - The handle returned by macOpen.
-    \param  pRequest -  Pointer to the GTK offload response.
-    \return eHalStatus
-  ---------------------------------------------------------------------------*/
-eHalStatus sme_GetGTKOffload (tHalHandle hHal, GTKOffloadGetInfoCallback callbackRoutine, void *callbackContext );
-#endif // WLAN_FEATURE_GTK_OFFLOAD
-
-#ifdef WLAN_WAKEUP_EVENTS
-eHalStatus sme_WakeReasonIndCallback (tHalHandle hHal, void* pMsg);
-#endif // WLAN_WAKEUP_EVENTS
-
-/* ---------------------------------------------------------------------------
-    \fn sme_SetTxPerTracking
-    \brief  Set Tx PER tracking configuration parameters
-    \param  hHal - The handle returned by macOpen.
-    \param  pTxPerTrackingParam - Tx PER configuration parameters
-    \return eHalStatus     
-  ---------------------------------------------------------------------------*/
-eHalStatus sme_SetTxPerTracking (
-   tHalHandle hHal,
-   void (*pCallbackfn) (void *pCallbackContext),
-   void *pCallbackContext,
-   tpSirTxPerTrackingParam pTxPerTrackingParam);
-
-
-//return frequency for a particular channel
-tANI_U16 sme_ChnToFreq(tANI_U8 chanNum);
-
-tANI_BOOLEAN sme_IsChannelValid(tHalHandle hHal, tANI_U8 channel);
-
-#if defined WLAN_FEATURE_P2P_INTERNAL
-
-eHalStatus sme_p2pResetSession(tHalHandle hHal, tANI_U8 HDDSessionId);
-
-/* ---------------------------------------------------------------------------
-    \fn sme_p2pFlushDeviceList
-    \brief  Remove cached P2P result from scan results
-    \param  hHal - The handle returned by macOpen.
-    \param  HDDSessionId - HDD's sessionId. Currently unused.
-    \return eHalStatus     
-  ---------------------------------------------------------------------------*/
-eHalStatus sme_p2pFlushDeviceList(tHalHandle hHal, tANI_U8 HDDSessionId);
-
-eHalStatus sme_p2pGetResultFilter(tHalHandle hHal, tANI_U8 HDDSessionId,
-                              tCsrScanResultFilter *pFilter);
-
-#endif //#if defined WLAN_FEATURE_P2P_INTERNAL
-   
 /* ---------------------------------------------------------------------------
     \fn sme_SetMaxTxPower
     \brief  Used to set the Maximum Transmit Power dynamically. Note: this
@@ -2117,5 +2003,32 @@ eHalStatus sme_SetTmLevel(tHalHandle hHal, v_U16_t newTMLevel, v_U16_t tmMode);
 
 ---------------------------------------------------------------------------*/
 void sme_featureCapsExchange(tHalHandle hHal);
+
+/*---------------------------------------------------------------------------
+
+  \brief sme_GetDefaultCountryCodeFrmNv() - SME interface to get the default 
+         country code
+  Host and FW.
+
+  \param  hHal - HAL handle for device
+  \param  pCountry - pointer to country code
+
+  \return Sucess or failure
+
+  ---------------------------------------------------------------------------*/
+eHalStatus sme_GetDefaultCountryCodeFrmNv(tHalHandle hHal, tANI_U8 *pCountry);
+
+/*---------------------------------------------------------------------------
+
+  \brief sme_GetCurrentCountryCode() - SME interface to get the current operating
+          country code.
+
+  \param  hHal - HAL handle for device
+  \param  pCountry - pointer to country code
+
+  \return Success or failure
+
+  ---------------------------------------------------------------------------*/
+eHalStatus sme_GetCurrentCountryCode(tHalHandle hHal, tANI_U8 *pCountry);
 
 #endif //#if !defined( __SME_API_H )

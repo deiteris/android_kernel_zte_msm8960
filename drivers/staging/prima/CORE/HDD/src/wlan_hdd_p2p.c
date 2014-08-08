@@ -370,14 +370,7 @@ int wlan_hdd_cfg80211_cancel_remain_on_channel( struct wiphy *wiphy,
     return 0;
 }
 
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3,3,0))
-int wlan_hdd_action( struct wiphy *wiphy, struct net_device *dev,
-                     struct ieee80211_channel *chan, bool offchan,
-                     enum nl80211_channel_type channel_type,
-                     bool channel_type_valid, unsigned int wait,
-                     const u8 *buf, size_t len,  bool no_cck,
-                     bool dont_wait_for_ack, u64 *cookie )
-#elif (LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,38))
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,38))
 int wlan_hdd_action( struct wiphy *wiphy, struct net_device *dev,
                      struct ieee80211_channel *chan, bool offchan,
                      enum nl80211_channel_type channel_type,
@@ -389,7 +382,7 @@ int wlan_hdd_action( struct wiphy *wiphy, struct net_device *dev,
                      enum nl80211_channel_type channel_type,
                      bool channel_type_valid,
                      const u8 *buf, size_t len, u64 *cookie )
-#endif //LINUX_VERSION_CODE
+#endif
 {
     hdd_adapter_t *pAdapter = WLAN_HDD_GET_PRIV_PTR( dev );
     hdd_cfg80211_state_t *cfgState = WLAN_HDD_GET_CFG_STATE_PTR( pAdapter );
@@ -401,10 +394,6 @@ int wlan_hdd_action( struct wiphy *wiphy, struct net_device *dev,
 
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,38))
     hdd_adapter_t *goAdapter;
-#endif
-
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3,3,0))
-    noack = dont_wait_for_ack;
 #endif
 
     hddLog(VOS_TRACE_LEVEL_INFO, "%s: device_mode = %d",
@@ -429,23 +418,21 @@ int wlan_hdd_action( struct wiphy *wiphy, struct net_device *dev,
             else if ((subType == SIR_MAC_MGMT_DISASSOC) ||
                     (subType == SIR_MAC_MGMT_DEAUTH))
             {
-                /* Deauth/Disassoc received from supplicant, If we simply 
-                 * transmit the frame over air, driver doesn't come to know 
-                 * about the deauth/disassoc. Because of this reason the 
-                 * supplicant and driver will be out of sync.
-                 * Drop the frame here and initiate the disassoc procedure 
-                 * from driver, the core stack will take care of sending
-                 * disassoc frame and indicating corresponding events to supplicant.
+                /* During EAP failure or P2P Group Remove supplicant
+                 * is sending del_station command to driver. From
+                 * del_station function, Driver will send deauth frame to
+                 * p2p client. No need to send disassoc frame from here.
+                 * so Drop the frame here and send tx indication back to
+                 * supplicant.
                  */
                 tANI_U8 dstMac[ETH_ALEN] = {0};
                 memcpy(&dstMac, &buf[WLAN_HDD_80211_FRM_DA_OFFSET], ETH_ALEN);
-                hddLog(VOS_TRACE_LEVEL_INFO, 
+                hddLog(VOS_TRACE_LEVEL_INFO,
                         "%s: Deauth/Disassoc received for STA:"
-                        "%02x:%02x:%02x:%02x:%02x:%02x", 
-                        __func__, 
-                        dstMac[0], dstMac[1], dstMac[2], 
+                        "%02x:%02x:%02x:%02x:%02x:%02x",
+                        __func__,
+                        dstMac[0], dstMac[1], dstMac[2],
                         dstMac[3], dstMac[4], dstMac[5]);
-                hdd_softap_sta_disassoc(pAdapter, (v_U8_t *)&dstMac);
                 goto err_rem_channel;
             }
         }
@@ -484,7 +471,8 @@ int wlan_hdd_action( struct wiphy *wiphy, struct net_device *dev,
             extendedWait = (tANI_U16)wait;
             goto send_frame;
         }
-
+        
+	
         INIT_COMPLETION(pAdapter->offchannel_tx_event);
 
         status = wlan_hdd_request_remain_on_channel(wiphy, dev,
@@ -926,13 +914,6 @@ int wlan_hdd_add_virtual_intf( struct wiphy *wiphy, char *name,
 
     ENTER();
 
-    if(hdd_get_adapter(pHddCtx, wlan_hdd_get_session_type(type)) != NULL)
-    {
-	  hddLog(VOS_TRACE_LEVEL_ERROR,"%s: Interface type %d already exists. Two"
-                     "interfaces of same type are not supported currently.",__func__, type);
-	  return NULL;
-    }
-
     if ( pHddCtx->cfg_ini->isP2pDeviceAddrAdministrated )
     {
         if( (NL80211_IFTYPE_P2P_GO == type) || 
@@ -1145,16 +1126,9 @@ void hdd_indicateMgmtFrame( hdd_adapter_t *pAdapter,
 
     //Indicate Frame Over Normal Interface
     hddLog( LOG1, FL("Indicate Frame over NL80211 Interface"));
-
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3,4,0))
-    cfg80211_rx_mgmt( pAdapter->dev, freq, 0,
-                      pbFrames, nFrameLength,
-                      GFP_ATOMIC );
-#else
     cfg80211_rx_mgmt( pAdapter->dev, freq,
                       pbFrames, nFrameLength,
                       GFP_ATOMIC );
-#endif //LINUX_VERSION_CODE
 }
 
 /*
