@@ -2353,6 +2353,7 @@ static void gsbi_qup_i2c_mhl_gpio_config(int adap_id, int config_type)
 static struct msm_i2c_platform_data msm8960_i2c_qup_gsbi4_pdata = {
 	.clk_freq = 100000,
 	.src_clk_rate = 24000000,
+	.keep_ahb_clk_on = 1,
 };
 
 #ifdef CONFIG_ISPCAM 
