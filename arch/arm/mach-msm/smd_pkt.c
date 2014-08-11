@@ -614,7 +614,7 @@ int smd_pkt_open(struct inode *inode, struct file *file)
 {
 	int r = 0;
 	struct smd_pkt_dev *smd_pkt_devp;
-	char *peripheral = NULL;
+	const char *peripheral = NULL;
 
 	smd_pkt_devp = container_of(inode->i_cdev, struct smd_pkt_dev, cdev);
 
@@ -630,10 +630,8 @@ int smd_pkt_open(struct inode *inode, struct file *file)
 				smd_pkt_dev_name[smd_pkt_devp->i]);
 		INIT_WORK(&smd_pkt_devp->packet_arrival_work,
 				packet_arrival_worker);
-		if (smd_ch_edge[smd_pkt_devp->i] == SMD_APPS_MODEM)
-			peripheral = "modem";
-		else if (smd_ch_edge[smd_pkt_devp->i] == SMD_APPS_QDSP)
-			peripheral = "q6";
+		peripheral = smd_edge_to_subsystem(
+				smd_ch_edge[smd_pkt_devp->i]);
 
 		if (peripheral) {
 			smd_pkt_devp->pil = pil_get(peripheral);
