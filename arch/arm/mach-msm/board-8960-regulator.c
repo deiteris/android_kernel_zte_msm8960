@@ -565,7 +565,7 @@ msm_pm8921_regulator_pdata[] __devinitdata = {
 		0, 2),
 	PM8XXX_NLDO1200(L28, "8921_l28", 0, 1, 1050000, 1050000, 200, "8921_s7",
 		0, 3),
-	PM8XXX_LDO(L29,      "8921_l29", 0, 1, 1700000, 1700000, 200, "8921_s8",
+	PM8XXX_LDO(L29,      "8921_l29", 0, 1, 1600000, 1600000, 200, "8921_s8",
 		0, 4),
 
 	/*	     ID        name      always_on pd en_t supply    reg_ID */
@@ -584,7 +584,7 @@ msm_rpm_regulator_init_data[] __devinitdata = {
 	RPM_SMPS(S8,	 1, 1, 1, 2050000, 2050000, NULL, 100000, 1p60),
 
 	/*	ID     a_on pd ss min_uV   max_uV  supply  sys_uA init_ip */
-	RPM_LDO(L1,	 1, 1, 0, 1050000, 1050000, "8921_s4", 0, 10000),
+	RPM_LDO(L1,	 1, 1, 0, 1000000, 1000000, "8921_s4", 0, 10000),
 	RPM_LDO(L2,	 0, 1, 0, 1200000, 1200000, "8921_s4", 10000, 10000),//zc
 	RPM_LDO(L3,	 0, 1, 0, 3075000, 3075000, NULL,      0, 0),
 	RPM_LDO(L4,	 1, 1, 0, 1800000, 1800000, NULL,      10000, 10000),
