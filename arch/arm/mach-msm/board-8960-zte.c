@@ -3488,7 +3488,7 @@ static void Sii8334_reset(void)
 					pr_err("could not get reg_8921_l12, rc = %ld\n",
 						PTR_ERR(reg_8921_l12));
 				}
-				rc = regulator_set_voltage(reg_8921_l12, 900000, 900000);
+				rc = regulator_set_voltage(reg_8921_l12, 1200000, 1200000);
 				if (rc) {
 					pr_err("set_voltage failed for 8921_l12, rc=%d\n", rc);
 				}
@@ -3501,7 +3501,7 @@ static void Sii8334_reset(void)
 				pr_err("could not get reg_8921_s4, rc = %ld\n",
 					PTR_ERR(reg_8921_s4));
 			}
-			rc = regulator_set_voltage(reg_8921_s4, 1650000, 1650000);
+			rc = regulator_set_voltage(reg_8921_s4, 1700000, 1700000);
 			if (rc) {
 				pr_err("set_voltage failed for 8921_s4, rc=%d\n", rc);
 			}

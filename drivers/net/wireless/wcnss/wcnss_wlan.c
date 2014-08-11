@@ -27,7 +27,6 @@
 #endif
 
 #include <linux/proc_fs.h>
-extern int zte_wifi_get_mac_addr(unsigned char *addr);
 
 #define DEVICE "wcnss_wlan"
 #define VERSION "1.01"
@@ -452,8 +451,6 @@ char *page, char **start, off_t off, int count, int *eof, void *data)
 	
 	printk("%s, enter!\n", __func__);
 	
-	zte_wifi_get_mac_addr(mac_buf);
-	
 	sprintf(mac_formated, "%02X:%02X:%02X:%02X:%02X:%02X",
 		mac_buf[0], mac_buf[1], mac_buf[2],
 		mac_buf[3], mac_buf[4], mac_buf[5]);
@@ -464,7 +461,6 @@ char *page, char **start, off_t off, int count, int *eof, void *data)
 	printk("len=%d\n", len);
 	
 	return common_read_proc(page, start, off, count, eof, data, mac_formated, len);	
- 
 }
 
 #ifndef MODULE

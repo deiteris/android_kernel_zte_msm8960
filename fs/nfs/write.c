@@ -1737,7 +1737,7 @@ int nfs_migrate_page(struct address_space *mapping, struct page *newpage,
 	if (IS_ERR(req))
 		goto out;
 
-	ret = migrate_page(mapping, newpage, page);
+	ret = migrate_page(mapping, newpage, page, mode);
 	if (!req)
 		goto out;
 	if (ret)

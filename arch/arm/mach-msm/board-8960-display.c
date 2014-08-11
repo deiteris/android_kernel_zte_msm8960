@@ -521,7 +521,7 @@ static int mipi_dsi_panel_power_our(int on)
 		}
 
 
-		rc = regulator_set_voltage(REG_L8, 2800000, 2900000);
+		rc = regulator_set_voltage(REG_L8, 2800000, 3000000);
 		if (rc) {
 			pr_err("set_voltage l8 failed, rc=%d\n", rc);
 			return -EINVAL;
