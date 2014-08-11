@@ -74,11 +74,8 @@ static int load_segment(const struct elf32_phdr *phdr, unsigned num,
 	const struct firmware *fw = NULL;
 	const u8 *data;
 
-	if (memblock_overlaps_memory(phdr->p_paddr, phdr->p_memsz)) {
-		dev_err(&pil->dev,
-			"kernel memory would be overwritten [%#08lx, %#08lx)\n",
-			(unsigned long)phdr->p_paddr,
-			(unsigned long)(phdr->p_paddr + phdr->p_memsz));
+	if (memblock_is_region_memory(phdr->p_paddr, phdr->p_memsz)) {
+		dev_err(pil->desc->dev, "Kernel memory would be overwritten");
 		return -EPERM;
 	}
 
