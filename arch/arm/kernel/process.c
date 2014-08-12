@@ -128,7 +128,7 @@ void arm_machine_flush_console(void)
 }
 #endif
 
-void arm_machine_restart(char mode, const char *cmd)
+void soft_restart(unsigned long addr)
 {
 	/* Flush the console to make sure all the relevant messages make it
 	 * out to the console drivers */
@@ -157,7 +157,16 @@ void arm_machine_restart(char mode, const char *cmd)
 	/*Push out the dirty data from external caches */
 	outer_disable();
 
-	/* Now call the architecture specific reboot code. */
+	cpu_reset(addr);
+}
+
+void arm_machine_restart(char mode, const char *cmd)
+{
+	/* Disable interrupts first */
+	local_irq_disable();
+	local_fiq_disable();
+
+	/* Call the architecture specific reboot code. */
 	arch_reset(mode, cmd);
 }
 
