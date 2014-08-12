@@ -61,6 +61,7 @@ ENDPROC(cpu_v7_proc_fin)
  *	- loc   - location to jump to for soft reset
  */
 	.align	5
+	.pushsection	.idmap.text, "ax"
 ENTRY(cpu_v7_reset)
 	mrc     p15, 0, r1, c1, c0, 0           @ ctrl register
 	bic     r1, r1, #0x0001                 @ ...............m
@@ -71,6 +72,7 @@ ENTRY(cpu_v7_reset)
         isb
 	mov     pc,r0
 ENDPROC(cpu_v7_reset)
+	.popsection
 
 /*
  *	cpu_v7_do_idle()
@@ -238,9 +240,8 @@ cpu_v7_name:
 ENTRY(cpu_v7_do_suspend)
 	stmfd	sp!, {r4 - r11, lr}
 	mrc	p15, 0, r4, c13, c0, 0	@ FCSE/PID
-	mrc	p15, 0, r5, c13, c0, 1	@ Context ID
-	mrc	p15, 0, r6, c13, c0, 3	@ User r/o thread ID
-	stmia	r0!, {r4 - r6}
+	mrc	p15, 0, r5, c13, c0, 3	@ User r/o thread ID
+	stmia	r0!, {r4 - r5}
 	mrc	p15, 0, r6, c3, c0, 0	@ Domain ID
 	mrc	p15, 0, r7, c2, c0, 0	@ TTB 0
 	mrc	p15, 0, r8, c2, c0, 1	@ TTB 1
@@ -255,10 +256,10 @@ ENTRY(cpu_v7_do_resume)
 	mov	ip, #0
 	mcr	p15, 0, ip, c8, c7, 0	@ invalidate TLBs
 	mcr	p15, 0, ip, c7, c5, 0	@ invalidate I cache
-	ldmia	r0!, {r4 - r6}
+	mcr	p15, 0, ip, c13, c0, 1	@ set reserved context ID
+	ldmia	r0!, {r4 - r5}
 	mcr	p15, 0, r4, c13, c0, 0	@ FCSE/PID
-	mcr	p15, 0, r5, c13, c0, 1	@ Context ID
-	mcr	p15, 0, r6, c13, c0, 3	@ User r/o thread ID
+	mcr	p15, 0, r5, c13, c0, 3	@ User r/o thread ID
 	ldmia	r0, {r6 - r11}
 	mcr	p15, 0, r6, c3, c0, 0	@ Domain ID
 	mcr	p15, 0, r7, c2, c0, 0	@ TTB 0
@@ -273,14 +274,8 @@ ENTRY(cpu_v7_do_resume)
 	isb
 	dsb
 	mov	r0, r9			@ control register
-	mov	r2, r7, lsr #14		@ get TTB0 base
-	mov	r2, r2, lsl #14
-	ldr	r3, cpu_resume_l1_flags
 	b	cpu_resume_mmu
 ENDPROC(cpu_v7_do_resume)
-cpu_resume_l1_flags:
-	ALT_SMP(.long PMD_TYPE_SECT | PMD_SECT_AP_WRITE | PMD_FLAGS_SMP)
-	ALT_UP(.long  PMD_TYPE_SECT | PMD_SECT_AP_WRITE | PMD_FLAGS_UP)
 #else
 #define cpu_v7_do_suspend	0
 #define cpu_v7_do_resume	0
