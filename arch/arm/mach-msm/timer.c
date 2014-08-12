@@ -1124,8 +1124,7 @@ static void __init msm_timer_init(void)
 	}
 }
 
-#ifdef CONFIG_SMP
-
+#ifdef CONFIG_LOCAL_TIMERS
 int __cpuinit local_timer_setup(struct clock_event_device *evt)
 {
 	static DEFINE_PER_CPU(bool, first_boot) = true;
@@ -1174,7 +1173,7 @@ void local_timer_stop(struct clock_event_device *evt)
 	evt->set_mode(CLOCK_EVT_MODE_UNUSED, evt);
 	disable_percpu_irq(evt->irq);
 }
-#endif
+#endif /* CONFIG_LOCAL_TIMERS */
 
 struct sys_timer msm_timer = {
 	.init = msm_timer_init
