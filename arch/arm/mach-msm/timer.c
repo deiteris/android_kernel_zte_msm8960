@@ -14,21 +14,21 @@
  *
  */
 
-#include <linux/clocksource.h>
-#include <linux/clockchips.h>
 #include <linux/init.h>
+#include <linux/time.h>
 #include <linux/interrupt.h>
 #include <linux/irq.h>
+#include <linux/clk.h>
+#include <linux/clockchips.h>
+#include <linux/delay.h>
 #include <linux/io.h>
 #include <linux/percpu.h>
 
 #include <asm/mach/time.h>
 #include <asm/hardware/gic.h>
-#include <asm/localtimer.h>
 #include <asm/sched_clock.h>
 #include <asm/smp_plat.h>
 #include <mach/msm_iomap.h>
-#include <mach/board.h>
 #include <mach/irqs.h>
 #include <mach/socinfo.h>
 
@@ -60,10 +60,18 @@ module_param_named(debug_mask, msm_timer_debug_mask, int, S_IRUGO | S_IWUSR | S_
 #define TIMER_ENABLE            0x0008
 #define TIMER_CLEAR             0x000C
 #define DGT_CLK_CTL             0x0034
+enum {
+	DGT_CLK_CTL_DIV_1 = 0,
+	DGT_CLK_CTL_DIV_2 = 1,
+	DGT_CLK_CTL_DIV_3 = 2,
+	DGT_CLK_CTL_DIV_4 = 3,
+};
 #define TIMER_STATUS            0x0088
-#define TIMER_ENABLE_CLR_ON_MATCH_EN    BIT(1)
-#define TIMER_ENABLE_EN                 BIT(0)
-#define DGT_CLK_CTL_DIV_4	0x3
+#define TIMER_ENABLE_EN              1
+#define TIMER_ENABLE_CLR_ON_MATCH_EN 2
+
+#define LOCAL_TIMER 0
+#define GLOBAL_TIMER 1
 
 /*
  * global_timer_offset is added to the regbase of a timer to force the memory
