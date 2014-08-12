@@ -168,9 +168,9 @@ __dabt_svc:
 	@ the fault status register in r1.  r9 must be preserved.
 	@
 #ifdef MULTI_DABORT
-	ldr	r4, .LCprocfns
+	ldr	ip, .LCprocfns
 	mov	lr, pc
-	ldr	pc, [r4, #PROCESSOR_DABT_FUNC]
+	ldr	pc, [ip, #PROCESSOR_DABT_FUNC]
 #else
 	bl	CPU_DABORT_HANDLER
 #endif
@@ -299,9 +299,9 @@ __pabt_svc:
 
 	mov	r0, r2			@ pass address of aborted instruction.
 #ifdef MULTI_PABORT
-	ldr	r4, .LCprocfns
+	ldr	ip, .LCprocfns
 	mov	lr, pc
-	ldr	pc, [r4, #PROCESSOR_PABT_FUNC]
+	ldr	pc, [ip, #PROCESSOR_PABT_FUNC]
 #else
 	bl	CPU_PABORT_HANDLER
 #endif
