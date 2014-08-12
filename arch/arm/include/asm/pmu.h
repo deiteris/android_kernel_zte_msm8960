@@ -76,7 +76,7 @@ reserve_pmu(enum arm_pmu_type device)
 }
 
 static inline int
-release_pmu(enum arm_pmu_type device)
+release_pmu(struct platform_device *pdev)
 {
 	return -ENODEV;
 }
