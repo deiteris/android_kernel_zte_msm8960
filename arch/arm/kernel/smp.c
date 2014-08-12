@@ -297,6 +297,9 @@ asmlinkage void __cpuinit secondary_start_kernel(void)
 	 */
 	percpu_timer_setup();
 
+	while (!cpu_active(cpu))
+ 		cpu_relax();
+
 	local_irq_enable();
 	local_fiq_enable();
 

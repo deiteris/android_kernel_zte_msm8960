@@ -173,7 +173,7 @@ int __cpuinit boot_secondary(unsigned int cpu, struct task_struct *idle)
 		per_cpu(cold_boot_done, cpu) = true;
 	}
 	MARK(0);
-	pen_release = cpu;
+	pen_release = cpu_logical_map(cpu);
 	dmac_flush_range((void *)&pen_release,
 			 (void *)(&pen_release + sizeof(pen_release)));
 
