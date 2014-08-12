@@ -293,7 +293,7 @@ static ssize_t trigger_cntr_show(struct kobject *kobj,
 }
 ETB_ATTR(trigger_cntr);
 
-static int __devinit etb_sysfs_init(void)
+static int __init etb_sysfs_init(void)
 {
 	int ret;
 
@@ -318,7 +318,7 @@ err_create:
 	return ret;
 }
 
-static void __devexit etb_sysfs_exit(void)
+static void __exit etb_sysfs_exit(void)
 {
 	sysfs_remove_file(etb.kobj, &trigger_cntr_attr.attr);
 	kobject_put(etb.kobj);
