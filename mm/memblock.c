@@ -516,26 +516,27 @@ phys_addr_t __init memblock_alloc(phys_addr_t size, phys_addr_t align)
 
 
 /*
- * Additional node-local top-down allocators.
+ * Additional node-local allocators. Search for node memory is bottom up
+ * and walks memblock regions within that node bottom-up as well, but allocation
+ * within an memblock region is top-down. XXX I plan to fix that at some stage
  *
  * WARNING: Only available after early_node_map[] has been populated,
  * on some architectures, that is after all the calls to add_active_range()
  * have been done to populate it.
  */
 
-static phys_addr_t __init memblock_nid_range_rev(phys_addr_t start,
-						 phys_addr_t end, int *nid)
+static phys_addr_t __init memblock_nid_range(phys_addr_t start, phys_addr_t end, int *nid)
 {
 #ifdef CONFIG_ARCH_POPULATES_NODE_MAP
 	unsigned long start_pfn, end_pfn;
 	int i;
 
 	for_each_mem_pfn_range(i, MAX_NUMNODES, &start_pfn, &end_pfn, nid)
-		if (end > PFN_PHYS(start_pfn) && end <= PFN_PHYS(end_pfn))
-			return max(start, PFN_PHYS(start_pfn));
+		if (start >= PFN_PHYS(start_pfn) && start < PFN_PHYS(end_pfn))
+			return min(end, PFN_PHYS(end_pfn));
 #endif
 	*nid = 0;
-	return start;
+	return end;
 }
 
 static phys_addr_t __init memblock_alloc_nid_region(struct memblock_region *mp,
@@ -549,18 +550,19 @@ static phys_addr_t __init memblock_alloc_nid_region(struct memblock_region *mp,
 
 	start = memblock_align_up(start, align);
 	while (start < end) {
-		phys_addr_t this_start;
+		phys_addr_t this_end;
 		int this_nid;
 
-		this_start = memblock_nid_range_rev(start, end, &this_nid);
+		this_end = memblock_nid_range(start, end, &this_nid);
 		if (this_nid == nid) {
-			phys_addr_t ret = memblock_find_region(this_start, end, size, align);
+			phys_addr_t ret = memblock_find_region(start, this_end, size, align);
 			if (ret &&
 			    !memblock_add_region(&memblock.reserved, ret, size))
 				return ret;
 		}
-		end = this_start;
+		start = this_end;
 	}
+
 	return 0;
 }
 
@@ -576,7 +578,11 @@ phys_addr_t __init memblock_alloc_nid(phys_addr_t size, phys_addr_t align, int n
 	 */
 	size = memblock_align_up(size, align);
 
-	for (i = mem->cnt - 1; i >= 0; i--) {
+	/* We do a bottom-up search for a region with the right
+	 * nid since that's easier considering how memblock_nid_range()
+	 * works
+	 */
+	for (i = 0; i < mem->cnt; i++) {
 		phys_addr_t ret = memblock_alloc_nid_region(&mem->regions[i],
 					       size, align, nid);
 		if (ret)
