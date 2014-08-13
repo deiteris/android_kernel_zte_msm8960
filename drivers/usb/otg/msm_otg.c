@@ -2836,12 +2836,6 @@ static int __init msm_otg_probe(struct platform_device *pdev)
 	otg->set_peripheral = msm_otg_set_peripheral;
 	otg->set_power = msm_otg_set_power;
 	otg->set_suspend = msm_otg_set_suspend;
-<<<<<<< HEAD
-=======
-
-	if (pdata->otg_control == OTG_PHY_CONTROL && pdata->mpm_otgsessvld_int)
-		msm_mpm_enable_pin(pdata->mpm_otgsessvld_int, 1);
->>>>>>> 1b30950... power: pm8921-charger: support dc charging while in usb host mode
 
 	otg->io_ops = &msm_otg_io_ops;
 
