@@ -11,8 +11,7 @@
  *
  */
 #define pr_fmt(fmt)	"%s: " fmt, __func__
-//#define DEBUG //for debug
-//
+
 #include <linux/module.h>
 #include <linux/moduleparam.h>
 #include <linux/platform_device.h>
@@ -99,8 +98,6 @@ extern int focaltech_ts_notifier_call_chain(unsigned long val);
 #define UNPLUG_CHECK_WAIT_PERIOD_MS 200
 
 #define FIRST_UPDATE_TIME_MS  3000
-
-//#define ZTE_OVD_FEATURE
 
 enum chg_fsm_state {
 	FSM_STATE_OFF_0 = 0,
@@ -1530,10 +1527,8 @@ static int get_prop_batt_present(struct pm8921_chg_chip *chip)
 static int get_prop_batt_capacity(struct pm8921_chg_chip *chip)
 {
 	int percent_soc, voltage,status;
-	//#if defined(CONFIG_MACH_HAYES)||defined(CONFIG_MACH_ELDEN)  //ZTE_XJB_PM_20120831
 	static  int first_time_run=10;   //ZTE_XJB_PM_20120831
 	static  int double_check=0;      //ZTE_XJB_PM_20120831
-	//#endif
 	percent_soc= pm8921_bms_get_percent_charge();
 	g_bms_flag=0;
 
@@ -1566,7 +1561,6 @@ static int get_prop_batt_capacity(struct pm8921_chg_chip *chip)
        //only test by stone 20120709 for low battery protect
        voltage=get_prop_battery_uvolts(chip);
        status=get_prop_batt_status(chip);
-	//#if defined(CONFIG_MACH_HAYES)||defined(CONFIG_MACH_ELDEN)  //ZTE_XJB_PM_20120831 start
 	if ((first_time_run>=1)&&(voltage>3200000))   
 	{
 	  printk("ZTE get_prop_batt_capacity voltage = %d,first_time_run=%d,percent_soc=%d%%\n", voltage,first_time_run,percent_soc);
@@ -1574,11 +1568,9 @@ static int get_prop_batt_capacity(struct pm8921_chg_chip *chip)
 	  if (percent_soc <= 3)
 	  return 1;
 	}
-        //#endif
 	if ((percent_soc <= 3)&&(voltage<3400000)&&(status!=POWER_SUPPLY_STATUS_CHARGING))
 	{
 	    printk("slf low battery charge = %d%%,voltage=%d\n", percent_soc,voltage);
-	   //#if defined(CONFIG_MACH_HAYES)||defined(CONFIG_MACH_ELDEN) //ZTE_XJB_PM_20120831 start
                if(double_check>=1)
 	       {
 	            double_check=0;
@@ -1587,9 +1579,6 @@ static int get_prop_batt_capacity(struct pm8921_chg_chip *chip)
 	       else{ 
 		    double_check++;
 		}    //ZTE_XJB_PM_20120831  end
-           //#else
-           //         percent_soc = 0;
-           //#endif
 		g_bms_flag=4;
 	}
 
@@ -2490,27 +2479,20 @@ static irqreturn_t vbat_ov_irq_handler(int irq, void *data)
 {
 #if 1
 //add by stone 20120309
-/****************************************************************/ 
         struct pm8921_chg_chip *chip = data; 
-        
+
         int high_transition; 
         int rt_status; 
 
-	 printk("pm8921 vbat_ov_irq_handler: fsm_state=%d\n", pm_chg_get_fsm_state(data));	
-        
+	printk("pm8921 vbat_ov_irq_handler: fsm_state=%d\n", pm_chg_get_fsm_state(data));	
+
         high_transition = pm_chg_get_rt_status(chip, FASTCHG_IRQ); 
         rt_status = pm_chg_get_rt_status(chip, VDD_LOOP_IRQ); 
-        
+
         printk("pm8921 FASTCHG_IRQ=%d,VDD_LOOP_IRQ=%d\n", high_transition,rt_status); 
-         
-        pm_chg_vbatdet_set(chip,chip->max_voltage_mv + chip->resume_voltage_delta);  //set vbat to be higher 
 
-//	 pm8921_chg_disable_irq(chip, VBAT_OV_IRQ);
-/****************************************************************/ 
-
+        pm_chg_vbatdet_set(chip,chip->max_voltage_mv + chip->resume_voltage_delta);  //set vbat to be higher
 #else
-	/****************************************************************/		
-
 	struct pm8921_chg_chip *chip = data;
 
 	int high_transition;
@@ -2540,7 +2522,6 @@ static irqreturn_t vbat_ov_irq_handler(int irq, void *data)
 		printk("pm8921 vbat_ov_irq_handler2:rt_status=%d,high_transition=%d,max_voltage_mv=%d,resume_voltage_delta=%d\n",
 			rt_status,high_transition,chip->max_voltage_mv,chip->resume_voltage_delta);
 	}
-	/****************************************************************/	
 #endif
 
 	return IRQ_HANDLED;
@@ -2808,9 +2789,7 @@ static irqreturn_t fastchg_irq_handler(int irq, void *data)
 {
 	struct pm8921_chg_chip *chip = data;
 	int high_transition;
-#ifdef ZTE_OVD_FEATURE	
-	int rt_status;
-#endif
+
        printk("pm8921 fastchg_irq0,fsm_state=%d\n", pm_chg_get_fsm_state(data));
 
 	high_transition = pm_chg_get_rt_status(chip, FASTCHG_IRQ);
@@ -2824,31 +2803,6 @@ static irqreturn_t fastchg_irq_handler(int irq, void *data)
 						     (EOC_CHECK_PERIOD_MS)));
 	}
 	
-#ifdef ZTE_OVD_FEATURE
-/****************************************************************/		
-	rt_status = pm_chg_get_rt_status(chip, VDD_LOOP_IRQ);
-	
-	if(rt_status && high_transition)
-	{
-		pm_chg_vbatdet_set(chip,
-			chip->max_voltage_mv
-			+ chip->resume_voltage_delta);
-
-		printk("pm8921 fastchg_irq1:rt_status=%d,high_transition=%d,max_voltage_mv=%d,resume_voltage_delta=%d\n",
-			rt_status,high_transition,chip->max_voltage_mv,chip->resume_voltage_delta);
-	}	
-	else
-	{
-		pm_chg_vbatdet_set(chip,
-			chip->max_voltage_mv
-			- chip->resume_voltage_delta);
-		
-		printk("pm8921 fastchg_irq2:rt_status=%d,high_transition=%d,max_voltage_mv=%d,resume_voltage_delta=%d\n",
-			rt_status,high_transition,chip->max_voltage_mv,chip->resume_voltage_delta);
-	}
-/****************************************************************/	
-#endif
-
 	power_supply_changed(&chip->batt_psy);
 	bms_notify_check(chip);
 	return IRQ_HANDLED;
@@ -2969,39 +2923,6 @@ static irqreturn_t coarse_det_low_irq_handler(int irq, void *data)
 
 static irqreturn_t vdd_loop_irq_handler(int irq, void *data)
 {
-#ifdef ZTE_OVD_FEATURE
-	/****************************************************************/		
-
-	struct pm8921_chg_chip *chip = data;
-
-	int high_transition;
-	int rt_status;
-
-	high_transition = pm_chg_get_rt_status(chip, FASTCHG_IRQ);
-
-	rt_status = pm_chg_get_rt_status(chip, VDD_LOOP_IRQ);
-	
-	if(rt_status && high_transition)
-	{
-		pm_chg_vbatdet_set(chip,
-			chip->max_voltage_mv
-			+ chip->resume_voltage_delta);
-
-		printk("pm8921 vdd_loop_irq_handler1:rt_status=%d,high_transition=%d,max_voltage_mv=%d,resume_voltage_delta=%d\n",
-			rt_status,high_transition,chip->max_voltage_mv,chip->resume_voltage_delta);
-	}	
-	else
-	{
-		pm_chg_vbatdet_set(chip,
-			chip->max_voltage_mv
-			- chip->resume_voltage_delta);
-
-		printk("pm8921 vdd_loop_irq_handler2:rt_status=%d,high_transition=%d,max_voltage_mv=%d,resume_voltage_delta=%d\n",
-			rt_status,high_transition,chip->max_voltage_mv,chip->resume_voltage_delta);
-	}
-	/****************************************************************/	
-#endif
-
 	printk("pm8921 vdd_loop_irq_handler fsm_state=%d\n", pm_chg_get_fsm_state(data));
 	return IRQ_HANDLED;
 }
@@ -3932,11 +3853,6 @@ static int __devinit pm8921_chg_hw_init(struct pm8921_chg_chip *chip)
 	int vdd_safe;
 	u8 subrev;
 
-#ifdef ZTE_OVD_FEATURE	
-	int high_transition;
-	int rt_status;
-#endif
-
 	/* forcing 19p2mhz before accessing any charger registers */
 	pm8921_chg_force_19p2mhz_clk(chip);
 
@@ -4178,31 +4094,6 @@ static int __devinit pm8921_chg_hw_init(struct pm8921_chg_chip *chip)
 		pr_err("Failed to enable charging rc=%d\n", rc);
 		return rc;
 	}
-
-#ifdef ZTE_OVD_FEATURE	
-	/****************************************************************/		
-       high_transition = pm_chg_get_rt_status(chip, FASTCHG_IRQ); 
-       
-       rt_status = pm_chg_get_rt_status(chip, VDD_LOOP_IRQ); 
-       
-       if(rt_status && high_transition) 
-       { 
-           pm_chg_vbatdet_set(chip,  
-           chip->max_voltage_mv + chip->resume_voltage_delta); 
-		   
-	    printk("pm8921 pm8921_chg_hw_init1:rt_status=%d,high_transition=%d,max_voltage_mv=%d,resume_voltage_delta=%d\n",
-			rt_status,high_transition,chip->max_voltage_mv,chip->resume_voltage_delta);	   
-       } 
-       else 
-       { 
-            pm_chg_vbatdet_set(chip,  
-            chip->max_voltage_mv - chip->resume_voltage_delta); 
-			
-	     printk("pm8921 pm8921_chg_hw_init2:rt_status=%d,high_transition=%d,max_voltage_mv=%d,resume_voltage_delta=%d\n",
-			rt_status,high_transition,chip->max_voltage_mv,chip->resume_voltage_delta);		
-       }
-	/****************************************************************/		
-#endif
 
 	return 0;
 }
