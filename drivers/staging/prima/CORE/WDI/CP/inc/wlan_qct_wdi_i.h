@@ -3961,7 +3961,7 @@ WDI_ProcessHALDumpCmdRsp
 
  @return Result of the function call
 */
-WPT_INLINE WDI_Status
+WDI_Status
 WDI_CleanCB
 (
   WDI_ControlBlockType*  pWDICtx
@@ -3977,7 +3977,7 @@ WDI_CleanCB
  @see
  @return Result of the function call
 */
-WPT_INLINE WDI_Status
+WDI_Status
 WDI_ProcessRequest
 (
   WDI_ControlBlockType*  pWDICtx,
@@ -4422,7 +4422,7 @@ WDI_FindAssocSessionByIdx
  @see
  @return 
 */
-WPT_INLINE void 
+void 
 WDI_DS_AssignDatapathContext 
 (
   void *pContext, 
@@ -4438,7 +4438,7 @@ WDI_DS_AssignDatapathContext
  @see
  @return pointer to Datapath context
 */
-WPT_INLINE void * 
+void * 
 WDI_DS_GetDatapathContext 
 (
   void *pContext
@@ -4454,7 +4454,7 @@ WDI_DS_GetDatapathContext
  @see
  @return void
 */
-WPT_INLINE void  
+void  
 WDT_AssignTransportDriverContext 
 (
   void *pContext, 
@@ -4470,7 +4470,7 @@ WDT_AssignTransportDriverContext
  @see
  @return pointer to datapath context 
 */
-WPT_INLINE void * 
+void * 
 WDT_GetTransportDriverContext 
 (
   void *pContext
