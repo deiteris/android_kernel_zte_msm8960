@@ -2943,11 +2943,8 @@ sub process {
 # unbounded string functions are overflow risks
 		my %str_fns = (
 			"sprintf" => "snprintf",
-			"strcpy"  => "strlcpy",
-			"strncpy"  => "strlcpy",
-			"strcat"  => "strlcat",
-			"strncat"  => "strlcat",
-			"vsprintf"  => "vsnprintf",
+			"strcpy"  => "strncpy",
+			"strcat"  => "strncat",
 			"strcmp"  => "strncmp",
 			"strcasecmp" => "strncasecmp",
 			"strchr" => "strnchr",
