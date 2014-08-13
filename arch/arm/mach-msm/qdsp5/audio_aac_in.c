@@ -320,10 +320,9 @@ static int audaac_in_disable(struct audio_aac_in *audio)
 
 		audaac_in_dsp_enable(audio, 0);
 
+		wake_up(&audio->wait);
 		wait_event_interruptible_timeout(audio->wait_enable,
 				audio->running == 0, 1*HZ);
-		audio->stopped = 1;
-		wake_up(&audio->wait);
 		msm_adsp_disable(audio->audrec);
 		if (audio->mode == MSM_AUD_ENC_MODE_TUNNEL) {
 			msm_adsp_disable(audio->audpre);
@@ -784,6 +783,7 @@ static long audaac_in_ioctl(struct file *file,
 	}
 	case AUDIO_STOP: {
 		rc = audaac_in_disable(audio);
+		audio->stopped = 1;
 		break;
 	}
 	case AUDIO_FLUSH: {

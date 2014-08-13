@@ -291,7 +291,6 @@ static int audevrc_disable(struct audio *audio)
 			rc = -EFAULT;
 		else
 			rc = 0;
-		audio->stopped = 1;
 		wake_up(&audio->write_wait);
 		wake_up(&audio->read_wait);
 		msm_adsp_disable(audio->audplay);
@@ -870,6 +869,7 @@ static long audevrc_ioctl(struct file *file, unsigned int cmd,
 	case AUDIO_STOP:
 		MM_DBG("AUDIO_STOP\n");
 		rc = audevrc_disable(audio);
+		audio->stopped = 1;
 		audevrc_ioport_reset(audio);
 		audio->stopped = 0;
 		break;

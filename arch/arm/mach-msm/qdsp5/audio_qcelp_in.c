@@ -279,10 +279,9 @@ static int audqcelp_in_disable(struct audio_qcelp_in *audio)
 
 		audqcelp_in_dsp_enable(audio, 0);
 
+		wake_up(&audio->wait);
 		wait_event_interruptible_timeout(audio->wait_enable,
 				audio->running == 0, 1*HZ);
-		audio->stopped = 1;
-		wake_up(&audio->wait);
 		msm_adsp_disable(audio->audrec);
 		if (audio->mode == MSM_AUD_ENC_MODE_TUNNEL) {
 			msm_adsp_disable(audio->audpre);
@@ -744,6 +743,7 @@ static long audqcelp_in_ioctl(struct file *file,
 	}
 	case AUDIO_STOP: {
 		rc = audqcelp_in_disable(audio);
+		audio->stopped = 1;
 		break;
 	}
 	case AUDIO_FLUSH: {
