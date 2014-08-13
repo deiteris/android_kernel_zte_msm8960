@@ -13,7 +13,6 @@
 #include <linux/init.h>
 #include <linux/gpio_event.h>
 #include <asm/mach-types.h>
-#include <linux/memblock.h>
 #include <asm/mach/arch.h>
 #include <mach/board.h>
 #include <mach/msm_iomap.h>
@@ -388,11 +387,6 @@ u32 msm7627a_power_collapse_latency(enum msm_pm_sleep_mode mode)
 static struct msm_pm_boot_platform_data msm_pm_boot_pdata __initdata = {
 	.mode = MSM_PM_BOOT_CONFIG_RESET_VECTOR_PHYS,
 	.p_addr = 0,
-};
-
-static struct msm_pm_boot_platform_data msm_pm_8625_boot_pdata __initdata = {
-	.mode = MSM_PM_BOOT_CONFIG_REMAP_BOOT_ADDR,
-	.v_addr = MSM_CFG_CTL_BASE,
 };
 
 static struct android_pmem_platform_data android_pmem_adsp_pdata = {
@@ -1101,14 +1095,8 @@ static void __init msm7x27a_reserve(void)
 
 static void __init msm_device_i2c_init(void)
 {
-<<<<<<< HEAD
 	msm_gsbi0_qup_i2c_device.dev.platform_data = &msm_gsbi0_qup_i2c_pdata;
 	msm_gsbi1_qup_i2c_device.dev.platform_data = &msm_gsbi1_qup_i2c_pdata;
-=======
-	msm7x27a_reserve();
-	memblock_remove(MSM8625_SECONDARY_PHYS, SZ_8);
-	msm_pm_8625_boot_pdata.p_addr = memblock_alloc(SZ_8, SZ_64K);
->>>>>>> 41786ab... pm2: Power Management driver changes for 8x25
 }
 
 static struct msm_panel_common_pdata mdp_pdata = {
@@ -1607,21 +1595,6 @@ static void __init msm7627a_rumi3_init(void)
 			ARRAY_SIZE(rumi_sim_devices));
 }
 
-<<<<<<< HEAD
-=======
-static void __init msm8625_rumi3_init(void)
-{
-	msm7x2x_misc_init();
-	msm_adsp_add_pdev();
-	msm8625_device_i2c_init();
-	platform_add_devices(msm8625_rumi3_devices,
-			ARRAY_SIZE(msm8625_rumi3_devices));
-
-	BUG_ON(msm_pm_boot_init(&msm_pm_8625_boot_pdata));
-	msm8x25_spm_device_init();
-}
-
->>>>>>> 41786ab... pm2: Power Management driver changes for 8x25
 #define LED_GPIO_PDM		96
 #define UART1DM_RX_GPIO		45
 
