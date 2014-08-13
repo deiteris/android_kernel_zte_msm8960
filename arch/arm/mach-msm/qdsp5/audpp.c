@@ -4,7 +4,7 @@
  * common code to deal with the AUDPP dsp task (audio postproc)
  *
  * Copyright (C) 2008 Google, Inc.
- * Copyright (c) 2009-2010, 2012 Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2009-2010, Code Aurora Forum. All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -237,20 +237,11 @@ static void audpp_handle_pcmdmamiss(struct audpp_state *audpp,
 	}
 }
 
-static void audpp_fake_event(struct audpp_state *audpp, int id,
-			     unsigned event, unsigned arg)
-{
-	uint16_t msg[1];
-	msg[0] = arg;
-	audpp->func[id] (audpp->private[id], event, msg);
-}
-
 static void audpp_dsp_event(void *data, unsigned id, size_t len,
 			    void (*getevent) (void *ptr, size_t len))
 {
 	struct audpp_state *audpp = data;
 	uint16_t msg[8];
-	int cid = 0;
 
 	if (id == AUDPP_MSG_AVSYNC_MSG) {
 		getevent(audpp->avsync, sizeof(audpp->avsync));
@@ -287,28 +278,13 @@ static void audpp_dsp_event(void *data, unsigned id, size_t len,
 	case AUDPP_MSG_CFG_MSG:
 		if (msg[0] == AUDPP_MSG_ENA_ENA) {
 			MM_INFO("ENABLE\n");
-			if (!audpp->enabled) {
-				audpp->enabled = 1;
-				audpp_broadcast(audpp, id, msg);
-			} else {
-				cid = msg[1];
-				audpp_fake_event(audpp, cid,
-					id, AUDPP_MSG_ENA_ENA);
-			}
-
+			audpp->enabled = 1;
+			audpp_broadcast(audpp, id, msg);
 		} else if (msg[0] == AUDPP_MSG_ENA_DIS) {
-			if (audpp->open_count == 0) {
-				MM_INFO("DISABLE\n");
-				audpp->enabled = 0;
-				wake_up(&audpp->event_wait);
-				audpp_broadcast(audpp, id, msg);
-			} else {
-				cid = msg[1];
-				audpp_fake_event(audpp, cid,
-					id, AUDPP_MSG_ENA_DIS);
-				audpp->func[cid] = NULL;
-				audpp->private[cid] = NULL;
-			}
+			MM_INFO("DISABLE\n");
+			audpp->enabled = 0;
+			wake_up(&audpp->event_wait);
+			audpp_broadcast(audpp, id, msg);
 		} else {
 			MM_ERR("invalid config msg %d\n", msg[0]);
 		}
@@ -331,10 +307,17 @@ static struct msm_adsp_ops adsp_ops = {
 	.event = audpp_dsp_event,
 };
 
+static void audpp_fake_event(struct audpp_state *audpp, int id,
+			     unsigned event, unsigned arg)
+{
+	uint16_t msg[1];
+	msg[0] = arg;
+	audpp->func[id] (audpp->private[id], event, msg);
+}
+
 int audpp_enable(int id, audpp_event_func func, void *private)
 {
 	struct audpp_state *audpp = &the_audpp_state;
-	uint16_t msg[8];
 	int res = 0;
 
 	if (id < -1 || id > 4)
@@ -367,15 +350,12 @@ int audpp_enable(int id, audpp_event_func func, void *private)
 		msm_adsp_enable(audpp->mod);
 		audpp_dsp_config(1);
 	} else {
-		if (audpp->enabled) {
-			msg[0] = AUDPP_MSG_ENA_ENA;
-			msg[1] = id;
-			res = msm_adsp_generate_event(audpp, audpp->mod,
-					 AUDPP_MSG_CFG_MSG, sizeof(msg),
-					 sizeof(uint16_t), (void *)msg);
-			if (res < 0)
-				goto out;
-		}
+		unsigned long flags;
+		local_irq_save(flags);
+		if (audpp->enabled)
+			audpp_fake_event(audpp, id,
+					 AUDPP_MSG_CFG_MSG, AUDPP_MSG_ENA_ENA);
+		local_irq_restore(flags);
 	}
 
 	res = 0;
@@ -388,7 +368,7 @@ EXPORT_SYMBOL(audpp_enable);
 void audpp_disable(int id, void *private)
 {
 	struct audpp_state *audpp = &the_audpp_state;
-	uint16_t msg[8];
+	unsigned long flags;
 	int rc;
 
 	if (id < -1 || id > 4)
@@ -404,13 +384,11 @@ void audpp_disable(int id, void *private)
 	if (audpp->private[id] != private)
 		goto out;
 
-	msg[0] = AUDPP_MSG_ENA_DIS;
-	msg[1] = id;
-	rc = msm_adsp_generate_event(audpp, audpp->mod,
-				 AUDPP_MSG_CFG_MSG, sizeof(msg),
-				 sizeof(uint16_t), (void *)msg);
-	if (rc < 0)
-		goto out;
+	local_irq_save(flags);
+	audpp_fake_event(audpp, id, AUDPP_MSG_CFG_MSG, AUDPP_MSG_ENA_DIS);
+	audpp->func[id] = NULL;
+	audpp->private[id] = NULL;
+	local_irq_restore(flags);
 
 	if (--audpp->open_count == 0) {
 		MM_DBG("disable\n");
