@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012, Code Aurora Forum. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -1450,8 +1450,7 @@ VOS_STATUS hdd_parse_config_ini(hdd_context_t* pHddCtx)
    char *buffer, *line,*pTemp;
    size_t size;
    char *name, *value;
-   /* cfgIniTable is static to avoid excess stack usage */
-   static tCfgIniEntry cfgIniTable[MAX_CFG_INI_ITEMS];
+   tCfgIniEntry cfgIniTable[MAX_CFG_INI_ITEMS];
    VOS_STATUS vos_status = VOS_STATUS_SUCCESS;
 
    memset(cfgIniTable, 0, sizeof(cfgIniTable));
@@ -2595,7 +2594,7 @@ VOS_STATUS hdd_set_sme_config( hdd_context_t *pHddCtx )
    smeConfig.csrConfig.AdHocChannel5G            = 44; 
    smeConfig.csrConfig.ProprietaryRatesEnabled   = 0;  
    smeConfig.csrConfig.HeartbeatThresh50         = 40; 
-   smeConfig.csrConfig.Is11hSupportEnabled       = 1;
+   smeConfig.csrConfig.Is11hSupportEnabled       = 1; 
    smeConfig.csrConfig.bandCapability            = pConfig->nBandCapability; 
    smeConfig.csrConfig.cbChoice                  = 0;   
    smeConfig.csrConfig.bgScanInterval            = 0; 

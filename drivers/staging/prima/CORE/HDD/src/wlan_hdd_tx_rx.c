@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012, Code Aurora Forum. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -837,7 +837,7 @@ VOS_STATUS hdd_tx_complete_cbk( v_VOID_t *vosContext,
    pAdapter = hdd_get_adapter(pHddCtx,WLAN_HDD_INFRA_STATION);
    if(pAdapter == NULL)
    {
-      VOS_TRACE( VOS_MODULE_ID_HDD, VOS_TRACE_LEVEL_INFO,"%s: HDD adapter context is Null", __FUNCTION__);
+      VOS_TRACE( VOS_MODULE_ID_HDD, VOS_TRACE_LEVEL_ERROR,"%s: HDD adapter context is Null", __FUNCTION__);
    }
    else
    {
@@ -1272,7 +1272,7 @@ VOS_STATUS hdd_rx_packet_cbk( v_VOID_t *vosContext,
    
       skb->dev = pAdapter->dev;
       skb->protocol = eth_type_trans(skb, skb->dev);
-      skb->ip_summed = CHECKSUM_NONE;
+      skb->ip_summed = CHECKSUM_UNNECESSARY;
       ++pAdapter->hdd_stats.hddTxRxStats.rxPackets;
       ++pAdapter->stats.rx_packets;
       pAdapter->stats.rx_bytes += skb->len;

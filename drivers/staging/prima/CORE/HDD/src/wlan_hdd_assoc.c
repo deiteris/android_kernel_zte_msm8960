@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012, Code Aurora Forum. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -608,7 +608,13 @@ static eHalStatus hdd_DisConnectHandler( hdd_adapter_t *pAdapter, tCsrRoamInfo *
             /* To avoid wpa_supplicant sending "HANGED" CMD to ICS UI */
             if( eCSR_ROAM_LOSTLINK == roamStatus )
             {
-                cfg80211_disconnected(dev, pRoamInfo->reasonCode, NULL, 0, GFP_KERNEL);
+                /* TODO: Need to pass proper reason code
+                   currently we are passing only one reason code.
+                   Currently we are passing WLAN_REASON_DISASSOC_STA_HAS_LEFT
+                   rather than WLAN_REASON_DISASSOC_DUE_TO_INACTIVITY
+                   to avoid the supplicant fast reconnect */
+
+                cfg80211_disconnected(dev, WLAN_REASON_DISASSOC_STA_HAS_LEFT, NULL, 0, GFP_KERNEL);
             }
             else
             {
@@ -952,11 +958,7 @@ static eHalStatus hdd_AssociationCompletionHandler( hdd_adapter_t *pAdapter, tCs
 #ifdef CONFIG_CFG80211
         hdd_wext_state_t *pWextState = WLAN_HDD_GET_WEXT_STATE_PTR(pAdapter);
 #endif
-        pr_info("wlan: connection failed with %02x:%02x:%02x:%02x:%02x:%02x"
-                " reason:%d and Status:%d\n", pWextState->req_bssId[0],
-                pWextState->req_bssId[1], pWextState->req_bssId[2],
-                pWextState->req_bssId[3], pWextState->req_bssId[4],
-                pWextState->req_bssId[5], roamResult, roamStatus);
+        pr_info("wlan: connection failed\n");
 
         /*Handle all failure conditions*/
         hdd_connSetConnectionState( pHddStaCtx, eConnectionState_NotConnected);
@@ -971,9 +973,6 @@ static eHalStatus hdd_AssociationCompletionHandler( hdd_adapter_t *pAdapter, tCs
                 WLAN_STATUS_UNSPECIFIED_FAILURE, 
                 GFP_KERNEL);
 #endif
-
-        /*Clear the roam profile*/
-        hdd_clearRoamProfileIe( pAdapter ); 
 
         netif_tx_disable(dev);
         netif_carrier_off(dev);

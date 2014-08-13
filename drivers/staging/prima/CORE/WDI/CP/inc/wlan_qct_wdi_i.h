@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012, Code Aurora Forum. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -84,6 +84,11 @@ when        who    what, where, why
 #define WDI_ERR_INVALID_RSP_FMT            2 
 #define WDI_ERR_RSP_TIMEOUT                3 
 #define WDI_ERR_DEV_INTERNAL_FAILURE       4
+
+/*WDI Response timeout - how long will WDI wait for a response from the device     
+    - it should be large enough to allow any other failure mechanism to kick 
+      in before we get to a timeout (ms units)*/
+#define WDI_RESPONSE_TIMEOUT   10000
 
 /*In prima 12 HW stations are supported including BCAST STA(staId 0)
  and SELF STA(staId 1) so total ASSOC stations which can connect to Prima
@@ -3956,7 +3961,7 @@ WDI_ProcessHALDumpCmdRsp
 
  @return Result of the function call
 */
-WDI_Status
+WPT_INLINE WDI_Status
 WDI_CleanCB
 (
   WDI_ControlBlockType*  pWDICtx
@@ -3972,7 +3977,7 @@ WDI_CleanCB
  @see
  @return Result of the function call
 */
-WDI_Status
+WPT_INLINE WDI_Status
 WDI_ProcessRequest
 (
   WDI_ControlBlockType*  pWDICtx,
@@ -4417,7 +4422,7 @@ WDI_FindAssocSessionByIdx
  @see
  @return 
 */
-void 
+WPT_INLINE void 
 WDI_DS_AssignDatapathContext 
 (
   void *pContext, 
@@ -4433,7 +4438,7 @@ WDI_DS_AssignDatapathContext
  @see
  @return pointer to Datapath context
 */
-void * 
+WPT_INLINE void * 
 WDI_DS_GetDatapathContext 
 (
   void *pContext
@@ -4449,7 +4454,7 @@ WDI_DS_GetDatapathContext
  @see
  @return void
 */
-void  
+WPT_INLINE void  
 WDT_AssignTransportDriverContext 
 (
   void *pContext, 
@@ -4465,7 +4470,7 @@ WDT_AssignTransportDriverContext
  @see
  @return pointer to datapath context 
 */
-void * 
+WPT_INLINE void * 
 WDT_GetTransportDriverContext 
 (
   void *pContext

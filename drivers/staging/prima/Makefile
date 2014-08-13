@@ -3,9 +3,6 @@ MODNAME := wlan
 #Do we panic on bug?  default is to warn
 PANIC_ON_BUG := 0
 
-#Re-enable wifi on WDI timeout
-RE_ENABLE_WIFI_ON_WDI_TIMEOUT := 0
-
 ifeq ($(CONFIG_CFG80211),y)
 HAVE_CFG80211 := 1
 else
@@ -75,7 +72,6 @@ HDD_OBJS := 	$(HDD_SRC_DIR)/bap_hdd_main.o \
 		$(HDD_SRC_DIR)/wlan_hdd_early_suspend.o \
 		$(HDD_SRC_DIR)/wlan_hdd_ftm.o \
 		$(HDD_SRC_DIR)/wlan_hdd_hostapd.o \
-		$(HDD_SRC_DIR)/wlan_hdd_oemdata.o \
 		$(HDD_SRC_DIR)/wlan_hdd_main.o \
 		$(HDD_SRC_DIR)/wlan_hdd_mib.o \
 		$(HDD_SRC_DIR)/wlan_hdd_scan.o \
@@ -220,8 +216,6 @@ SME_CMN_OBJS := $(SME_SRC_DIR)/sme_common/sme_Api.o \
 
 SME_BTC_OBJS := $(SME_SRC_DIR)/btc/btcApi.o
 
-SME_OEM_DATA_OBJS := $(SME_SRC_DIR)/oemData/oemDataApi.o
-
 SME_P2P_OBJS = $(SME_SRC_DIR)/p2p/p2p_Api.o
 
 SME_RRM_OBJS := $(SME_SRC_DIR)/rrm/sme_rrm.o
@@ -230,7 +224,6 @@ SME_OBJS :=	$(SME_BTC_OBJS) \
 		$(SME_CCM_OBJS) \
 		$(SME_CMN_OBJS) \
 		$(SME_CSR_OBJS) \
-		$(SME_OEM_DATA_OBJS) \
 		$(SME_P2P_OBJS) \
 		$(SME_PMC_OBJS) \
 		$(SME_QOS_OBJS) \
@@ -428,6 +421,12 @@ OBJS :=		$(BAP_OBJS)  \
 
 EXTRA_CFLAGS += $(INCS)
 
+# By default the compiler will complain about frames larger than 1K.
+# Some of the WLAN structures are larger, so we increase the size.
+# Note that Linux kernel threads have an 8K stack, so take care not
+# to exceed that value in a "normal" call tree
+EXTRA_CFLAGS += -Wframe-larger-than=4096
+
 CDEFINES  := -DANI_PRODUCT_TYPE_CLIENT=1 \
 		-DANI_BUS_TYPE_PLATFORM=1 \
 		-DANI_LITTLE_BYTE_ENDIAN \
@@ -467,7 +466,6 @@ CDEFINES  := -DANI_PRODUCT_TYPE_CLIENT=1 \
 		-DWLAN_FEATURE_NEIGHBOR_ROAMING_DEBUG \
 		-DWLAN_FEATURE_VOWIFI_11R_DEBUG \
 		-DFEATURE_WLAN_WAPI \
-		-DFEATURE_OEM_DATA_SUPPORT \
 		-DSOFTAP_CHANNEL_RANGE \
 		-DWLAN_AP_STA_CONCURRENCY \
 		-DFEATURE_WLAN_SCAN_PNO \
@@ -518,20 +516,9 @@ ifeq ($(PANIC_ON_BUG),1)
 CDEFINES += -DPANIC_ON_BUG
 endif
 
-ifeq ($(RE_ENABLE_WIFI_ON_WDI_TIMEOUT),1)
-CDEFINES += -DWDI_RE_ENABLE_WIFI_ON_WDI_TIMEOUT
-endif
-
 ifeq ($(CONFIG_PRIMA_WLAN_BTAMP),y)
 CDEFINES += -DWLAN_BTAMP_FEATURE
 endif
-
-CDEFINES += -DWLAN_FEATURE_11AC
-CDEFINES += -DWLAN_FEATURE_11AC_HIGH_TP
-CDEFINES += -DWLAN_FEATURE_P2P_DEBUG
-CDEFINES += -DWLAN_ENABLE_AGEIE_ON_SCAN_RESULTS
-
-CDEFINES += -DWLAN_OPEN_SOURCE
 
 KBUILD_CPPFLAGS += $(CDEFINES)
 

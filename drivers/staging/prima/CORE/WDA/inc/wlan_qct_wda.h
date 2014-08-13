@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012, Code Aurora Forum. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -281,8 +281,6 @@ typedef enum
 #define WDA_DS_TX_START_XMIT  WLANTL_TX_START_XMIT
 #define WDA_DS_FINISH_ULA     WLANTL_FINISH_ULA
 
-/* Approximate amount of time to wait for WDA to stop WDI considering 1 pendig req too*/
-#define WDA_STOP_TIMEOUT ( (WDI_RESPONSE_TIMEOUT * 2) + WDI_SET_POWER_STATE_TIMEOUT + 5)
 /*--------------------------------------------------------------------------
   Functions
  --------------------------------------------------------------------------*/
@@ -340,6 +338,8 @@ typedef struct
    v_PVOID_t            pVosContext;             /* global VOSS context*/
    v_PVOID_t            pWdiContext;             /* WDI context */
    WDA_state            wdaState ;               /* WDA state tracking */ 
+   v_PVOID_t            wdaMsgParam ;            /* PE parameter tracking */
+   v_PVOID_t            wdaWdiApiMsgParam ;      /* WDI API paramter tracking */
    v_PVOID_t            wdaWdiCfgApiMsgParam ;   /* WDI API paramter tracking */
    vos_event_t          wdaWdiEvent;             /* WDI API sync event */
 
@@ -396,8 +396,6 @@ typedef struct
    tSirLinkState        linkState;
    /* set, when BT AMP session is going on */
    v_BOOL_t             wdaAmpSessionOn;
-   v_BOOL_t             needShutdown;
-   v_BOOL_t             wdaTimersCreated;
 } tWDA_CbContext ; 
 
 typedef struct
@@ -444,17 +442,6 @@ VOS_STATUS WDA_close(v_PVOID_t pVosContext);
  * Shutdown will not close the control transport, added by SSR
  */
 VOS_STATUS WDA_shutdown(v_PVOID_t pVosContext, wpt_boolean closeTransport);
-
-/*
- * FUNCTION: WDA_setNeedShutdown
- * WDA stop failed or WDA NV Download failed
- */
-void WDA_setNeedShutdown(v_PVOID_t pVosContext);
-/*
- * FUNCTION: WDA_needShutdown
- * WDA requires a shutdown rather than a close
- */
-v_BOOL_t WDA_needShutdown(v_PVOID_t pVosContext);
 
 /*
  * FUNCTION: WDA_McProcessMsg
@@ -1920,28 +1907,4 @@ WDA_DS_GetTxFlowMask
 VOS_STATUS WDA_HALDumpCmdReq(tpAniSirGlobal   pMac,tANI_U32 cmd, 
                  tANI_U32   arg1, tANI_U32   arg2, tANI_U32   arg3,
                  tANI_U32   arg4, tANI_U8   *pBuffer);
-
-/*==========================================================================
-  FUNCTION   WDA_TransportChannelDebug
-
-  DESCRIPTION 
-    Display Transport Channel debugging information
-    User may request to display DXE channel snapshot
-    Or if host driver detects any abnormal stcuk may display
-
-  PARAMETERS
-    displaySnapshot : Dispaly DXE snapshot option
-    enableStallDetect : Enable stall detect feature
-                        This feature will take effect to data performance
-                        Not integrate till fully verification
-
-  RETURN VALUE
-    NONE
-
-===========================================================================*/
-void WDA_TransportChannelDebug
-(
-   v_BOOL_t   displaySnapshot,
-   v_BOOL_t   toggleStallDetect
-);
 #endif

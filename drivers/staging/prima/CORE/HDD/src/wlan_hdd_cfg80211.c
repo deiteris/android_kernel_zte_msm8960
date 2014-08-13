@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012, Code Aurora Forum. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -398,11 +398,7 @@ int wlan_hdd_cfg80211_update_band(struct wiphy *wiphy, eCsrBand eBand)
             wiphy->bands[IEEE80211_BAND_5GHZ] = NULL;
             break;
         case eCSR_BAND_5G:
-#ifdef WLAN_FEATURE_P2P
-            wiphy->bands[IEEE80211_BAND_2GHZ] = &wlan_hdd_band_p2p_2_4_GHZ;
-#else
             wiphy->bands[IEEE80211_BAND_2GHZ] = NULL;
-#endif
             wiphy->bands[IEEE80211_BAND_5GHZ] = &wlan_hdd_band_5_GHZ;
             break;
         case eCSR_BAND_ALL:
@@ -730,7 +726,7 @@ v_U8_t* wlan_hdd_cfg80211_get_ie_ptr(v_U8_t *pIes, int length, v_U8_t eid)
         if(elem_len > left)
         {
             hddLog(VOS_TRACE_LEVEL_FATAL,
-                    FL("****Invalid IEs eid = %d elem_len=%d left=%d*****"),
+                    "****Invalid IEs eid = %d elem_len=%d left=%d*****\n",
                                                     eid,elem_len,left);
             return NULL;
         }
@@ -1221,33 +1217,7 @@ static int wlan_hdd_cfg80211_start_bss(hdd_adapter_t *pHostapdAdapter,
     (WLAN_HDD_GET_AP_CTX_PTR(pHostapdAdapter))->uPrivacy = pConfig->privacy;
 
     /*Set wps station to configured*/
-     pIe = wlan_hdd_get_wps_ie_ptr(pBeacon->tail, pBeacon->tail_len);
-     if(pIe)
-     {
-        if(pIe[1] < (2 + WPS_OUI_TYPE_SIZE))
-        {
-            hddLog( VOS_TRACE_LEVEL_ERROR, "**Wps Ie Length is too small***\n");
-            return -EINVAL;
-        }
-        else if(memcmp(&pIe[2], WPS_OUI_TYPE, WPS_OUI_TYPE_SIZE) == 0)
-        {
-             hddLog( VOS_TRACE_LEVEL_INFO, "** WPS IE(len %d) ***", (pIe[1]+2));
-             /* Check 15 bit of WPS IE as it contain information for wps state
-              * WPS state
-              */
-              if(SAP_WPS_ENABLED_UNCONFIGURED == pIe[15])
-              {
-                  pConfig->wps_state = SAP_WPS_ENABLED_UNCONFIGURED;
-              } else if(SAP_WPS_ENABLED_CONFIGURED == pIe[15])
-              {
-                  pConfig->wps_state = SAP_WPS_ENABLED_CONFIGURED;
-              }
-        }
-    }
-    else
-    {
-        pConfig->wps_state = SAP_WPS_DISABLED;
-    }
+    pConfig->wps_state = 0;
     pConfig->fwdWPSPBCProbeReq  = 1; // Forward WPS PBC probe request frame up 
 
     pConfig->RSNWPAReqIELength = 0;
@@ -1446,7 +1416,7 @@ static int wlan_hdd_cfg80211_start_bss(hdd_adapter_t *pHostapdAdapter,
         return -EINVAL;
     }
 
-    hddLog(LOG1, 
+    hddLog(LOGE, 
            FL("Waiting for Scan to complete(auto mode) and BSS to start"));
 
     status = vos_wait_single_event(&pHostapdState->vosEvent, 10000);
@@ -1574,45 +1544,33 @@ static int wlan_hdd_cfg80211_del_beacon(struct wiphy *wiphy,
     hdd_adapter_t  *staAdapter = NULL;
     VOS_STATUS status = 0;
 
+    staAdapter = hdd_get_adapter(pAdapter->pHddCtx, WLAN_HDD_INFRA_STATION);
+
+    if (!staAdapter)
+    {
+        staAdapter = hdd_get_adapter(pAdapter->pHddCtx, WLAN_HDD_P2P_CLIENT);
+    }
+
+    if (staAdapter != NULL)
+    {
+        pScanInfo =  &staAdapter->scan_info;
+    }
+
     ENTER();
 
     if (NULL == pAdapter)
     {
         VOS_TRACE( VOS_MODULE_ID_HDD, VOS_TRACE_LEVEL_FATAL,
-                "%s: HDD adapter context is Null", __FUNCTION__);
+                   "%s: HDD adapter context is Null", __FUNCTION__);
         return -ENODEV;
     }
-
-    pHddCtx  =  (hdd_context_t*)pAdapter->pHddCtx;
-
-    if (NULL == pHddCtx)
-    {
-        VOS_TRACE( VOS_MODULE_ID_HDD, VOS_TRACE_LEVEL_FATAL,
-                "%s: HDD context is Null", __FUNCTION__);
-        return -ENODEV;
-    }
-    
-    staAdapter = hdd_get_adapter(pAdapter->pHddCtx, WLAN_HDD_INFRA_STATION);
-
-    if (NULL == staAdapter)
-    {
-        staAdapter = hdd_get_adapter(pAdapter->pHddCtx, WLAN_HDD_P2P_CLIENT);
-        if (NULL == pHddCtx)
-        {
-            VOS_TRACE( VOS_MODULE_ID_HDD, VOS_TRACE_LEVEL_FATAL,
-                    "%s: HDD sta adapter is Null", __FUNCTION__);
-            return -ENODEV;
-        }
-    }
-
-    pScanInfo =  &pHddCtx->scan_info;
-
     if ((WLAN_HDD_GET_CTX(pAdapter))->isLogpInProgress)
     {
         VOS_TRACE(VOS_MODULE_ID_HDD, VOS_TRACE_LEVEL_FATAL, "%s:LOGP in Progress. Ignore!!!",__func__);
         return -EAGAIN;
     }
 
+    pHddCtx  =  (hdd_context_t*)pAdapter->pHddCtx;
 
     hddLog(VOS_TRACE_LEVEL_INFO, "%s: device_mode = %d\n",
                               __func__,pAdapter->device_mode);
@@ -1747,7 +1705,6 @@ int wlan_hdd_cfg80211_change_iface( struct wiphy *wiphy,
     struct wireless_dev *wdev;
     hdd_adapter_t *pAdapter = WLAN_HDD_GET_PRIV_PTR( ndev );
     hdd_context_t *pHddCtx = WLAN_HDD_GET_CTX( pAdapter );
-    hdd_adapter_t  *pP2pAdapter = NULL;
     tCsrRoamProfile *pRoamProfile = NULL;
     eCsrRoamBssType LastBSSType;
     hdd_config_t *pConfig = pHddCtx->cfg_ini;
@@ -1834,26 +1791,6 @@ int wlan_hdd_cfg80211_change_iface( struct wiphy *wiphy,
                       "%s: setting interface Type to %s", __func__,
                       (type == NL80211_IFTYPE_AP) ? "SoftAP" : "P2pGo");
 
-                if (NL80211_IFTYPE_AP == type)
-                {
-                     /* As Loading WLAN Driver one interface being created for p2p device
-                      * address. This will take one HW STA and the max number of clients
-                      * that can connect to softAP will be reduced by one. so while changing
-                      * the interface type to NL80211_IFTYPE_AP (SoftAP) remove p2p0
-                      * interface as it is not required in SoftAP mode.
-                      */
-
-                    // Get P2P Adapter
-                    pP2pAdapter = hdd_get_adapter(pHddCtx, WLAN_HDD_P2P_DEVICE);
-
-                    if (pP2pAdapter)
-                    {
-                        hdd_stop_adapter(pHddCtx, pP2pAdapter);
-                        hdd_deinit_adapter(pHddCtx, pP2pAdapter);
-                        hdd_close_adapter(pHddCtx, pP2pAdapter, VOS_TRUE);
-                    }
-                }
-
                 //De-init the adapter.
                 hdd_stop_adapter( pHddCtx, pAdapter );
                 hdd_deinit_adapter( pHddCtx, pAdapter );
@@ -1865,7 +1802,6 @@ int wlan_hdd_cfg80211_change_iface( struct wiphy *wiphy,
 #else
                 pAdapter->device_mode = WLAN_HDD_SOFTAP;
 #endif
-
                 hdd_set_ap_ops( pAdapter->dev );
 
                 status = hdd_init_ap_mode(pAdapter);
@@ -1912,8 +1848,6 @@ int wlan_hdd_cfg80211_change_iface( struct wiphy *wiphy,
            case NL80211_IFTYPE_P2P_CLIENT:
 #endif
            case NL80211_IFTYPE_ADHOC:
-                hdd_stop_adapter( pHddCtx, pAdapter );
-                hdd_deinit_adapter( pHddCtx, pAdapter );
                 wdev->iftype = type;
 #ifdef WLAN_FEATURE_P2P
                 pAdapter->device_mode = (type == NL80211_IFTYPE_STATION) ?
@@ -1921,6 +1855,8 @@ int wlan_hdd_cfg80211_change_iface( struct wiphy *wiphy,
 #endif
                 hdd_set_conparam(0);
                 pHddCtx->change_iface = type;
+                hdd_stop_adapter( pHddCtx, pAdapter );
+                hdd_deinit_adapter( pHddCtx, pAdapter );
                 memset(&pAdapter->sessionCtx, 0, sizeof(pAdapter->sessionCtx));
                 hdd_set_station_ops( pAdapter->dev );
                 status = hdd_init_station_mode( pAdapter );
@@ -3139,8 +3075,7 @@ static eHalStatus hdd_cfg80211_scan_done_callback(tHalHandle halHandle,
     struct net_device *dev = (struct net_device *) pContext;
     //struct wireless_dev *wdev = dev->ieee80211_ptr;    
     hdd_adapter_t *pAdapter = WLAN_HDD_GET_PRIV_PTR( dev );
-    hdd_context_t *pHddCtx = WLAN_HDD_GET_CTX(pAdapter);
-    hdd_scaninfo_t *pScanInfo = &pHddCtx->scan_info;
+    hdd_scaninfo_t *pScanInfo = &pAdapter->scan_info;
     struct cfg80211_scan_request *req = NULL;
     int ret = 0;
 
@@ -3158,13 +3093,13 @@ static eHalStatus hdd_cfg80211_scan_done_callback(tHalHandle halHandle,
     if (!ret)
     {
        VOS_ASSERT(pScanInfo->mScanPending);
-       goto allow_suspend;
+       return 0;
     }
 
     if(pScanInfo->mScanPending != VOS_TRUE)
     {
         VOS_ASSERT(pScanInfo->mScanPending);
-        goto allow_suspend;
+        return 0;
     }
 
     /* Check the scanId */
@@ -3176,6 +3111,9 @@ static eHalStatus hdd_cfg80211_scan_done_callback(tHalHandle halHandle,
                 (int) scanId);
     }
 
+    /* Scan is no longer pending */
+    pScanInfo->mScanPending = VOS_FALSE;
+
     ret = wlan_hdd_cfg80211_update_bss((WLAN_HDD_GET_CTX(pAdapter))->wiphy, 
                                         pAdapter);
 
@@ -3185,16 +3123,16 @@ static eHalStatus hdd_cfg80211_scan_done_callback(tHalHandle halHandle,
 
     /* If any client wait scan result through WEXT
      * send scan done event to client */
-    if (pHddCtx->scan_info.waitScanResult)
+    if (pAdapter->scan_info.waitScanResult)
     {
         /* The other scan request waiting for current scan finish
          * Send event to notify current scan finished */
-        if(WEXT_SCAN_PENDING_DELAY == pHddCtx->scan_info.scan_pending_option)
+        if(WEXT_SCAN_PENDING_DELAY == pAdapter->scan_info.scan_pending_option)
         {
-            vos_event_set(&pHddCtx->scan_info.scan_finished_event);
+            vos_event_set(&pAdapter->scan_info.scan_finished_event);
         }
         /* Send notify to WEXT client */
-        else if(WEXT_SCAN_PENDING_PIGGYBACK == pHddCtx->scan_info.scan_pending_option)
+        else if(WEXT_SCAN_PENDING_PIGGYBACK == pAdapter->scan_info.scan_pending_option)
         {
             struct net_device *dev = pAdapter->dev;
             union iwreq_data wrqu;
@@ -3207,7 +3145,7 @@ static eHalStatus hdd_cfg80211_scan_done_callback(tHalHandle halHandle,
             wireless_send_event(dev, we_event, &wrqu, msg);
         }
     }
-    pHddCtx->scan_info.waitScanResult = FALSE;
+    pAdapter->scan_info.waitScanResult = FALSE;
 
     /* Get the Scan Req */
     req = pAdapter->request;
@@ -3215,7 +3153,7 @@ static eHalStatus hdd_cfg80211_scan_done_callback(tHalHandle halHandle,
     if (!req)
     {
         hddLog(VOS_TRACE_LEVEL_ERROR, "request is became NULL\n");
-        goto allow_suspend;
+        return 0;
     }
 
     /*
@@ -3232,8 +3170,6 @@ static eHalStatus hdd_cfg80211_scan_done_callback(tHalHandle halHandle,
     cfg80211_scan_done(req, false);
     complete(&pAdapter->abortscan_event_var);
     pAdapter->request = NULL;
-    /* Scan is no longer pending */
-    pScanInfo->mScanPending = VOS_FALSE;
 
 #ifdef WLAN_FEATURE_P2P
     /* Flush out scan result after p2p_serach is done */
@@ -3244,14 +3180,6 @@ static eHalStatus hdd_cfg80211_scan_done_callback(tHalHandle halHandle,
         pScanInfo->p2pSearch = 0;
     }
 #endif
-
-allow_suspend:
-    /* release the wake lock */
-    if((eConnectionState_NotConnected == 
-         (WLAN_HDD_GET_STATION_CTX_PTR(pAdapter))->conn_info.connState))
-    {
-        hdd_allow_suspend();
-    }
 
     EXIT();
     return 0;
@@ -3266,15 +3194,13 @@ int wlan_hdd_cfg80211_scan( struct wiphy *wiphy, struct net_device *dev,
         struct cfg80211_scan_request *request)
 {  
     hdd_adapter_t *pAdapter = WLAN_HDD_GET_PRIV_PTR( dev ); 
-    hdd_context_t *pHddCtx = WLAN_HDD_GET_CTX(pAdapter);
     hdd_wext_state_t *pwextBuf = WLAN_HDD_GET_WEXT_STATE_PTR(pAdapter);
     hdd_config_t *cfg_param = (WLAN_HDD_GET_CTX(pAdapter))->cfg_ini;
     tCsrScanRequest scanRequest;
     tANI_U8 *channelList = NULL, i;
     v_U32_t scanId = 0;
     int status = 0;
-    hdd_scaninfo_t *pScanInfo = &pHddCtx->scan_info;
-    v_U8_t preventSuspend = 0;
+    hdd_scaninfo_t *pScanInfo = &pAdapter->scan_info;
 #ifdef WLAN_FEATURE_P2P
     v_U8_t* pP2pIe = NULL;
 #endif
@@ -3314,22 +3240,6 @@ int wlan_hdd_cfg80211_scan( struct wiphy *wiphy, struct net_device *dev,
         return -EAGAIN;
     }
 
-    if ((WLAN_HDD_GET_CTX(pAdapter))->isLoadUnloadInProgress)
-    {
-        VOS_TRACE(VOS_MODULE_ID_HDD, VOS_TRACE_LEVEL_FATAL,
-                  "%s:Unloading/Loading in Progress. Ignore!!!", __func__);
-        return -EAGAIN;
-    }
-    //Don't Allow Scan and return busy if Remain On 
-    //Channel and action frame is pending
-    //Otherwise Cancel Remain On Channel and allow Scan
-    //If no action frame pending
-    if(0 != wlan_hdd_check_remain_on_channel(pAdapter))
-    {
-        hddLog(VOS_TRACE_LEVEL_INFO, "%s: Remain On Channel Pending", __func__);
-        return -EBUSY;
-    }
-
     vos_mem_zero( &scanRequest, sizeof(scanRequest));
 
     if (NULL != request)
@@ -3341,12 +3251,12 @@ int wlan_hdd_cfg80211_scan( struct wiphy *wiphy, struct net_device *dev,
          * Becasue of this, driver is assuming that this is not wildcard scan and so
          * is not aging out the scan results.
          */
-        if (request->ssids && '\0' == request->ssids->ssid[0])
+        if ('\0' == request->ssids->ssid[0])
         {
-            request->n_ssids = -1;
+            request->n_ssids = 0;
         }
 
-        if ((request->ssids) && (0 < request->n_ssids))
+        if (0 < request->n_ssids)
         {
             tCsrSSIDInfo *SsidInfo;
             int j;
@@ -3376,31 +3286,19 @@ int wlan_hdd_cfg80211_scan( struct wiphy *wiphy, struct net_device *dev,
             }
             /* set the scan type to active */
             scanRequest.scanType = eSIR_ACTIVE_SCAN;
-            scanRequest.minChnTime = cfg_param->nActiveMinChnTime; 
-            scanRequest.maxChnTime = cfg_param->nActiveMaxChnTime;
         }
         else if(WLAN_HDD_P2P_GO == pAdapter->device_mode)
         {
             /* set the scan type to active */
             scanRequest.scanType = eSIR_ACTIVE_SCAN;
-            scanRequest.minChnTime = cfg_param->nActiveMinChnTime;
-            scanRequest.maxChnTime = cfg_param->nActiveMaxChnTime;
-        }
-        else if(0 == request->n_ssids)
-        {
-             /* Set passive scan when n_ssids = 0 is sent from Supplicant.
-                  Supplicant expect the driver to do passive scan */
-             scanRequest.scanType = eSIR_PASSIVE_SCAN;
-             scanRequest.minChnTime = cfg_param->nPassiveMinChnTime;
-             scanRequest.maxChnTime = cfg_param->nPassiveMaxChnTime;
         }
         else
         {
             /*Set the scan type to default type, in this case it is ACTIVE*/
             scanRequest.scanType = pScanInfo->scan_mode;
-            scanRequest.minChnTime = cfg_param->nActiveMinChnTime; 
-            scanRequest.maxChnTime = cfg_param->nActiveMaxChnTime;
         }
+        scanRequest.minChnTime = cfg_param->nActiveMinChnTime; 
+        scanRequest.maxChnTime = cfg_param->nActiveMaxChnTime;
     }
     else
     {
@@ -3487,15 +3385,6 @@ int wlan_hdd_cfg80211_scan( struct wiphy *wiphy, struct net_device *dev,
 
     INIT_COMPLETION(pScanInfo->scan_req_completion_event);
 
-    /*If the station is not connected and recieved a scan request, acquire the 
-     * wake lock to not request the suspend from Android*/
-    if((eConnectionState_NotConnected == 
-         (WLAN_HDD_GET_STATION_CTX_PTR(pAdapter))->conn_info.connState))
-    {
-        preventSuspend = 1;
-        hdd_prevent_suspend();
-    }
-
     status = sme_ScanRequest( WLAN_HDD_GET_HAL_CTX(pAdapter),
                               pAdapter->sessionId, &scanRequest, &scanId,
                               &hdd_cfg80211_scan_done_callback, dev );
@@ -3505,10 +3394,6 @@ int wlan_hdd_cfg80211_scan( struct wiphy *wiphy, struct net_device *dev,
                 "%s: sme_ScanRequest returned error %d", __func__, status);
         complete(&pScanInfo->scan_req_completion_event);
         status = -EIO;
-        if(preventSuspend)
-        {
-            hdd_allow_suspend();
-        }
         goto free_mem;
     }
 
@@ -3537,7 +3422,7 @@ free_mem:
  * This function is used to start the association process 
  */
 int wlan_hdd_cfg80211_connect_start( hdd_adapter_t  *pAdapter, 
-        const u8 *ssid, size_t ssid_len, const u8 *bssid, u8 operatingChannel)
+        const u8 *ssid, size_t ssid_len, const u8 *bssid)
 {
     int status = 0;
     hdd_wext_state_t *pWextState;
@@ -3669,16 +3554,10 @@ int wlan_hdd_cfg80211_connect_start( hdd_adapter_t  *pAdapter,
 #endif /* FEATURE_WLAN_WAPI */
         pRoamProfile->csrPersona = pAdapter->device_mode;
 
-        if( operatingChannel )
-        {
-           pRoamProfile->ChannelInfo.ChannelList = &operatingChannel;
-           pRoamProfile->ChannelInfo.numOfChannels = 1;
-        }
-
         status = sme_RoamConnect( WLAN_HDD_GET_HAL_CTX(pAdapter), 
                             pAdapter->sessionId, pRoamProfile, &roamId);
 
-        pRoamProfile->ChannelInfo.ChannelList = NULL;
+        pRoamProfile->ChannelInfo.ChannelList = NULL; 
         pRoamProfile->ChannelInfo.numOfChannels = 0;
     }
     else
@@ -4167,7 +4046,7 @@ static int wlan_hdd_cfg80211_connect( struct wiphy *wiphy,
 {
     int status = 0;
     hdd_adapter_t *pAdapter = WLAN_HDD_GET_PRIV_PTR( ndev ); 
-     
+    
     ENTER();
 
     hddLog(VOS_TRACE_LEVEL_INFO, 
@@ -4199,18 +4078,8 @@ static int wlan_hdd_cfg80211_connect( struct wiphy *wiphy,
         return status;
     }
 
-    if ( req->channel )
-    {
-        status = wlan_hdd_cfg80211_connect_start(pAdapter, req->ssid,
-                                                  req->ssid_len, req->bssid,
-                                                  req->channel->hw_value);
-    }
-    else
-    {
-        status = wlan_hdd_cfg80211_connect_start(pAdapter, req->ssid,
-                                                  req->ssid_len, req->bssid,
-                                                  0);
-    }
+    status = wlan_hdd_cfg80211_connect_start(pAdapter, req->ssid, 
+                                                req->ssid_len, req->bssid);
 
     if (0 > status)
     {
@@ -4495,7 +4364,7 @@ static int wlan_hdd_cfg80211_join_ibss( struct wiphy *wiphy,
 
     /* Issue connect start */
     status = wlan_hdd_cfg80211_connect_start(pAdapter, params->ssid, 
-            params->ssid_len, params->bssid, 0);
+            params->ssid_len, params->bssid);
 
     if (0 > status)
     {

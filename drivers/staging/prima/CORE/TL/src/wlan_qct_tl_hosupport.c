@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012, Code Aurora Forum. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -1073,7 +1073,6 @@ VOS_STATUS WLANTL_HSHandleRXFrame
    if(VOS_TRUE == tlCtxt->isBMPS)
    {
       WLANTL_HSGetRSSI(pAdapter, pBDHeader, STAid, &currentAvgRSSI);
-      currentHO->historyRSSI = currentAvgRSSI;
       return status;
    }
 
@@ -1414,7 +1413,7 @@ VOS_STATUS WLANTL_HSDeregRSSIIndicationCB
 
    if(0 == tlCtxt->hoSupport.currentHOState.numThreshold)
    {
-      TLLOGE(VOS_TRACE(VOS_MODULE_ID_TL, VOS_TRACE_LEVEL_INFO,"Empty list, can not remove"));
+      TLLOGE(VOS_TRACE(VOS_MODULE_ID_TL, VOS_TRACE_LEVEL_ERROR,"Empty list, can not remove"));
       return VOS_STATUS_E_EMPTY;
    }
 

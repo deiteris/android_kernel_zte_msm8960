@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012, Code Aurora Forum. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -96,13 +96,9 @@
    WDI should handle that timeout */
 #define VOS_WDA_TIMEOUT 15000
 
-/* Approximate amount of time to wait for WDA to stop WDI */
-#define VOS_WDA_STOP_TIMEOUT WDA_STOP_TIMEOUT 
-
 /*---------------------------------------------------------------------------
  * Data definitions
  * ------------------------------------------------------------------------*/
-static VosContextType  gVosContext;
 static pVosContextType gpVosContext;
 
 /*---------------------------------------------------------------------------
@@ -151,7 +147,7 @@ VOS_STATUS vos_preOpen ( v_CONTEXT_t *pVosContext )
 
    /* Allocate the VOS Context */
    *pVosContext = NULL;
-   gpVosContext = &gVosContext;
+   gpVosContext = (VosContextType*) kmalloc(sizeof(VosContextType), GFP_KERNEL);
 
    if (NULL == gpVosContext)
    {
@@ -205,6 +201,10 @@ VOS_STATUS vos_preClose( v_CONTEXT_t *pVosContext )
                 "%s: Context mismatch", __func__);
       return VOS_STATUS_E_FAILURE;
    }
+
+   /* Free the VOS Context */
+   if(gpVosContext != NULL)
+      kfree(gpVosContext);
 
    *pVosContext = gpVosContext = NULL;
 
@@ -748,9 +748,7 @@ VOS_STATUS vos_start( v_CONTEXT_t vosContext )
          "%s: WDA_NVDownload_start reporting other error", __func__);
      }
      VOS_ASSERT(0);
-     vos_event_reset( &(gpVosContext->wdaCompleteEvent) );
-	 WDA_setNeedShutdown(vosContext);
-	 return VOS_STATUS_E_FAILURE;
+     goto err_wda_stop;   
   }
 
   VOS_TRACE(VOS_MODULE_ID_VOSS, VOS_TRACE_LEVEL_INFO,
@@ -906,34 +904,23 @@ err_mac_stop:
 #ifdef FEATURE_WLAN_INTEGRATED_SOC
 err_wda_stop:   
   vos_event_reset( &(gpVosContext->wdaCompleteEvent) );
-  vStatus = WDA_stop( pVosContext, HAL_STOP_TYPE_RF_KILL);
-  if (!VOS_IS_STATUS_SUCCESS(vStatus))
+  WDA_stop( pVosContext, HAL_STOP_TYPE_RF_KILL);
+  vStatus = vos_wait_single_event( &(gpVosContext->wdaCompleteEvent),
+                                   VOS_WDA_TIMEOUT );
+  if( vStatus != VOS_STATUS_SUCCESS )
   {
-     VOS_TRACE( VOS_MODULE_ID_VOSS, VOS_TRACE_LEVEL_ERROR,
-         "%s: Failed to stop WDA", __func__);
-     VOS_ASSERT( VOS_IS_STATUS_SUCCESS( vStatus ) );
-     WDA_setNeedShutdown(vosContext);
-  }
-  else
-  {
-    vStatus = vos_wait_single_event( &(gpVosContext->wdaCompleteEvent),
-                                     VOS_WDA_TIMEOUT );
-    if( vStatus != VOS_STATUS_SUCCESS )
-    {
-       if( vStatus == VOS_STATUS_E_TIMEOUT )
-       {
-          VOS_TRACE( VOS_MODULE_ID_VOSS, VOS_TRACE_LEVEL_FATAL,
-           "%s: Timeout occurred before WDA_stop complete", __func__);
-  
-       }
-       else
-       {
-          VOS_TRACE( VOS_MODULE_ID_VOSS, VOS_TRACE_LEVEL_FATAL,
-           "%s: WDA_stop reporting other error", __func__);
-       }
-       VOS_ASSERT( 0 );
-       WDA_setNeedShutdown(vosContext);
-    }
+     if( vStatus == VOS_STATUS_E_TIMEOUT )
+     {
+        VOS_TRACE( VOS_MODULE_ID_VOSS, VOS_TRACE_LEVEL_FATAL,
+         "%s: Timeout occurred before WDA_stop complete", __func__);
+
+     }
+     else
+     {
+        VOS_TRACE( VOS_MODULE_ID_VOSS, VOS_TRACE_LEVEL_FATAL,
+         "%s: WDA_stop reporting other error", __func__);
+     }
+     VOS_ASSERT( 0 );
   }
 #endif
 
@@ -959,27 +946,35 @@ VOS_STATUS vos_stop( v_CONTEXT_t vosContext )
      VOS_TRACE( VOS_MODULE_ID_VOSS, VOS_TRACE_LEVEL_ERROR,
          "%s: Failed to stop WDA", __func__);
      VOS_ASSERT( VOS_IS_STATUS_SUCCESS( vosStatus ) );
-     WDA_setNeedShutdown(vosContext);
   }
-  else
-  {
-    vosStatus = vos_wait_single_event( &(gpVosContext->wdaCompleteEvent),
-                                       VOS_WDA_STOP_TIMEOUT );
 
-    if ( vosStatus != VOS_STATUS_SUCCESS )
-    {
-       if ( vosStatus == VOS_STATUS_E_TIMEOUT )
-       {
-          VOS_TRACE( VOS_MODULE_ID_VOSS, VOS_TRACE_LEVEL_ERROR,
-           "%s: Timeout occurred before WDA complete", __func__);
-       }
-       else
-       {
-          VOS_TRACE( VOS_MODULE_ID_VOSS, VOS_TRACE_LEVEL_ERROR,
-           "%s: WDA_stop reporting other error", __func__ );
-       }
-       WDA_setNeedShutdown(vosContext);
-    }
+  vosStatus = vos_wait_single_event( &(gpVosContext->wdaCompleteEvent),
+                                     VOS_WDA_TIMEOUT );
+   
+  if ( vosStatus != VOS_STATUS_SUCCESS )
+  {
+     if ( vosStatus == VOS_STATUS_E_TIMEOUT )
+     {
+        VOS_TRACE( VOS_MODULE_ID_VOSS, VOS_TRACE_LEVEL_ERROR,
+         "%s: Timeout occurred before WDA complete", __func__);
+     }
+     else
+     {
+        VOS_TRACE( VOS_MODULE_ID_VOSS, VOS_TRACE_LEVEL_ERROR,
+         "%s: WDA_stop reporting other error", __func__ );
+     }
+     /* if WDA stop failed, call WDA shutdown to cleanup WDA/WDI */
+     vosStatus = WDA_shutdown( vosContext, VOS_TRUE );
+     if (VOS_IS_STATUS_SUCCESS( vosStatus ) )
+     {
+        hdd_set_ssr_required( VOS_TRUE );
+     }
+     else
+     {
+        VOS_TRACE( VOS_MODULE_ID_VOSS, VOS_TRACE_LEVEL_FATAL,
+                               "%s: Failed to shutdown WDA", __func__ );
+        VOS_ASSERT( VOS_IS_STATUS_SUCCESS( vosStatus ) );
+     }
   }
 #endif
 
@@ -1077,30 +1072,12 @@ VOS_STATUS vos_close( v_CONTEXT_t vosContext )
   }
 
 #ifdef FEATURE_WLAN_INTEGRATED_SOC
-  if ( TRUE == WDA_needShutdown(vosContext ))
+  vosStatus = WDA_close( vosContext );
+  if (!VOS_IS_STATUS_SUCCESS(vosStatus))
   {
-     /* if WDA stop failed, call WDA shutdown to cleanup WDA/WDI */
-     vosStatus = WDA_shutdown( vosContext, VOS_TRUE );
-     if (VOS_IS_STATUS_SUCCESS( vosStatus ) )
-     {
-        hdd_set_ssr_required( HDD_SSR_REQUIRED );
-     }
-     else
-     {
-        VOS_TRACE( VOS_MODULE_ID_VOSS, VOS_TRACE_LEVEL_FATAL,
-                               "%s: Failed to shutdown WDA", __func__ );
-        VOS_ASSERT( VOS_IS_STATUS_SUCCESS( vosStatus ) );
-     }
-  } 
-  else 
-  {
-     vosStatus = WDA_close( vosContext );
-     if (!VOS_IS_STATUS_SUCCESS(vosStatus))
-     {
-        VOS_TRACE( VOS_MODULE_ID_VOSS, VOS_TRACE_LEVEL_ERROR,
-            "%s: Failed to close WDA", __func__);
-        VOS_ASSERT( VOS_IS_STATUS_SUCCESS( vosStatus ) );
-     }
+     VOS_TRACE( VOS_MODULE_ID_VOSS, VOS_TRACE_LEVEL_ERROR,
+         "%s: Failed to close WDA", __func__);
+     VOS_ASSERT( VOS_IS_STATUS_SUCCESS( vosStatus ) );
   }
   
   /* Let DXE return packets in WDA_close and then free them here */

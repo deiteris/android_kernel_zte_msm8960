@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012, Code Aurora Forum. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -89,10 +89,9 @@
 /*===========================================================================
    WLAN DAL Control Path Internal Data Definitions and Declarations 
  ===========================================================================*/
+#define WDI_SET_POWER_STATE_TIMEOUT  10000 /* in msec a very high upper limit */
 #define WDI_WCTS_ACTION_TIMEOUT       2000 /* in msec a very high upper limit */
 
-#define MAC_ADDR_ARRAY(a) (a)[0], (a)[1], (a)[2], (a)[3], (a)[4], (a)[5]
-#define MAC_ADDRESS_STR "%02x:%02x:%02x:%02x:%02x:%02x"
 
 #ifdef FEATURE_WLAN_SCAN_PNO
 #define WDI_PNO_VERSION_MASK 0x8000
@@ -130,7 +129,7 @@ WPT_STATIC const WDI_MainFsmEntryType wdiMainFSM[WDI_MAX_ST] =
     NULL,                       /*WDI_REQUEST_EVENT*/
     WDI_MainRsp,                /*WDI_RESPONSE_EVENT*/
     WDI_MainClose,              /*WDI_CLOSE_EVENT*/
-    WDI_MainShutdown            /*WDI_SHUTDOWN_EVENT*/
+    NULL                        /*WDI_SHUTDOWN_EVENT*/
   }},
 
   /*WDI_BUSY_ST*/
@@ -1304,7 +1303,6 @@ WDI_Stop
 )
 {
   WDI_EventInfoType      wdiEventData;
-  WDI_ControlBlockType*  pWDICtx = &gWDICb;
   /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   /*------------------------------------------------------------------------
@@ -1317,15 +1315,6 @@ WDI_Stop
 
     return WDI_STATUS_E_NOT_ALLOWED; 
   }
-
-  /*Access to the global state must be locked before cleaning */
-  wpalMutexAcquire(&pWDICtx->wptMutex);
-
-  /*Clear all pending request*/
-  WDI_ClearPendingRequests(pWDICtx);
-
-  /*We have completed cleaning unlock now*/
-  wpalMutexRelease(&pWDICtx->wptMutex);
 
   /*------------------------------------------------------------------------
     Fill in Event data and post to the Main FSM
@@ -6942,8 +6931,6 @@ WDI_ProcessBSSSessionJoinReq
   tHalJoinReqMsg          halJoinReqMsg; 
   /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  wpalMutexAcquire(&pWDICtx->wptMutex);
-
   /*------------------------------------------------------------------------
     Check to see if we have any session with this BSSID already stored, we
     should not
@@ -6955,20 +6942,12 @@ WDI_ProcessBSSSessionJoinReq
   if ( NULL != pBSSSes )
   {
     WPAL_TRACE( eWLAN_MODULE_DAL_CTRL, eWLAN_PAL_TRACE_LEVEL_ERROR,
-          "Association for this BSSID: " MAC_ADDRESS_STR " is already in place",
-          MAC_ADDR_ARRAY(pwdiJoinParams->wdiReqInfo.macBSSID));
-
-    /*reset the bAssociationInProgress otherwise the next 
-     *join request will be queued*/
-    pWDICtx->bAssociationInProgress = eWLAN_PAL_FALSE;
-    wpalMutexRelease(&pWDICtx->wptMutex);
-
-    /* Reload the driver if we hit this error condition */
-    wpalWlanReload();
+              "Association for this BSSID is already in place");
 
     return WDI_STATUS_E_NOT_ALLOWED; 
   }
 
+  wpalMutexAcquire(&pWDICtx->wptMutex);
   /*------------------------------------------------------------------------
     Fetch an empty session block 
   ------------------------------------------------------------------------*/
@@ -6979,9 +6958,6 @@ WDI_ProcessBSSSessionJoinReq
     WPAL_TRACE( eWLAN_MODULE_DAL_CTRL, eWLAN_PAL_TRACE_LEVEL_ERROR,
               "DAL has no free sessions - cannot run another join");
 
-    /*reset the bAssociationInProgress otherwise the next 
-     *join request will be queued*/
-    pWDICtx->bAssociationInProgress = eWLAN_PAL_FALSE;
     wpalMutexRelease(&pWDICtx->wptMutex);
     return WDI_STATUS_RES_FAILURE; 
   }
@@ -7365,29 +7341,26 @@ WDI_ProcessDelBSSReq
   {
     WPAL_TRACE( eWLAN_MODULE_DAL_CTRL, eWLAN_PAL_TRACE_LEVEL_ERROR,
               "Association sequence for this BSS does not yet exist");
-    /* Allow the DEL_BSS to be processed by the HAL ,
-     * This can come if some error condition happens 
-     * during the join process 
-     * Hit this condition if WDI cleans up BSS table 
-     * as part of the set link state with WDI_LINK_IDLE_STATE*/
+
+    wpalMutexRelease(&pWDICtx->wptMutex);
+
+    return WDI_STATUS_E_NOT_ALLOWED; 
   }
-  else
+
+  /*------------------------------------------------------------------------
+    Check if this BSS is being currently processed or queued,
+    if queued - queue the new request as well 
+  ------------------------------------------------------------------------*/
+  if ( eWLAN_PAL_TRUE == pBSSSes->bAssocReqQueued )
   {
-    /*------------------------------------------------------------------------
-      Check if this BSS is being currently processed or queued,
-      if queued - queue the new request as well 
-    ------------------------------------------------------------------------*/
-    if ( eWLAN_PAL_TRUE == pBSSSes->bAssocReqQueued )
-    {
-      WPAL_TRACE( eWLAN_MODULE_DAL_CTRL, eWLAN_PAL_TRACE_LEVEL_ERROR,
-                "Association sequence for this BSS exists but currently queued");
-  
-      wdiStatus = WDI_QueueAssocRequest( pWDICtx, pBSSSes, pEventData); 
-  
-      wpalMutexRelease(&pWDICtx->wptMutex);
-  
-      return wdiStatus; 
-    }
+    WPAL_TRACE( eWLAN_MODULE_DAL_CTRL, eWLAN_PAL_TRACE_LEVEL_ERROR,
+              "Association sequence for this BSS exists but currently queued");
+
+    wdiStatus = WDI_QueueAssocRequest( pWDICtx, pBSSSes, pEventData); 
+
+    wpalMutexRelease(&pWDICtx->wptMutex);
+
+    return wdiStatus; 
   }
 
   /*-----------------------------------------------------------------------
@@ -7427,7 +7400,7 @@ WDI_ProcessDelBSSReq
   /*Fill in the message request structure*/
 
   /*BSS Index is saved on config BSS response and Post Assoc Response */
-  halBssReqMsg.deleteBssParams.bssIdx = pwdiDelBSSParams->ucBssIdx; 
+  halBssReqMsg.deleteBssParams.bssIdx = pBSSSes->ucBSSIdx; 
 
   wpalMemoryCopy( pSendBuffer+usDataOffset, 
                   &halBssReqMsg.deleteBssParams, 
@@ -13980,26 +13953,29 @@ WDI_ProcessDelBSSRsp
   {
     WPAL_TRACE( eWLAN_MODULE_DAL_CTRL, eWLAN_PAL_TRACE_LEVEL_ERROR,
               "Association sequence for this BSS does not yet exist or "
-              "association no longer in progress ");
-  }
-  else
-  {
-    /*Extract BSSID for the response to UMAC*/
-    wpalMemoryCopy(wdiDelBSSParams.macBSSID, 
-                   pBSSSes->macBSSID, WDI_MAC_ADDR_LEN);
-  
-    /*-----------------------------------------------------------------------
-      The current session will be deleted 
-    -----------------------------------------------------------------------*/
-    WDI_DeleteSession(pWDICtx, pBSSSes);
-   
-    /* Delete the BCAST STA entry from the STA table */
-    (void)WDI_STATableDelSta( pWDICtx, pBSSSes->bcastStaIdx );
-  
-    /* Delete the STA's in this BSS */
-    WDI_STATableBSSDelSta(pWDICtx, halDelBssRspMsg.deleteBssRspParams.bssIdx);
+              "association no longer in progress - mysterious HAL response");
+
+    WDI_DetectedDeviceError( pWDICtx, WDI_ERR_BASIC_OP_FAILURE); 
+    
+    wpalMutexRelease(&pWDICtx->wptMutex);
+    return WDI_STATUS_E_NOT_ALLOWED; 
   }
 
+  /*Extract BSSID for the response to UMAC*/
+  wpalMemoryCopy(wdiDelBSSParams.macBSSID, 
+                 pBSSSes->macBSSID, WDI_MAC_ADDR_LEN);
+
+  /*-----------------------------------------------------------------------
+    The current session will be deleted 
+  -----------------------------------------------------------------------*/
+  WDI_DeleteSession(pWDICtx, pBSSSes);
+ 
+  /* Delete the BCAST STA entry from the STA table */
+  (void)WDI_STATableDelSta( pWDICtx, pBSSSes->bcastStaIdx );
+
+  /* Delete the STA's in this BSS */
+  WDI_STATableBSSDelSta(pWDICtx, halDelBssRspMsg.deleteBssRspParams.bssIdx);
+  
   wpalMutexRelease(&pWDICtx->wptMutex);
 
   /*Notify UMAC*/
@@ -16152,18 +16128,6 @@ WDI_ProcessEnterImpsRsp
 
   wdiStatus   =   WDI_HAL_2_WDI_STATUS(halStatus); 
 
-  /* If IMPS req failed, riva is not power collapsed Put the DXE in FULL state. 
-   * Other module states are taken care by PMC.
-   * TODO: How do we take care of the case where IMPS is success, but riva power collapse fails??
-   */
-  if (wdiStatus != WDI_STATUS_SUCCESS) {
-
-	  WPAL_TRACE(eWLAN_MODULE_DAL_CTRL, eWLAN_PAL_TRACE_LEVEL_FATAL,
-		 "WDI PRocess Enter IMPS RSP failed With HAL Status Code: %d",halStatus);
-	  /* Call Back is not required as we are putting the DXE in FULL
-	   * and riva is already in full (IMPS RSP Failed)*/
-	  WDTS_SetPowerState(pWDICtx, WDTS_POWER_STATE_FULL, NULL);
-  }
   /*Notify UMAC*/
   wdiEnterImpsRspCb( wdiStatus, pWDICtx->pRspCBUserData);
 
@@ -16263,20 +16227,6 @@ WDI_ProcessEnterBmpsRsp
   halStatus = *((eHalStatus*)pEventData->pEventData);
   wdiStatus   =   WDI_HAL_2_WDI_STATUS(halStatus); 
 
-  /* If BMPS req failed, riva is not power collapsed put the DXE in FULL state. 
-   * Other module states are taken care by PMC.
-   * TODO: How do we take care of the case where BMPS is success, but riva power collapse fails??
-   */
-   if (wdiStatus != WDI_STATUS_SUCCESS) {	  
-
-	  WPAL_TRACE(eWLAN_MODULE_DAL_CTRL, eWLAN_PAL_TRACE_LEVEL_FATAL,
-		 "WDI PRocess Enter BMPS RSP failed With HAL Status Code: %d",halStatus); 
-	  /* Call Back is not required as we are putting the DXE in FULL
-	   * and riva is already in FULL (BMPS RSP Failed)*/
-	  WDTS_SetPowerState(pWDICtx, WDTS_POWER_STATE_FULL, NULL);
-	  pWDICtx->bInBmps = eWLAN_PAL_FALSE;
-   }
-  
   /*Notify UMAC*/
   wdiEnterBmpsRspCb( wdiStatus, pWDICtx->pRspCBUserData);
 
@@ -19377,10 +19327,8 @@ WDI_FindAssocSession
     ------------------------------------------------------------------------*/
   for ( i = 0; i < WDI_MAX_BSS_SESSIONS; i++ )
   {
-     if ( (pWDICtx->aBSSSessions[i].bInUse == eWLAN_PAL_TRUE) && 
-          (eWLAN_PAL_TRUE == 
-                wpalMemoryCompare(pWDICtx->aBSSSessions[i].macBSSID, macBSSID,
-                WDI_MAC_ADDR_LEN)) )
+     if ( eWLAN_PAL_TRUE == 
+          wpalMemoryCompare(pWDICtx->aBSSSessions[i].macBSSID, macBSSID, WDI_MAC_ADDR_LEN) )
      {
        /*Found the session*/
        *ppSession = &pWDICtx->aBSSSessions[i]; 
@@ -20774,7 +20722,6 @@ WDI_CopyWDIConfigBSSToHALConfigBSS
   phalConfigBSS->currentExtChannel  = pwdiConfigBSS->ucCurrentExtChannel;
   phalConfigBSS->action             = pwdiConfigBSS->wdiAction;
   phalConfigBSS->htCapable          = pwdiConfigBSS->ucHTCapable;
-  phalConfigBSS->obssProtEnabled    = pwdiConfigBSS->ucObssProtEnabled;
   phalConfigBSS->rmfEnabled         = pwdiConfigBSS->ucRMFEnabled;
 
   phalConfigBSS->htOperMode = 
@@ -21307,15 +21254,17 @@ WDI_PackPreferredNetworkList
    wpt_uint8*                 pSendBuffer           = NULL; 
    wpt_uint16                 usDataOffset          = 0;
    wpt_uint16                 usSendSize            = 0;
-   tpPrefNetwListParams       pPrefNetwListParams   = NULL;
+   tPrefNetwListParams        pPrefNetwListParams;
    wpt_uint8 i;
+   /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+
    /*-----------------------------------------------------------------------
      Get message buffer
    -----------------------------------------------------------------------*/
    if (( WDI_STATUS_SUCCESS != WDI_GetMessageBuffer( pWDICtx, WDI_SET_PREF_NETWORK_REQ, 
-                         sizeof(tPrefNetwListParams),
+                         sizeof(pPrefNetwListParams),
                          &pSendBuffer, &usDataOffset, &usSendSize))||
-       ( usSendSize < (usDataOffset + sizeof(tPrefNetwListParams) )))
+       ( usSendSize < (usDataOffset + sizeof(pPrefNetwListParams) )))
    {
       WPAL_TRACE( eWLAN_MODULE_DAL_CTRL,  eWLAN_PAL_TRACE_LEVEL_WARN,
                   "Unable to get send buffer in Set PNO req %x ",
@@ -21324,17 +21273,15 @@ WDI_PackPreferredNetworkList
       return WDI_STATUS_E_FAILURE; 
    }
 
-   pPrefNetwListParams = (tpPrefNetwListParams)(pSendBuffer + usDataOffset);
-
    /*-------------------------------------------------------------------------
      Fill prefNetwListParams from pwdiPNOScanReqParams->wdiPNOScanInfo
    -------------------------------------------------------------------------*/
-   pPrefNetwListParams->enable  = 
+   pPrefNetwListParams.enable  = 
      pwdiPNOScanReqParams->wdiPNOScanInfo.bEnable;
-   pPrefNetwListParams->modePNO = 
+   pPrefNetwListParams.modePNO = 
      pwdiPNOScanReqParams->wdiPNOScanInfo.wdiModePNO;
 
-   pPrefNetwListParams->ucNetworksCount = 
+   pPrefNetwListParams.ucNetworksCount = 
      (pwdiPNOScanReqParams->wdiPNOScanInfo.ucNetworksCount < 
       WLAN_HAL_PNO_MAX_SUPP_NETWORKS)?
      pwdiPNOScanReqParams->wdiPNOScanInfo.ucNetworksCount : 
@@ -21346,44 +21293,44 @@ WDI_PackPreferredNetworkList
                pwdiPNOScanReqParams->wdiPNOScanInfo.wdiModePNO,
                pwdiPNOScanReqParams->wdiPNOScanInfo.ucNetworksCount);
 
-   for ( i = 0; i < pPrefNetwListParams->ucNetworksCount; i++ )
+   for ( i = 0; i < pPrefNetwListParams.ucNetworksCount; i++ )
    {
      /*SSID of the BSS*/
-     pPrefNetwListParams->aNetworks[i].ssId.length
+     pPrefNetwListParams.aNetworks[i].ssId.length
         = pwdiPNOScanReqParams->wdiPNOScanInfo.aNetworks[i].ssId.ucLength;
 
-     wpalMemoryCopy( pPrefNetwListParams->aNetworks[i].ssId.ssId,
+     wpalMemoryCopy( pPrefNetwListParams.aNetworks[i].ssId.ssId,
           pwdiPNOScanReqParams->wdiPNOScanInfo.aNetworks[i].ssId.sSSID,
-          pPrefNetwListParams->aNetworks[i].ssId.length);
+          pPrefNetwListParams.aNetworks[i].ssId.length);
 
      /*Authentication type for the network*/
-     pPrefNetwListParams->aNetworks[i].authentication = 
+     pPrefNetwListParams.aNetworks[i].authentication = 
        (tAuthType)pwdiPNOScanReqParams->wdiPNOScanInfo.aNetworks[i].wdiAuth; 
 
      /*Encryption type for the network*/
-     pPrefNetwListParams->aNetworks[i].encryption = 
+     pPrefNetwListParams.aNetworks[i].encryption = 
        (tEdType)pwdiPNOScanReqParams->wdiPNOScanInfo.aNetworks[i].wdiEncryption; 
 
      /*Indicate the channel on which the Network can be found 
        0 - if all channels */
-     pPrefNetwListParams->aNetworks[i].ucChannelCount = 
+     pPrefNetwListParams.aNetworks[i].ucChannelCount = 
        pwdiPNOScanReqParams->wdiPNOScanInfo.aNetworks[i].ucChannelCount;
 
-     wpalMemoryCopy(pPrefNetwListParams->aNetworks[i].aChannels,
+     wpalMemoryCopy(pPrefNetwListParams.aNetworks[i].aChannels,
                     pwdiPNOScanReqParams->wdiPNOScanInfo.aNetworks[i].aChannels,
-                    pPrefNetwListParams->aNetworks[i].ucChannelCount);
+                    pPrefNetwListParams.aNetworks[i].ucChannelCount);
 
      /*Indicates the RSSI threshold for the network to be considered*/
-     pPrefNetwListParams->aNetworks[i].rssiThreshold =
+     pPrefNetwListParams.aNetworks[i].rssiThreshold =
        pwdiPNOScanReqParams->wdiPNOScanInfo.aNetworks[i].rssiThreshold;
 
      WPAL_TRACE( eWLAN_MODULE_DAL_CTRL, eWLAN_PAL_TRACE_LEVEL_ERROR,
                "WDI SET PNO: SSID %d %s", 
-               pPrefNetwListParams->aNetworks[i].ssId.length,
-               pPrefNetwListParams->aNetworks[i].ssId.ssId);
+               pPrefNetwListParams.aNetworks[i].ssId.length,
+               pPrefNetwListParams.aNetworks[i].ssId.ssId);
    }
 
-   pPrefNetwListParams->scanTimers.ucScanTimersCount = 
+   pPrefNetwListParams.scanTimers.ucScanTimersCount = 
      (pwdiPNOScanReqParams->wdiPNOScanInfo.scanTimers.ucScanTimersCount < 
       WLAN_HAL_PNO_MAX_SCAN_TIMERS)?
      pwdiPNOScanReqParams->wdiPNOScanInfo.scanTimers.ucScanTimersCount :
@@ -21391,38 +21338,42 @@ WDI_PackPreferredNetworkList
 
    WPAL_TRACE( eWLAN_MODULE_DAL_CTRL, eWLAN_PAL_TRACE_LEVEL_ERROR,
                "WDI SET PNO: Scan timers count %d 24G P %d 5G Probe %d", 
-               pPrefNetwListParams->scanTimers.ucScanTimersCount,
+               pPrefNetwListParams.scanTimers.ucScanTimersCount,
                pwdiPNOScanReqParams->wdiPNOScanInfo.us24GProbeSize,
                pwdiPNOScanReqParams->wdiPNOScanInfo.us5GProbeSize);
 
-   for ( i = 0; i < pPrefNetwListParams->scanTimers.ucScanTimersCount; i++   )
+   for ( i = 0; i < pPrefNetwListParams.scanTimers.ucScanTimersCount; i++   )
    {
-     pPrefNetwListParams->scanTimers.aTimerValues[i].uTimerValue  = 
+     pPrefNetwListParams.scanTimers.aTimerValues[i].uTimerValue  = 
        pwdiPNOScanReqParams->wdiPNOScanInfo.scanTimers.aTimerValues[i].uTimerValue;
-     pPrefNetwListParams->scanTimers.aTimerValues[i].uTimerRepeat = 
+     pPrefNetwListParams.scanTimers.aTimerValues[i].uTimerRepeat = 
        pwdiPNOScanReqParams->wdiPNOScanInfo.scanTimers.aTimerValues[i].uTimerRepeat;
    }
 
    /*Copy the probe template*/
-   pPrefNetwListParams->us24GProbeSize = 
+   pPrefNetwListParams.us24GProbeSize = 
      (pwdiPNOScanReqParams->wdiPNOScanInfo.us24GProbeSize<
      WLAN_HAL_PNO_MAX_PROBE_SIZE)?
      pwdiPNOScanReqParams->wdiPNOScanInfo.us24GProbeSize:
      WLAN_HAL_PNO_MAX_PROBE_SIZE; 
 
-   wpalMemoryCopy(pPrefNetwListParams->a24GProbeTemplate, 
+   wpalMemoryCopy(pPrefNetwListParams.a24GProbeTemplate, 
                   pwdiPNOScanReqParams->wdiPNOScanInfo.a24GProbeTemplate, 
-                  pPrefNetwListParams->us24GProbeSize); 
+                  pPrefNetwListParams.us24GProbeSize); 
 
-   pPrefNetwListParams->us5GProbeSize = 
+   pPrefNetwListParams.us5GProbeSize = 
      (pwdiPNOScanReqParams->wdiPNOScanInfo.us5GProbeSize <
      WLAN_HAL_PNO_MAX_PROBE_SIZE)?
      pwdiPNOScanReqParams->wdiPNOScanInfo.us5GProbeSize:
      WLAN_HAL_PNO_MAX_PROBE_SIZE; 
 
-   wpalMemoryCopy(pPrefNetwListParams->a5GProbeTemplate, 
+   wpalMemoryCopy(pPrefNetwListParams.a5GProbeTemplate, 
                   pwdiPNOScanReqParams->wdiPNOScanInfo.a5GProbeTemplate, 
-                  pPrefNetwListParams->us5GProbeSize); 
+                  pPrefNetwListParams.us5GProbeSize); 
+
+   /*Pack the buffer*/
+   wpalMemoryCopy( pSendBuffer+usDataOffset, &pPrefNetwListParams, 
+                   sizeof(pPrefNetwListParams)); 
 
    /*Set the output values*/
    *ppSendBuffer = pSendBuffer;
@@ -21456,16 +21407,17 @@ WDI_PackPreferredNetworkListNew
    wpt_uint8*                 pSendBuffer           = NULL; 
    wpt_uint16                 usDataOffset          = 0;
    wpt_uint16                 usSendSize            = 0;
-   tpPrefNetwListParamsNew    pPrefNetwListParams;
+   tPrefNetwListParamsNew     pPrefNetwListParams;
    wpt_uint8 i;
+   /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
 
    /*-----------------------------------------------------------------------
      Get message buffer
    -----------------------------------------------------------------------*/
    if (( WDI_STATUS_SUCCESS != WDI_GetMessageBuffer( pWDICtx, WDI_SET_PREF_NETWORK_REQ, 
-                         sizeof(tPrefNetwListParamsNew),
+                         sizeof(pPrefNetwListParams),
                          &pSendBuffer, &usDataOffset, &usSendSize))||
-       ( usSendSize < (usDataOffset + sizeof(tPrefNetwListParamsNew) )))
+       ( usSendSize < (usDataOffset + sizeof(pPrefNetwListParams) )))
    {
       WPAL_TRACE( eWLAN_MODULE_DAL_CTRL,  eWLAN_PAL_TRACE_LEVEL_WARN,
                   "Unable to get send buffer in Set PNO req %x  ",
@@ -21474,17 +21426,15 @@ WDI_PackPreferredNetworkListNew
       return WDI_STATUS_E_FAILURE; 
    }
 
-   pPrefNetwListParams = (tpPrefNetwListParamsNew)(pSendBuffer + usDataOffset);
-
    /*-------------------------------------------------------------------------
      Fill prefNetwListParams from pwdiPNOScanReqParams->wdiPNOScanInfo
    -------------------------------------------------------------------------*/
-   pPrefNetwListParams->enable  = 
+   pPrefNetwListParams.enable  = 
      pwdiPNOScanReqParams->wdiPNOScanInfo.bEnable;
-   pPrefNetwListParams->modePNO = 
+   pPrefNetwListParams.modePNO = 
      pwdiPNOScanReqParams->wdiPNOScanInfo.wdiModePNO;
 
-   pPrefNetwListParams->ucNetworksCount = 
+   pPrefNetwListParams.ucNetworksCount = 
      (pwdiPNOScanReqParams->wdiPNOScanInfo.ucNetworksCount < 
       WLAN_HAL_PNO_MAX_SUPP_NETWORKS)?
      pwdiPNOScanReqParams->wdiPNOScanInfo.ucNetworksCount : 
@@ -21496,48 +21446,48 @@ WDI_PackPreferredNetworkListNew
                pwdiPNOScanReqParams->wdiPNOScanInfo.wdiModePNO,
                pwdiPNOScanReqParams->wdiPNOScanInfo.ucNetworksCount);
 
-   for ( i = 0; i < pPrefNetwListParams->ucNetworksCount; i++ )
+   for ( i = 0; i < pPrefNetwListParams.ucNetworksCount; i++ )
    {
      /*SSID of the BSS*/
-     pPrefNetwListParams->aNetworks[i].ssId.length
+     pPrefNetwListParams.aNetworks[i].ssId.length
         = pwdiPNOScanReqParams->wdiPNOScanInfo.aNetworks[i].ssId.ucLength;
 
-     wpalMemoryCopy( pPrefNetwListParams->aNetworks[i].ssId.ssId,
+     wpalMemoryCopy( pPrefNetwListParams.aNetworks[i].ssId.ssId,
           pwdiPNOScanReqParams->wdiPNOScanInfo.aNetworks[i].ssId.sSSID,
-          pPrefNetwListParams->aNetworks[i].ssId.length);
+          pPrefNetwListParams.aNetworks[i].ssId.length);
 
      /*Authentication type for the network*/
-     pPrefNetwListParams->aNetworks[i].authentication = 
+     pPrefNetwListParams.aNetworks[i].authentication = 
        (tAuthType)pwdiPNOScanReqParams->wdiPNOScanInfo.aNetworks[i].wdiAuth; 
 
      /*Encryption type for the network*/
-     pPrefNetwListParams->aNetworks[i].encryption = 
+     pPrefNetwListParams.aNetworks[i].encryption = 
        (tEdType)pwdiPNOScanReqParams->wdiPNOScanInfo.aNetworks[i].wdiEncryption; 
 
      /*SSID bcast type for the network*/
-     pPrefNetwListParams->aNetworks[i].bcastNetworkType = 
+     pPrefNetwListParams.aNetworks[i].bcastNetworkType = 
        (tSSIDBcastType)pwdiPNOScanReqParams->wdiPNOScanInfo.aNetworks[i].wdiBcastNetworkType; 
 
      /*Indicate the channel on which the Network can be found 
        0 - if all channels */
-     pPrefNetwListParams->aNetworks[i].ucChannelCount = 
+     pPrefNetwListParams.aNetworks[i].ucChannelCount = 
        pwdiPNOScanReqParams->wdiPNOScanInfo.aNetworks[i].ucChannelCount;
 
-     wpalMemoryCopy(pPrefNetwListParams->aNetworks[i].aChannels,
+     wpalMemoryCopy(pPrefNetwListParams.aNetworks[i].aChannels,
                     pwdiPNOScanReqParams->wdiPNOScanInfo.aNetworks[i].aChannels,
-                    pPrefNetwListParams->aNetworks[i].ucChannelCount);
+                    pPrefNetwListParams.aNetworks[i].ucChannelCount);
 
      /*Indicates the RSSI threshold for the network to be considered*/
-     pPrefNetwListParams->aNetworks[i].rssiThreshold =
+     pPrefNetwListParams.aNetworks[i].rssiThreshold =
        pwdiPNOScanReqParams->wdiPNOScanInfo.aNetworks[i].rssiThreshold;
 
      WPAL_TRACE( eWLAN_MODULE_DAL_CTRL, eWLAN_PAL_TRACE_LEVEL_ERROR,
                "WDI SET PNO: SSID %d %s", 
-               pPrefNetwListParams->aNetworks[i].ssId.length,
-               pPrefNetwListParams->aNetworks[i].ssId.ssId);
+               pPrefNetwListParams.aNetworks[i].ssId.length,
+               pPrefNetwListParams.aNetworks[i].ssId.ssId);
    }
 
-   pPrefNetwListParams->scanTimers.ucScanTimersCount = 
+   pPrefNetwListParams.scanTimers.ucScanTimersCount = 
      (pwdiPNOScanReqParams->wdiPNOScanInfo.scanTimers.ucScanTimersCount < 
       WLAN_HAL_PNO_MAX_SCAN_TIMERS)?
      pwdiPNOScanReqParams->wdiPNOScanInfo.scanTimers.ucScanTimersCount :
@@ -21545,39 +21495,42 @@ WDI_PackPreferredNetworkListNew
 
    WPAL_TRACE( eWLAN_MODULE_DAL_CTRL, eWLAN_PAL_TRACE_LEVEL_ERROR,
                "WDI SET PNO: Scan timers count %d 24G P %d 5G Probe %d", 
-               pPrefNetwListParams->scanTimers.ucScanTimersCount,
+               pPrefNetwListParams.scanTimers.ucScanTimersCount,
                pwdiPNOScanReqParams->wdiPNOScanInfo.us24GProbeSize,
                pwdiPNOScanReqParams->wdiPNOScanInfo.us5GProbeSize);
 
-   for ( i = 0; i < pPrefNetwListParams->scanTimers.ucScanTimersCount; i++   )
+   for ( i = 0; i < pPrefNetwListParams.scanTimers.ucScanTimersCount; i++   )
    {
-     pPrefNetwListParams->scanTimers.aTimerValues[i].uTimerValue  = 
+     pPrefNetwListParams.scanTimers.aTimerValues[i].uTimerValue  = 
        pwdiPNOScanReqParams->wdiPNOScanInfo.scanTimers.aTimerValues[i].uTimerValue;
-     pPrefNetwListParams->scanTimers.aTimerValues[i].uTimerRepeat = 
+     pPrefNetwListParams.scanTimers.aTimerValues[i].uTimerRepeat = 
        pwdiPNOScanReqParams->wdiPNOScanInfo.scanTimers.aTimerValues[i].uTimerRepeat;
    }
 
    /*Copy the probe template*/
-   pPrefNetwListParams->us24GProbeSize = 
+   pPrefNetwListParams.us24GProbeSize = 
      (pwdiPNOScanReqParams->wdiPNOScanInfo.us24GProbeSize<
      WLAN_HAL_PNO_MAX_PROBE_SIZE)?
      pwdiPNOScanReqParams->wdiPNOScanInfo.us24GProbeSize:
      WLAN_HAL_PNO_MAX_PROBE_SIZE; 
 
-   wpalMemoryCopy(pPrefNetwListParams->a24GProbeTemplate, 
+   wpalMemoryCopy(pPrefNetwListParams.a24GProbeTemplate, 
                   pwdiPNOScanReqParams->wdiPNOScanInfo.a24GProbeTemplate, 
-                  pPrefNetwListParams->us24GProbeSize); 
+                  pPrefNetwListParams.us24GProbeSize); 
 
-   pPrefNetwListParams->us5GProbeSize = 
+   pPrefNetwListParams.us5GProbeSize = 
      (pwdiPNOScanReqParams->wdiPNOScanInfo.us5GProbeSize <
      WLAN_HAL_PNO_MAX_PROBE_SIZE)?
      pwdiPNOScanReqParams->wdiPNOScanInfo.us5GProbeSize:
      WLAN_HAL_PNO_MAX_PROBE_SIZE; 
 
-   wpalMemoryCopy(pPrefNetwListParams->a5GProbeTemplate, 
+   wpalMemoryCopy(pPrefNetwListParams.a5GProbeTemplate, 
                   pwdiPNOScanReqParams->wdiPNOScanInfo.a5GProbeTemplate, 
-                  pPrefNetwListParams->us5GProbeSize); 
+                  pPrefNetwListParams.us5GProbeSize); 
 
+   /*Pack the buffer*/
+   wpalMemoryCopy( pSendBuffer+usDataOffset, &pPrefNetwListParams, 
+                   sizeof(pPrefNetwListParams)); 
 
    /*Set the output values*/
    *ppSendBuffer = pSendBuffer;
@@ -22227,19 +22180,11 @@ WDI_Process8023MulticastListReq
    wpt_uint8*                 pSendBuffer           = NULL; 
    wpt_uint16                 usDataOffset          = 0;
    wpt_uint16                 usSendSize            = 0;
-   tpHalRcvFltMcAddrListType  pRcvFltMcAddrListType;
+   tHalRcvFltMcAddrListType   rcvFltMcAddrListType;
    wpt_uint8                  i;
 
    WPAL_TRACE(eWLAN_MODULE_DAL_CTRL, eWLAN_PAL_TRACE_LEVEL_INFO,
              "%s",__FUNCTION__);
-
-   pRcvFltMcAddrListType = wpalMemoryAllocate(sizeof(tHalRcvFltMcAddrListType)) ;
-   if( NULL == pRcvFltMcAddrListType )
-   {
-     WPAL_TRACE( eWLAN_MODULE_DAL_CTRL,  eWLAN_PAL_TRACE_LEVEL_WARN,
-                 "Failed to alloc in WDI_Process8023MulticastListReq");
-     return WDI_STATUS_E_FAILURE; 
-   }
 
    /*-------------------------------------------------------------------------
      Sanity check 
@@ -22252,7 +22197,6 @@ WDI_Process8023MulticastListReq
    {
       WPAL_TRACE( eWLAN_MODULE_DAL_CTRL, eWLAN_PAL_TRACE_LEVEL_WARN,
                   "%s: Invalid parameters", __FUNCTION__);
-      wpalMemoryFree(pRcvFltMcAddrListType);
       WDI_ASSERT(0);
       return WDI_STATUS_E_FAILURE; 
    }
@@ -22276,24 +22220,23 @@ WDI_Process8023MulticastListReq
       return WDI_STATUS_E_FAILURE; 
    }
 
-   pRcvFltMcAddrListType->cMulticastAddr = 
+   rcvFltMcAddrListType.cMulticastAddr = 
        pwdiFltPktSetMcListReqParamsType->mcAddrList.ulMulticastAddrCnt; 
-   for( i = 0; i < pRcvFltMcAddrListType->cMulticastAddr; i++ )
+   for( i = 0; i < rcvFltMcAddrListType.cMulticastAddr; i++ )
    {
-      wpalMemoryCopy(pRcvFltMcAddrListType->multicastAddr[i],
+      wpalMemoryCopy(rcvFltMcAddrListType.multicastAddr[i],
                  pwdiFltPktSetMcListReqParamsType->mcAddrList.multicastAddr[i],
                  sizeof(tSirMacAddr));
    }
 
    wpalMemoryCopy( pSendBuffer+usDataOffset, 
-                   pRcvFltMcAddrListType, 
-                   sizeof(tHalRcvFltMcAddrListType)); 
+                   &rcvFltMcAddrListType, 
+                   sizeof(rcvFltMcAddrListType)); 
 
    pWDICtx->wdiReqStatusCB     = pwdiFltPktSetMcListReqParamsType->wdiReqStatusCB;
    pWDICtx->pReqStatusUserData = pwdiFltPktSetMcListReqParamsType->pUserData; 
 
 
-   wpalMemoryFree(pRcvFltMcAddrListType);
    /*-------------------------------------------------------------------------
      Send Get STA Request to HAL 
    -------------------------------------------------------------------------*/
@@ -23043,26 +22986,3 @@ WDI_ProcessSetPowerParamsRsp
    return WDI_STATUS_SUCCESS; 
 }/*WDI_ProcessSetPowerParamsRsp*/
 
-/**
- @brief WDI_TransportChannelDebug -
-       Display DXE Channel debugging information
-       User may request to display DXE channel snapshot
-       Or if host driver detects any abnormal stcuk may display
-
- @param displaySnapshot : Dispaly DXE snapshot option
- @param enableStallDetect : Enable stall detect feature
-
- This feature will take effect to data performance
- Not integrate till fully verification
- @see
- @return none
-*/
-void WDI_TransportChannelDebug
-(
-   wpt_boolean displaySnapshot,
-   wpt_boolean toggleStallDetect
-)
-{
-   WDTS_ChannelDebug(displaySnapshot, toggleStallDetect);
-   return;
-}

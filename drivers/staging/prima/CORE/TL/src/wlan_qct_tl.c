@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012, Code Aurora Forum. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -408,13 +408,10 @@ WLANTL_Open
   pTLCb = VOS_GET_TL_CB(pvosGCtx);
   if (( NULL == pTLCb ) || ( NULL == pTLConfig ) )
   {
-    TLLOGE(VOS_TRACE( VOS_MODULE_ID_TL, VOS_TRACE_LEVEL_FATAL,
+    TLLOGE(VOS_TRACE( VOS_MODULE_ID_TL, VOS_TRACE_LEVEL_ERROR,
                "WLAN TL: Invalid input pointer on WLANTL_Open TL %x Config %x", pTLCb, pTLConfig ));
     return VOS_STATUS_E_FAULT;
   }
-
-  /* Set the default log level to VOS_TRACE_LEVEL_ERROR */
-  vos_trace_setLevel(VOS_MODULE_ID_TL, VOS_TRACE_LEVEL_ERROR);
 
   smeContext = vos_get_context(VOS_MODULE_ID_SME, pvosGCtx);
   if ( NULL == smeContext )
@@ -5284,7 +5281,7 @@ WLANTL_STATxConn
 
   if (( VOS_STATUS_SUCCESS != vosStatus ) || ( NULL == vosDataBuff ))
   {
-    TLLOG1(VOS_TRACE( VOS_MODULE_ID_TL, VOS_TRACE_LEVEL_INFO,
+    TLLOGE(VOS_TRACE( VOS_MODULE_ID_TL, VOS_TRACE_LEVEL_ERROR,
                "WLAN TL:No more data at HDD status %d", vosStatus));
     *pvosDataBuff = NULL;
 
@@ -6086,17 +6083,8 @@ WLANTL_STARxConn
     }
     /*-------------------------------------------------------------------
       Increment receive counter
-      -------------------------------------------------------------------*/
-      if ( !WLANTL_TID_INVALID( ucTid) ) 
-      {
-        pTLCb->atlSTAClients[ucSTAId].auRxCount[ucTid]++;
-      }
-      else
-      {
-        TLLOGE(VOS_TRACE( VOS_MODULE_ID_TL, VOS_TRACE_LEVEL_ERROR,
-               "WLAN TL:Invalid tid  %d (Station ID %d) on %s",
-               ucTid, ucSTAId, __func__));
-      }
+     -------------------------------------------------------------------*/
+    pTLCb->atlSTAClients[ucSTAId].auRxCount[ucTid]++;
 
     TLLOG2(VOS_TRACE( VOS_MODULE_ID_TL, VOS_TRACE_LEVEL_INFO_HIGH,
                "WLAN TL:Sending EAPoL frame to station %d AC %d", ucSTAId, ucTid));
@@ -6459,16 +6447,7 @@ WLANTL_STARxAuth
     dropped below or delayed in TL's queues
     - will leave it here for now
    ------------------------------------------------------------------------*/
-  if ( !WLANTL_TID_INVALID( ucTid) ) 
-  {
-    pTLCb->atlSTAClients[ucSTAId].auRxCount[ucTid]++;
-  }
-  else
-  {
-    TLLOGE(VOS_TRACE( VOS_MODULE_ID_TL, VOS_TRACE_LEVEL_ERROR,
-           "WLAN TL:Invalid tid  %d (Station ID %d) on %s",
-           ucTid, ucSTAId, __func__));
-  }
+  pTLCb->atlSTAClients[ucSTAId].auRxCount[ucTid]++;
 
   /*------------------------------------------------------------------------
     Check if AMSDU and send for processing if so
@@ -9135,10 +9114,7 @@ WLANTL_CleanSTA
   if ( ( 0 != ucEmpty ) &&
        ( NULL != ptlSTAClient->vosAMSDUChainRoot ))
   {
-    TLLOGE(VOS_TRACE( VOS_MODULE_ID_TL, VOS_TRACE_LEVEL_FATAL,
-               "WLAN TL:Non NULL vosAMSDUChainRoot (=%x) on WLANTL_CleanSTA," 
-               "suspecting a memory corruption"));
-
+    vos_pkt_return_packet(ptlSTAClient->vosAMSDUChainRoot);
   }
 
   ptlSTAClient->vosAMSDUChain     = NULL;

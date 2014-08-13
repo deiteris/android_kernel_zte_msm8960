@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012, Code Aurora Forum. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -49,12 +49,6 @@ eHalStatus p2pProcessRemainOnChannelCmd(tpAniSirGlobal pMac, tSmeCmd *p2pRemaino
     tSirRemainOnChnReq* pMsg;
     tANI_U16 len;
     tCsrRoamSession *pSession = CSR_GET_SESSION( pMac, p2pRemainonChn->sessionId );
-
-    if(!pSession)
-    {
-       smsLog(pMac, LOGE, FL("  session %d not found "), p2pRemainonChn->sessionId);
-       return eHAL_STATUS_FAILURE;
-    }
 
     if( !pSession->sessionActive ) VOS_ASSERT(0);
 
