@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2012, The Linux Foundation. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -823,9 +823,9 @@ limSendHalStartScanReq(tpAniSirGlobal pMac, tANI_U8 channelNum, tLimLimHalScanSt
         SET_LIM_PROCESS_DEFD_MESGS(pMac, false);
 
         MTRACE(macTraceMsgTx(pMac, 0, msg.type));
-        PELOGW(limLog(pMac, LOGW, FL("Channel %d\n"), channelNum);)
+        limLog(pMac, LOG1, FL("Channel %d\n"), channelNum);
 
-            rc = wdaPostCtrlMsg(pMac, &msg);
+        rc = wdaPostCtrlMsg(pMac, &msg);
         if (rc == eSIR_SUCCESS) {
             return;
         }
@@ -1169,9 +1169,9 @@ limRestorePreScanState(tpAniSirGlobal pMac)
     /* Re-activate Heartbeat timers for connected sessions as scan is done */
     for(i=0;i<pMac->lim.maxBssId;i++)
     {
-       if(pMac->lim.gpSession[i].valid == FALSE)
-          break;
-       if(pMac->lim.gpSession[i].limMlmState == eLIM_MLM_LINK_ESTABLISHED_STATE)
+       if((peFindSessionBySessionId(pMac,i) != NULL) &&
+              (pMac->lim.gpSession[i].valid == TRUE) &&
+               (eLIM_MLM_LINK_ESTABLISHED_STATE == pMac->lim.gpSession[i].limMlmState)) 
        {
           limReactivateHeartBeatTimer(pMac, peFindSessionBySessionId(pMac,i));
        }  
@@ -3733,12 +3733,12 @@ limProcessAssocFailureTimeout(tpAniSirGlobal pMac, tANI_U32 MsgType)
 
             psessionEntry->limMlmState = eLIM_MLM_IDLE_STATE;
             MTRACE(macTrace(pMac, TRACE_CODE_MLM_STATE, 0, psessionEntry->limMlmState));
-            
+
             //Set the RXP mode to IDLE, so it starts filtering the frames.
             if(limSetLinkState(pMac, eSIR_LINK_IDLE_STATE,psessionEntry->bssId, 
                 psessionEntry->selfMacAddr, NULL, NULL) != eSIR_SUCCESS)
                 PELOGE(limLog(pMac, LOGE,  FL("Failed to set the LinkState\n"));)
-         
+
             // 'Change' timer for future activations
             limDeactivateAndChangeTimer(pMac, eLIM_ASSOC_FAIL_TIMER);
 

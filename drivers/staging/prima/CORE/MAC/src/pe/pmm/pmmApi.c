@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2012, The Linux Foundation. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -228,7 +228,7 @@ void pmmInitBmpsResponseHandler(tpAniSirGlobal pMac, eHalStatus rspStatus)
     //If response is failure, then send the response back to PMC and reset its state.
     if(rspStatus == eHAL_STATUS_SUCCESS)
     {
-        PELOGW(pmmLog(pMac, LOGW,
+        PELOG2(pmmLog(pMac, LOG2,
             FL("pmmBmps: Received successful response from HAL to enter BMPS_POWER_SAVE \n"));)
 
         pMac->pmm.gPmmState = ePMM_STATE_BMPS_SLEEP;
@@ -359,6 +359,7 @@ void pmmExitBmpsRequestHandler(tpAniSirGlobal pMac, tpExitBmpsInfo pExitBmpsInfo
 
         respStatus = eSIR_SME_INVALID_PMM_STATE;
         pmmBmpsUpdateInvalidStateCnt(pMac);
+        palFreeMemory( pMac->hHdd, (tANI_U8 *) pExitBmpsInfo);
         goto failure;
     }
     return;
@@ -588,7 +589,7 @@ tSirRetStatus  pmmSendInitPowerSaveMsg(tpAniSirGlobal pMac,tpPESession psessionE
     msgQ.bodyptr = pBmpsParams;
     msgQ.bodyval = 0;
 
-    PELOGW(pmmLog( pMac, LOGW,
+    PELOG2(pmmLog( pMac, LOG2,
         FL( "pmmBmps: Sending WDA_ENTER_BMPS_REQ" ));)
 
     /* we need to defer any incoming messages until we get a
@@ -1488,7 +1489,7 @@ void pmmEnterImpsResponseHandler (tpAniSirGlobal pMac, eHalStatus rspStatus)
         //if success, change the state to IMPS sleep mode
         pMac->pmm.gPmmState = ePMM_STATE_IMPS_SLEEP;
 
-        PELOGW(pmmLog(pMac, LOGW,
+        PELOG2(pmmLog(pMac, LOG2,
             FL("pmmImps: Received successful WDA_ENTER_IMPS_RSP from HAL\n"));)
 
         //update power save statistics
@@ -1634,7 +1635,7 @@ void pmmExitImpsResponseHandler(tpAniSirGlobal pMac, eHalStatus rspStatus)
     case eHAL_STATUS_SUCCESS:
         {
             resultCode = eSIR_SME_SUCCESS;
-            PELOGW(pmmLog(pMac, LOGW, 
+            PELOG2(pmmLog(pMac, LOG2, 
                           FL("pmmImps: Received WDA_EXIT_IMPS_RSP with Successful response from HAL\n"));)
         }
         break;
@@ -1835,7 +1836,7 @@ failure:
     PELOGE(pmmLog(pMac, LOGE,
         FL("pmmUapsd: Waking up from UAPSD mode failed, Ret Code: %d, Next State: %d\n"),
         retStatus, pMac->pmm.gPmmState);)
-    limSendSmeRsp(pMac, eWNI_PMC_EXIT_IMPS_RSP, resultCode, 0, 0);
+    limSendSmeRsp(pMac, eWNI_PMC_EXIT_UAPSD_RSP, resultCode, 0, 0);
 }
 
 
@@ -2309,12 +2310,12 @@ tSirRetStatus pmmImpsSendChangePwrSaveMsg(tpAniSirGlobal pMac, tANI_U8 mode)
     if (SIR_PM_SLEEP_MODE == mode)
     {
         msgQ.type = WDA_ENTER_IMPS_REQ;
-        PELOGW(pmmLog (pMac, LOGW, FL("Sending WDA_ENTER_IMPS_REQ to HAL\n"));)
+        PELOG2(pmmLog (pMac, LOG2, FL("Sending WDA_ENTER_IMPS_REQ to HAL\n"));)
     }
     else
     {
         msgQ.type = WDA_EXIT_IMPS_REQ;
-        PELOGW(pmmLog (pMac, LOGW, FL("Sending WDA_EXIT_IMPS_REQ to HAL\n"));)
+        PELOG2(pmmLog (pMac, LOG2, FL("Sending WDA_EXIT_IMPS_REQ to HAL\n"));)
     }
 
     msgQ.reserved = 0;

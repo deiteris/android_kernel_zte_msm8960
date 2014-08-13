@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2012, The Linux Foundation. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -2940,6 +2940,12 @@ tANI_BOOLEAN csrLookupPMKID( tpAniSirGlobal pMac, tANI_U32 sessionId, tANI_U8 *p
     tANI_U32 Index;
     tCsrRoamSession *pSession = CSR_GET_SESSION( pMac, sessionId );
 
+    if(!pSession)
+    {
+        smsLog(pMac, LOGE, FL("  session %d not found "), sessionId);
+        return FALSE;
+    }
+
     do
     {
         for( Index=0; Index < pSession->NumPmkidCache; Index++ )
@@ -3189,6 +3195,12 @@ tANI_BOOLEAN csrLookupBKID( tpAniSirGlobal pMac, tANI_U32 sessionId, tANI_U8 *pB
     tANI_BOOLEAN fRC = FALSE, fMatchFound = FALSE;
     tANI_U32 Index;
     tCsrRoamSession *pSession = CSR_GET_SESSION( pMac, sessionId );
+
+    if(!pSession)
+    {
+        smsLog(pMac, LOGE, FL("  session %d not found "), sessionId);
+        return FALSE;
+    }
 
     do
     {
@@ -5306,31 +5318,35 @@ tANI_BOOLEAN csrMatchCountryCode( tpAniSirGlobal pMac, tANI_U8 *pCountry, tDot11
             smsLog(pMac, LOGE, FL("  No IEs\n"));
             break;
         }
-        //Make sure this country is recognizable
-        if( pIes->Country.present )
+        if( pMac->roam.configParam.fEnforceDefaultDomain ||
+            pMac->roam.configParam.fEnforceCountryCodeMatch )
         {
-            status = csrGetRegulatoryDomainForCountry( pMac, pIes->Country.country, &domainId );
-            if( !HAL_STATUS_SUCCESS( status ) )
+            //Make sure this country is recognizable
+            if( pIes->Country.present )
             {
-                fRet = eANI_BOOLEAN_FALSE;
-                break;
+                status = csrGetRegulatoryDomainForCountry( pMac, pIes->Country.country, &domainId );
+                if( !HAL_STATUS_SUCCESS( status ) )
+                {
+                    fRet = eANI_BOOLEAN_FALSE;
+                    break;
+                }
             }
-        }
-        //check whether it is needed to enforce to the default regulatory domain first
-        if( pMac->roam.configParam.fEnforceDefaultDomain )
-        {
-            if( domainId != pMac->scan.domainIdCurrent )
+            //check whether it is needed to enforce to the default regulatory domain first
+            if( pMac->roam.configParam.fEnforceDefaultDomain )
             {
-                fRet = eANI_BOOLEAN_FALSE;
-                break;
+                if( domainId != pMac->scan.domainIdCurrent )
+                {
+                    fRet = eANI_BOOLEAN_FALSE;
+                    break;
+                }
             }
-        }
-        if( pMac->roam.configParam.fEnforceCountryCodeMatch )
-        {
+            if( pMac->roam.configParam.fEnforceCountryCodeMatch )
+            {
             if( domainId >= REGDOMAIN_COUNT )
-            {
-                fRet = eANI_BOOLEAN_FALSE;
-                break;
+                {
+                    fRet = eANI_BOOLEAN_FALSE;
+                    break;
+                }
             }
         }
         if( pCountry )
@@ -5623,7 +5639,7 @@ tANI_BOOLEAN csrIsSetKeyAllowed(tpAniSirGlobal pMac, tANI_U32 sessionId)
     * The current work-around is to process setcontext_rsp and removekey_rsp no matter what the 
     * state is.
     */
-    smsLog( pMac, LOGE, FL(" is not what it intends to. Must be revisit or removed\n") );
+    smsLog( pMac, LOG2, FL(" is not what it intends to. Must be revisit or removed\n") );
     if( (NULL == pSession) || 
         ( csrIsConnStateDisconnected( pMac, sessionId ) && 
         (pSession->pCurRoamProfile != NULL) &&

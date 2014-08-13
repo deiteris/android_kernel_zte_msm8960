@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2012, The Linux Foundation. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -188,6 +188,8 @@ static const hdd_freq_chan_map_t freq_chan_map[] = { {2412, 1}, {2417, 2},
 #define WE_STOP_AP           3
 #define WE_ENABLE_AMP        4
 #define WE_DISABLE_AMP       5
+#define WE_ENABLE_DXE_STALL_DETECT 6
+#define WE_DISPLAY_DXE_SNAP_SHOT   7
 
 /* Private ioctls and their sub-ioctls */
 #define WLAN_PRIV_SET_VAR_INT_GET_NONE   (SIOCIWFIRSTPRIV + 7)
@@ -782,7 +784,7 @@ v_U8_t* wlan_hdd_get_vendor_oui_ie_ptr(v_U8_t *oui, v_U8_t oui_size, v_U8_t *ie,
         if(elem_len > left)
         {
             hddLog(VOS_TRACE_LEVEL_FATAL,
-                   "****Invalid IEs eid = %d elem_len=%d left=%d*****\n",
+                   FL("****Invalid IEs eid = %d elem_len=%d left=%d*****"),
                     eid,elem_len,left);
             return NULL;
         }
@@ -2314,17 +2316,17 @@ static int iw_set_priv(struct net_device *dev,
     }
     else if (strcasecmp(cmd, "scan-active") == 0)
     {
-        pAdapter->scan_info.scan_mode = eSIR_ACTIVE_SCAN; 
+        pHddCtx->scan_info.scan_mode = eSIR_ACTIVE_SCAN; 
         ret = snprintf(cmd, cmd_len, "OK");
     }
     else if (strcasecmp(cmd, "scan-passive") == 0)
     {
-        pAdapter->scan_info.scan_mode = eSIR_PASSIVE_SCAN;
+        pHddCtx->scan_info.scan_mode = eSIR_PASSIVE_SCAN;
         ret = snprintf(cmd, cmd_len, "OK");
     }
     else if( strcasecmp(cmd, "scan-mode") == 0 ) 
     {
-        ret = snprintf(cmd, cmd_len, "ScanMode = %u", pAdapter->scan_info.scan_mode);
+        ret = snprintf(cmd, cmd_len, "ScanMode = %u", pHddCtx->scan_info.scan_mode);
     }
     else if( strcasecmp(cmd, "linkspeed") == 0 ) 
     {
@@ -3806,6 +3808,17 @@ static int iw_setnone_getnone(struct net_device *dev, struct iw_request_info *in
         }
 #endif
 
+        case WE_ENABLE_DXE_STALL_DETECT:
+        {
+            sme_transportDebug(VOS_FALSE, VOS_TRUE);
+            break;
+        }
+        case WE_DISPLAY_DXE_SNAP_SHOT:
+        {
+            sme_transportDebug(VOS_TRUE, VOS_FALSE);
+            break;
+        }
+
         default:
         {
             hddLog(LOGE, "%s: unknown ioctl %d", __FUNCTION__, sub_cmd);
@@ -4798,7 +4811,11 @@ VOS_STATUS iw_set_pno(struct net_device *dev, struct iw_request_info *info,
                       union iwreq_data *wrqu, char *extra, int nOffset)
 {
   hdd_adapter_t *pAdapter = WLAN_HDD_GET_PRIV_PTR(dev);
-  tSirPNOScanReq pnoRequest;
+  /* pnoRequest is a large struct, so we make it static to avoid stack
+     overflow.  This API is only invoked via ioctl, so it is
+     serialized by the kernel rtnl_lock and hence does not need to be
+     reentrant */
+  static tSirPNOScanReq pnoRequest;
   char *ptr;
   v_U8_t i,j, ucParams, ucMode; 
   /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -5247,8 +5264,17 @@ VOS_STATUS iw_set_power_params(struct net_device *dev, struct iw_request_info *i
       return VOS_STATUS_E_FAILURE;
     }
 
-    uTotalSize -= nOffset; 
+    uTotalSize -= nOffset;
+    VOS_TRACE(VOS_MODULE_ID_HDD, VOS_TRACE_LEVEL_INFO, 
+              "Power request parameter %d Total size", 
+              uTotalSize);
     ptr += nOffset;
+    /* This is added for dynamic Tele LI enable (0xF1) /disable (0xF0)*/
+    if(!(uTotalSize - nOffset) && 
+       (powerRequest.uListenInterval != SIR_NOCHANGE_POWER_VALUE))
+    {
+        uTotalSize = 0;
+    }
 
   }/*Go for as long as we have a valid string*/
 
@@ -5581,6 +5607,15 @@ static const struct iw_priv_args we_private_args[] = {
         "disableAMP" },
 #endif
 
+    {   WE_ENABLE_DXE_STALL_DETECT,
+	        0,
+	        0,
+	        "dxeStallDetect" },
+    {   WE_DISPLAY_DXE_SNAP_SHOT,
+	        0,
+	        0,
+        "dxeSnapshot" },
+    
     /* handlers for main ioctl */
     {   WLAN_PRIV_SET_VAR_INT_GET_NONE,
         IW_PRIV_TYPE_INT | MAX_VAR_ARGS,
@@ -5743,7 +5778,7 @@ int hdd_set_wext(hdd_adapter_t *pAdapter)
 {
     hdd_wext_state_t *pwextBuf;
     hdd_station_ctx_t *pHddStaCtx = WLAN_HDD_GET_STATION_CTX_PTR(pAdapter);
-
+    hdd_context_t *pHddCtx = WLAN_HDD_GET_CTX(pAdapter);
     pwextBuf = WLAN_HDD_GET_WEXT_STATE_PTR(pAdapter);
    
     // Now configure the roaming profile links. To SSID and bssid.
@@ -5774,7 +5809,7 @@ int hdd_set_wext(hdd_adapter_t *pAdapter)
     pwextBuf->wpaVersion = IW_AUTH_WPA_VERSION_DISABLED;
 
     /*Set the default scan mode*/
-    pAdapter->scan_info.scan_mode = eSIR_ACTIVE_SCAN;
+    pHddCtx->scan_info.scan_mode = eSIR_ACTIVE_SCAN;
 
     hdd_clearRoamProfileIe(pAdapter);
 
