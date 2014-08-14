@@ -525,7 +525,7 @@ int get_krait_ver(void)
 	return ver;
 }
 
-static const struct arm_pmu *__init armv7_krait_pmu_init(void)
+static struct arm_pmu *__init armv7_krait_pmu_init(void)
 {
 	krait_pmu.id		= ARM_PERF_PMU_ID_KRAIT;
 	krait_pmu.name	        = "ARMv7 Krait";
@@ -575,7 +575,7 @@ static const struct arm_pmu *__init armv7_krait_pmu_init(void)
 }
 
 #else
-static const struct arm_pmu *__init armv7_krait_pmu_init(void)
+static struct arm_pmu *__init armv7_krait_pmu_init(void)
 {
 	return NULL;
 }

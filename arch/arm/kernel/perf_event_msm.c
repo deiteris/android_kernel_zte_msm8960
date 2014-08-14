@@ -755,7 +755,7 @@ static struct arm_pmu scorpion_pmu = {
 	.max_period		= (1LLU << 32) - 1,
 };
 
-static const struct arm_pmu *__init armv7_scorpion_pmu_init(void)
+static struct arm_pmu *__init armv7_scorpion_pmu_init(void)
 {
 	scorpion_pmu.id		= ARM_PERF_PMU_ID_SCORPION;
 	scorpion_pmu.name	= "ARMv7 Scorpion";
@@ -766,7 +766,7 @@ static const struct arm_pmu *__init armv7_scorpion_pmu_init(void)
 	return &scorpion_pmu;
 }
 
-static const struct arm_pmu *__init armv7_scorpionmp_pmu_init(void)
+static struct arm_pmu *__init armv7_scorpionmp_pmu_init(void)
 {
 	scorpion_pmu.id		= ARM_PERF_PMU_ID_SCORPIONMP;
 	scorpion_pmu.name	= "ARMv7 Scorpion-MP";
@@ -777,11 +777,11 @@ static const struct arm_pmu *__init armv7_scorpionmp_pmu_init(void)
 	return &scorpion_pmu;
 }
 #else
-static const struct arm_pmu *__init armv7_scorpion_pmu_init(void)
+static struct arm_pmu *__init armv7_scorpion_pmu_init(void)
 {
 	return NULL;
 }
-static const struct arm_pmu *__init armv7_scorpionmp_pmu_init(void)
+static struct arm_pmu *__init armv7_scorpionmp_pmu_init(void)
 {
 	return NULL;
 }
