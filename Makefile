@@ -248,7 +248,7 @@ CONFIG_SHELL := $(shell if [ -x "$$BASH" ]; then echo $$BASH; \
 HOSTCC       = gcc
 HOSTCXX      = g++
 HOSTCFLAGS   = -Wall -Wno-return-type -Wno-implicit-int -Wno-enum-compare -Wno-array-bounds -Wmissing-prototypes -Wstrict-prototypes -Ofast -fomit-frame-pointer -fgcse-las $(GRAPHITE)
-HOSTCXXFLAGS = -Ofast $(GRAPHITE)
+HOSTCXXFLAGS = -Ofast -fgcse-las $(GRAPHITE)
 
 # Decide whether to build built-in, modular, or both.
 # Normally, just do built-in.
