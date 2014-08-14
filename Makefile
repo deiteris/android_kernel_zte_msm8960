@@ -247,8 +247,8 @@ CONFIG_SHELL := $(shell if [ -x "$$BASH" ]; then echo $$BASH; \
 
 HOSTCC       = gcc
 HOSTCXX      = g++
-HOSTCFLAGS   = -Wall -Wno-return-type -Wno-implicit-int -Wmissing-prototypes -Wstrict-prototypes -Wenum-compare -Ofast -fomit-frame-pointer -fgcse-las $(GRAPHITE)
-HOSTCXXFLAGS = -Ofast
+HOSTCFLAGS   = -Wall -Wno-return-type -Wno-implicit-int -Wmissing-prototypes -Wstrict-prototypes -Wenum-compare -O3 -fomit-frame-pointer -fgcse-las $(GRAPHITE)
+HOSTCXXFLAGS = -O3
 
 # Decide whether to build built-in, modular, or both.
 # Normally, just do built-in.
@@ -351,7 +351,7 @@ CHECKFLAGS     := -D__linux__ -Dlinux -D__STDC__ -Dunix -D__unix__ \
 		  -Wbitwise -Wno-return-void $(CF)
 GRAPHITE	= -fgcse-las -fgraphite -floop-flatten -floop-parallelize-all -ftree-loop-linear -floop-interchange -floop-strip-mine -floop-block
 MODFLAGS	= -DMODULE $(KERNELFLAGS) -fno-pic
-KERNELFLAGS	= -DNDEBUG -fgcse-lm -fgcse-sm -fsched-spec-load -fforce-addr -ffast-math -fsingle-precision-constant -marm -mtune=cortex-a15 -mfpu=neon-vfpv4 -ftree-vectorize -fgcse-las $(GRAPHITE)
+KERNELFLAGS	= -DNDEBUG -fgcse-lm -fgcse-sm -fsched-spec-load -fforce-addr -ffast-math -fsingle-precision-constant -marm -mtune=cortex-a15 -mfpu=neon-vfpv4 -ftree-vectorize -fgcse-las
 CFLAGS_MODULE   = $(MODFLAGS) 
 AFLAGS_MODULE   = 
 LDFLAGS_MODULE  = -T $(srctree)/scripts/module-common.lds
