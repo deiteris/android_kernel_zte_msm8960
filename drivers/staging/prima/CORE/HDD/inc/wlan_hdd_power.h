@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012, Code Aurora Forum. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -78,7 +78,7 @@
  VOS_STATUS hdd_enter_deep_sleep(hdd_context_t *pHddCtx, 
                                 hdd_adapter_t* pAdapter);
 #ifdef CONFIG_HAS_EARLYSUSPEND
- VOS_STATUS hdd_wlan_reset(void);
+ VOS_STATUS hdd_wlan_reset(void) ;
  VOS_STATUS hdd_wlan_reset_initialization(void) ;
 #endif
  /* SSR shutdown & re-init functions */

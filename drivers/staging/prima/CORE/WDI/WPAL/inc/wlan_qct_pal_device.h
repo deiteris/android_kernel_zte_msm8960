@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012, Code Aurora Forum. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -276,23 +276,5 @@ wpt_status wpalNotifySmsm
    wpt_uint32                            clrSt,
    wpt_uint32                            setSt
 );
-
-/**
-  @brief wpalActivateRxInterrupt activates wpalRxIsr
-
-  @param  NONE
-
-  @return NONE
-*/
-void wpalActivateRxInterrupt(void);
-
-/**
-  @brief wpalInactivateRxInterrupt inactivates wpalRxIsr
-
-  @param  NONE
-
-  @return NONE
-*/
-void wpalInactivateRxInterrupt(void);
 
 #endif /* WLAN_QCT_PAL_DEVICE_H*/

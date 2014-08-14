@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012, Code Aurora Forum. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -19,8 +19,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/*
- * */
 #if !defined( PALTYPES_H__ )
 #define PALTYPES_H__
 
@@ -43,7 +41,6 @@
    ========================================================================== */
 #ifndef WINXP_APPS_BUILD
 #include "vos_types.h"
-#include "vos_api.h"
 #endif /* WINXP_APPS_BUILD */
 
 #ifdef FEATURE_WLAN_INTEGRATED_SOC

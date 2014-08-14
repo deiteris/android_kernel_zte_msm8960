@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012, Code Aurora Forum. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -19,8 +19,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/*
- * */
+
 /**=========================================================================
   
   \file  rrmApi.h
@@ -87,10 +86,4 @@ extern void rrmUpdateStartTSF ( tpAniSirGlobal pMac,
 extern tSirRetStatus rrmSetMaxTxPowerRsp ( tpAniSirGlobal pMac, 
                                   tpSirMsgQ limMsgQ );
 
-extern tSirRetStatus
-rrmProcessNeighborReportReq( tpAniSirGlobal pMac,
-                            tpSirNeighborReportReqInd pNeighborReq );
-extern tSirRetStatus
-rrmProcessBeaconReportXmit( tpAniSirGlobal pMac,
-                            tpSirBeaconReportXmitInd pBcnReport);
 #endif

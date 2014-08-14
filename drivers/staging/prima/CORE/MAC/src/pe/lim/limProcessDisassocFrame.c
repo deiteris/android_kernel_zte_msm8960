@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012, Code Aurora Forum. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -19,8 +19,8 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
+
 /*
- *
  * Airgo Networks, Inc proprietary. All rights reserved.
  * This file limProcessDisassocFrame.cc contains the code
  * for processing Disassocation Frame.
@@ -109,9 +109,10 @@ limProcessDisassocFrame(tpAniSirGlobal pMac, tANI_U8 *pRxPacketInfo, tpPESession
     // Get reasonCode from Disassociation frame body
     reasonCode = sirReadU16(pBody);
 
-    PELOG2(limLog(pMac, LOG2,
-        FL("Received Disassoc frame (mlm state %d sme state %d), with reason code %d from "MAC_ADDRESS_STR), 
-        psessionEntry->limMlmState, psessionEntry->limSmeState, reasonCode, MAC_ADDR_ARRAY(pHdr->sa));)
+    PELOGE(limLog(pMac, LOGE,
+        FL("Received Disassoc frame (mlm state %d sme state %d), with reason code %d from \n"), 
+        psessionEntry->limMlmState, psessionEntry->limSmeState, reasonCode);)
+    limPrintMacAddr(pMac, pHdr->sa, LOGE);
 
     /**
    * Extract 'associated' context for STA, if any.
@@ -205,7 +206,7 @@ limProcessDisassocFrame(tpAniSirGlobal pMac, tANI_U8 *pRxPacketInfo, tpPESession
             case eSIR_MAC_DISASSOC_LEAVING_BSS_REASON:
                 // Valid reasonCode in received Disassociation frame
                 // as long as we're not about to channel switch
-                if(psessionEntry->gLimChannelSwitch.state != eLIM_CHANNEL_SWITCH_IDLE)
+                if(pMac->lim.gLimChannelSwitch.state != eLIM_CHANNEL_SWITCH_IDLE)
                 {
                     limLog(pMac, LOGW,
                         FL("Ignoring disassoc frame due to upcoming "
@@ -240,9 +241,9 @@ limProcessDisassocFrame(tpAniSirGlobal pMac, tANI_U8 *pRxPacketInfo, tpPESession
 
     // Disassociation from peer MAC entity
 
-   PELOGE(limLog(pMac, LOGE,
-           FL("Received Disassoc frame from sta with assocId=%d with reasonCode=%d. Peer MAC is "MAC_ADDRESS_STR),
-           pStaDs->assocId, reasonCode, MAC_ADDR_ARRAY(pHdr->sa));)
+   PELOG3(limLog(pMac, LOG3,
+           FL("Received Disassoc frame from sta with assocId=%d, with reasonCode=%d\n"),
+           pStaDs->assocId, reasonCode);)
 
     if ((pStaDs->mlmStaContext.mlmState == eLIM_MLM_WT_DEL_STA_RSP_STATE) ||
         (pStaDs->mlmStaContext.mlmState == eLIM_MLM_WT_DEL_BSS_RSP_STATE))
@@ -273,6 +274,29 @@ limProcessDisassocFrame(tpAniSirGlobal pMac, tANI_U8 *pRxPacketInfo, tpPESession
 
     pStaDs->mlmStaContext.cleanupTrigger = eLIM_PEER_ENTITY_DISASSOC;
     pStaDs->mlmStaContext.disassocReason = (tSirMacReasonCodes) reasonCode;
+
+    /* We received disassoc frame.  PE shall reset the 
+     * EDCA parameters to local values in the CFG and 
+     * send the update to HAL.
+     */
+    if ( (psessionEntry->limSystemRole == eLIM_STA_ROLE ) ||
+         (psessionEntry->limSystemRole == eLIM_BT_AMP_STA_ROLE ) )
+    {
+        schSetDefaultEdcaParams(pMac);
+        pStaDs = dphGetHashEntry(pMac, DPH_STA_HASH_INDEX_PEER, &psessionEntry->dph.dphHashTable);
+        if (pStaDs != NULL)
+        {
+            if (pStaDs->aniPeer == eANI_BOOLEAN_TRUE) 
+                limSendEdcaParams(pMac, psessionEntry->gLimEdcaParamsActive, pStaDs->bssId, eANI_BOOLEAN_TRUE);
+            else
+                limSendEdcaParams(pMac, psessionEntry->gLimEdcaParamsActive, pStaDs->bssId, eANI_BOOLEAN_FALSE);
+        }
+        else
+        {
+            limLog(pMac, LOGE, FL("Self entry missing in Hash Table \n"));
+            return;
+        }
+    }
 
     // Issue Disassoc Indication to SME.
     palCopyMemory( pMac->hHdd, (tANI_U8 *) &mlmDisassocInd.peerMacAddr,

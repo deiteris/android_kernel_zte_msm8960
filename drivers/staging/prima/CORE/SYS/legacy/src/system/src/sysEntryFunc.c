@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012, Code Aurora Forum. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -167,6 +167,7 @@ sysBbtProcessMessageCore(tpAniSirGlobal pMac, tpSirMsgQ pMsg, tANI_U32 type,
     vos_pkt_t  *pVosPkt = (vos_pkt_t *)pMsg->bodyptr;
     VOS_STATUS  vosStatus =
               WDA_DS_PeekRxPacketInfo( pVosPkt, (v_PVOID_t *)&pBd, VOS_FALSE );
+
     pMac->sys.gSysBbtReceived++;
 
     if ( !VOS_IS_STATUS_SUCCESS(vosStatus) )
@@ -174,9 +175,9 @@ sysBbtProcessMessageCore(tpAniSirGlobal pMac, tpSirMsgQ pMsg, tANI_U32 type,
         goto fail;
     }
 
-    PELOG3(sysLog(pMac, LOG3, FL("Rx Mgmt Frame Subtype: %d\n"), subType);
-    sirDumpBuf(pMac, SIR_SYS_MODULE_ID, LOG3, (tANI_U8 *)WDA_GET_RX_MAC_HEADER(pBd), WDA_GET_RX_MPDU_LEN(pBd));
-    sirDumpBuf(pMac, SIR_SYS_MODULE_ID, LOG3, WDA_GET_RX_MPDU_DATA(pBd), WDA_GET_RX_PAYLOAD_LEN(pBd));)
+    PELOGW(sysLog(pMac, LOGW, FL("Rx Mgmt Frame Subtype: %d\n"), subType);
+    sirDumpBuf(pMac, SIR_SYS_MODULE_ID, LOGW, (tANI_U8 *)WDA_GET_RX_MAC_HEADER(pBd), WDA_GET_RX_MPDU_LEN(pBd));
+    sirDumpBuf(pMac, SIR_SYS_MODULE_ID, LOGW, WDA_GET_RX_MPDU_DATA(pBd), WDA_GET_RX_PAYLOAD_LEN(pBd));)
 
     pMac->sys.gSysFrameCount[type][subType]++;
 
@@ -186,7 +187,7 @@ sysBbtProcessMessageCore(tpAniSirGlobal pMac, tpSirMsgQ pMsg, tANI_U32 type,
             if( (dropReason = limIsPktCandidateForDrop(pMac, pBd, subType)) != eMGMT_DROP_NO_DROP)
             {
                 PELOG1(sysLog(pMac, LOG1, FL("Mgmt Frame %d being dropped, reason: %d\n"), subType, dropReason);)
-                MTRACE(macTrace(pMac,   TRACE_CODE_RX_MGMT_DROP, NO_SESSION, dropReason);)
+                MTRACE(macTrace(pMac,   TRACE_CODE_RX_MGMT_DROP, 0, dropReason);)
                 goto fail;
             }
             //Post the message to PE Queue
@@ -197,30 +198,18 @@ sysBbtProcessMessageCore(tpAniSirGlobal pMac, tpSirMsgQ pMsg, tANI_U32 type,
                 goto fail;
             }
             pMac->sys.gSysBbtPostedToLim++;
+
     }
-#ifdef FEATURE_WLAN_CCX
-    else if (type == SIR_MAC_DATA_FRAME)
-    {
-        PELOGW(sysLog(pMac, LOGW, FL("IAPP Frame...\n")););
-        //Post the message to PE Queue
-        ret = (tSirRetStatus) limPostMsgApi(pMac, pMsg);
-        if (ret != eSIR_SUCCESS)
-        {
-            PELOGE(sysLog(pMac, LOGE, FL("posting to LIM2 failed, ret %d\n"), ret);)
-            goto fail;
-        }
-        pMac->sys.gSysBbtPostedToLim++;
-    }
-#endif
     else
     {
-        PELOG3(sysLog(pMac, LOG3, "BBT received Invalid type %d subType %d "
+            PELOGE(sysLog(pMac, LOGE, "BBT received Invalid type %d subType %d "
                    "LIM state %X. BD dump is:\n",
                    type, subType, limGetSmeState(pMac));
-        sirDumpBuf(pMac, SIR_SYS_MODULE_ID, LOG3,
+            sirDumpBuf(pMac, SIR_SYS_MODULE_ID, LOGE,
                        (tANI_U8 *) pBd, WLANHAL_RX_BD_HEADER_SIZE);)
 
-        goto fail;
+            goto fail;
+
     }
 
     return eSIR_SUCCESS;

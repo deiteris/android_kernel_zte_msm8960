@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012, Code Aurora Forum. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -19,8 +19,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/*
- * */
+
 #if !defined( __SMERRMINTERNAL_H )
 #define __SMERRMINTERNAL_H
 
@@ -84,7 +83,7 @@ typedef struct sRrmNeighborRequestControlInfo
 
 typedef struct sRrmSMEContext
 {
-   tANI_U16 token;
+   tANI_U8 token;
    tCsrBssid sessionBssId;
    tANI_U8 regClass;
    tCsrChannelInfo channelList; //list of all channels to be measured.

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012, Code Aurora Forum. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -27,7 +27,8 @@
   
     Define debug log interface for SMS.
   
-   Copyright (C) 2006 Airgo Networks, Incorporated
+    Copyright (C) 2006 Airgo Networks, Incorporated
+  
  
    ========================================================================== */
    

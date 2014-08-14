@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012, Code Aurora Forum. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -332,11 +332,7 @@ static eHalStatus hdd_IndicateScanResult(hdd_scan_info_t *scanInfo, tCsrScanResu
 
    if (ie_length > 0)
    {
-       /* dot11BeaconIEs is a large struct, so we make it static to
-          avoid stack overflow.  This API is only invoked via ioctl,
-          so it is serialized by the kernel rtnl_lock and hence does
-          not need to be reentrant */
-       static tDot11fBeaconIEs dot11BeaconIEs;
+       tDot11fBeaconIEs dot11BeaconIEs;
        tDot11fIESSID *pDot11SSID;
        tDot11fIESuppRates *pDot11SuppRates;
        tDot11fIEExtSuppRates *pDot11ExtSuppRates;
@@ -905,14 +901,14 @@ int iw_set_cscan(struct net_device *dev, struct iw_request_info *info,
 
 #ifdef WLAN_BTAMP_FEATURE
     //Scan not supported when AMP traffic is on.
-    if( VOS_TRUE == WLANBAP_AmpSessionOn() )
+    if( VOS_TRUE == WLANBAP_AmpSessionOn() ) 
     {
         VOS_TRACE(VOS_MODULE_ID_HDD, VOS_TRACE_LEVEL_ERROR, "%s: No scanning when AMP is on",__func__);
         return eHAL_STATUS_SUCCESS;
     }
 #endif
 
-    if ((WLAN_HDD_GET_CTX(pAdapter))->isLogpInProgress)
+    if ((WLAN_HDD_GET_CTX(pAdapter))->isLogpInProgress) 
     {
         VOS_TRACE(VOS_MODULE_ID_HDD, VOS_TRACE_LEVEL_FATAL, "%s:LOGP in Progress. Ignore!!!",__func__);
         return eHAL_STATUS_SUCCESS;
@@ -969,7 +965,7 @@ int iw_set_cscan(struct net_device *dev, struct iw_request_info *info,
             }
         }
         pAdapter->scan_info.waitScanResult = FALSE;
-
+		
         /* Check for scan IE */
         while( WEXT_CSCAN_SSID_SECTION == str_ptr[i] ) 
         {
