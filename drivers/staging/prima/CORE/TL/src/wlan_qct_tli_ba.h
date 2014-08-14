@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2012, The Linux Foundation. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -214,7 +214,7 @@ VOS_STATUS
 WLANTL_AMSDUProcess
 ( 
   v_PVOID_t   pvosGCtx,
-  vos_pkt_t*  vosDataBuff, 
+  vos_pkt_t** ppVosDataBuff, 
   v_PVOID_t   pvBDHeader,
   v_U8_t      ucSTAId,
   v_U8_t      ucMPDUHLen,

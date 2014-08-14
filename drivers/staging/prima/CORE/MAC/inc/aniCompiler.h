@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2012, The Linux Foundation. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -22,8 +22,9 @@
 /*
  * Compiler abstraction layer
  *
- * Copyright (C) 2005-2006 Airgo Networks, Inc
  *
+ *
+ * Copyright (C) 2005-2006 Airgo Networks, Inc
  * This file tries to abstract the differences among compilers.
  * Supported compilers are :
  *

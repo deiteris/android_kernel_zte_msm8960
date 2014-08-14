@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2012, The Linux Foundation. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -18,7 +18,6 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-
 
 #if !defined( __SMEINTERNAL_H )
 #define __SMEINTERNAL_H
@@ -52,6 +51,7 @@
   Type declarations
   ------------------------------------------------------------------------*/
 
+// Mask can be only have one bit set
 typedef enum eSmeCommandType 
 {
     eSmeNoCommand = 0, 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2012, The Linux Foundation. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -20,7 +20,6 @@
  */
 
 /*
- * Airgo Networks, Inc proprietary. All rights reserved.
  * This file limDebug.h contains log function called by LIM module.
  *
  * Author:      Chandra Modumudi

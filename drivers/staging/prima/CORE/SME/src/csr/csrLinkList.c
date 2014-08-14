@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2012, The Linux Foundation. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -21,15 +21,12 @@
 
 /** ------------------------------------------------------------------------- * 
     ------------------------------------------------------------------------- *  
-
-  
     \file csrLinkList.c
   
     Implementation for the Common link list interfaces.
   
-    Copyright (C) 2006 Airgo Networks, Incorporated
   
- 
+    Copyright (C) 2006 Airgo Networks, Incorporated 
    ========================================================================== */
 
 #include "palApi.h"

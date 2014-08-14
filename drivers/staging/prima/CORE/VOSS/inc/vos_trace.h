@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2012, The Linux Foundation. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -64,10 +64,11 @@ typedef enum
    VOS_TRACE_LEVEL_INFO_HIGH,
    VOS_TRACE_LEVEL_INFO_MED,
    VOS_TRACE_LEVEL_INFO_LOW,
-   
+
    // ALL means all trace levels will be active.  This value is in place for the 
    // vos_trace_setlevel() to allow the user to turn ON all traces.
    VOS_TRACE_LEVEL_ALL, 
+
    
    // not a real level.  Used to identify the maximum number of 
    // VOS_TRACE_LEVELs defined.

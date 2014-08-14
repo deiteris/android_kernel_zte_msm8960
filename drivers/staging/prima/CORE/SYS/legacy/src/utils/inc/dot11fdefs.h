@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2012, The Linux Foundation. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -26,8 +26,9 @@
  *
  * \brief C defines customizing our framesc-generated code
  *
- * Copyright (C) 2006 Airgo Networks, Incorporated
  *
+ *
+ * Copyright (C) 2006 Airgo Networks, Incorporated
  *
  * 'framesc' generates code written in terms of a number of macros
  * intended for customization.

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2012, The Linux Foundation. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -20,8 +20,9 @@
  */
 
 /*
- * Airgo Networks, Inc proprietary. All rights reserved.
  *
+ *
+ * Airgo Networks, Inc proprietary. All rights reserved.
  * Author:      Kevin Nguyen    
  * Date:        04/09/02
  * History:-

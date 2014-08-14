@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2012, The Linux Foundation. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -20,6 +20,7 @@
  */
 
 /*
+ *
  * Airgo Networks, Inc proprietary. All rights reserved.
  * This file limRoamingAlgo.cc contains the code for LIM
  * algorithms.
@@ -193,6 +194,7 @@ void limTriggerBackgroundScan(tpAniSirGlobal pMac)
     smeScanReq.numSsid = 1;
 
     smeScanReq.scanType    = eSIR_ACTIVE_SCAN;
+    smeScanReq.sessionId = 0;
 
     if (wlan_cfgGetInt(pMac, WNI_CFG_ACTIVE_MINIMUM_CHANNEL_TIME,
                   &smeScanReq.minChannelTime) != eSIR_SUCCESS)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2012, The Linux Foundation. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -20,7 +20,8 @@
  */
 
 /*
- * Airgo Networks, Inc proprietary. All rights reserved
+ *
+ * Airgo Networks, Inc proprietary. All rights reserved.
  * macInitApi.c - Header file for mac level init functions
   * Author:    Dinesh Upadhyay
  * Date:      04/23/2007
